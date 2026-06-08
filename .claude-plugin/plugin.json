@@ -1,0 +1,26 @@
+{
+  "name": "storymap-skill",
+  "description": "User story mapping (Jeff Patton style). Turns a goal, brief, or messy backlog into a sliced, prioritized delivery plan. Plays well with Superpowers / gstack / GSD.",
+  "version": "0.0.1",
+  "author": {
+    "name": "MartinForReal",
+    "url": "https://github.com/MartinForReal"
+  },
+  "homepage": "https://github.com/MartinForReal/storymap-skill",
+  "repository": "https://github.com/MartinForReal/storymap-skill",
+  "license": "MIT",
+  "keywords": [
+    "user-story-mapping",
+    "story-mapping",
+    "agile",
+    "safe",
+    "wsjf",
+    "rice",
+    "moscow",
+    "mvp",
+    "pi-planning",
+    "product-discovery",
+    "jeff-patton",
+    "backlog-management"
+  ]
+}

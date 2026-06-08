@@ -1,0 +1,129 @@
+graph TD
+  classDef activity fill:#e0e7ff,stroke:#4338ca,stroke-width:2px;
+  classDef task fill:#fef3c7,stroke:#b45309,stroke-width:1px;
+  classDef story fill:#ecfdf5,stroke:#047857,stroke-width:1px;
+
+  A_Discover_and_request_access["Discover and request access"]:::activity
+  A_Spin_up_an_environment["Spin up an environment"]:::activity
+  A_Connect_services_and_secrets["Connect services and secrets"]:::activity
+  A_Deploy_to_staging["Deploy to staging"]:::activity
+  A_Operate_and_observe["Operate and observe"]:::activity
+  A_Non_backbone_Governance_hardening_deferr["Non-backbone: Governance hardening (deferred per VP Eng stance)"]:::activity
+  A_Non_backbone_Platform_reliability["Non-backbone: Platform reliability"]:::activity
+  A_Non_backbone_Security_and_compliance["Non-backbone: Security and compliance"]:::activity
+  A_Discover_and_request_access --> A_Spin_up_an_environment --> A_Connect_services_and_secrets --> A_Deploy_to_staging --> A_Operate_and_observe --> A_Non_backbone_Governance_hardening_deferr --> A_Non_backbone_Platform_reliability --> A_Non_backbone_Security_and_compliance
+
+  A_Discover_and_request_access_T_Find_the_IDP_and_sign_in["Find the IDP and sign in"]:::task
+  A_Discover_and_request_access --> A_Discover_and_request_access_T_Find_the_IDP_and_sign_in
+  A_Discover_and_request_access_T_Find_the_IDP_and_sign_in_pi_1_S0["[pi-1] As an Application Developer, I want to sign in to the IDP wi…"]:::story
+  A_Discover_and_request_access_T_Find_the_IDP_and_sign_in --> A_Discover_and_request_access_T_Find_the_IDP_and_sign_in_pi_1_S0
+  A_Discover_and_request_access_T_Find_the_IDP_and_sign_in_pi_1_S1["[pi-1] As an Application Developer, I want to land on a &quot;what can I…"]:::story
+  A_Discover_and_request_access_T_Find_the_IDP_and_sign_in --> A_Discover_and_request_access_T_Find_the_IDP_and_sign_in_pi_1_S1
+  A_Discover_and_request_access_T_Find_the_IDP_and_sign_in_pi_2_S0["[pi-2] As an Application Developer, I want a one-click onboarding t…"]:::story
+  A_Discover_and_request_access_T_Find_the_IDP_and_sign_in --> A_Discover_and_request_access_T_Find_the_IDP_and_sign_in_pi_2_S0
+  A_Discover_and_request_access_T_Get_into_my_team_s_workspace["Get into my team's workspace"]:::task
+  A_Discover_and_request_access --> A_Discover_and_request_access_T_Get_into_my_team_s_workspace
+  A_Discover_and_request_access_T_Get_into_my_team_s_workspace_pi_1_S0["[pi-1] As an Application Developer, I want my team membership auto-…"]:::story
+  A_Discover_and_request_access_T_Get_into_my_team_s_workspace --> A_Discover_and_request_access_T_Get_into_my_team_s_workspace_pi_1_S0
+  A_Discover_and_request_access_T_Get_into_my_team_s_workspace_pi_2_S0["[pi-2] As a Platform Team Engineer, I want to override or correct t…"]:::story
+  A_Discover_and_request_access_T_Get_into_my_team_s_workspace --> A_Discover_and_request_access_T_Get_into_my_team_s_workspace_pi_2_S0
+  A_Spin_up_an_environment_T_Pick_a_blueprint_and_provision["Pick a blueprint and provision"]:::task
+  A_Spin_up_an_environment --> A_Spin_up_an_environment_T_Pick_a_blueprint_and_provision
+  A_Spin_up_an_environment_T_Pick_a_blueprint_and_provision_pi_1_S0["[pi-1] As an Application Developer, I want to pick a sandbox bluepr…"]:::story
+  A_Spin_up_an_environment_T_Pick_a_blueprint_and_provision --> A_Spin_up_an_environment_T_Pick_a_blueprint_and_provision_pi_1_S0
+  A_Spin_up_an_environment_T_Pick_a_blueprint_and_provision_pi_1_S1["[pi-1] As an Application Developer, I want to click &quot;Create sandbox…"]:::story
+  A_Spin_up_an_environment_T_Pick_a_blueprint_and_provision --> A_Spin_up_an_environment_T_Pick_a_blueprint_and_provision_pi_1_S1
+  A_Spin_up_an_environment_T_Pick_a_blueprint_and_provision_pi_1_S2["[pi-1] As a Platform Team Engineer, I want every sandbox blueprint …"]:::story
+  A_Spin_up_an_environment_T_Pick_a_blueprint_and_provision --> A_Spin_up_an_environment_T_Pick_a_blueprint_and_provision_pi_1_S2
+  A_Spin_up_an_environment_T_Pick_a_blueprint_and_provision_pi_2_S0["[pi-2] As an Application Developer, I want to fork a blueprint and …"]:::story
+  A_Spin_up_an_environment_T_Pick_a_blueprint_and_provision --> A_Spin_up_an_environment_T_Pick_a_blueprint_and_provision_pi_2_S0
+  A_Spin_up_an_environment_T_Pick_a_blueprint_and_provision_pi_2_S1["[pi-2] As a Platform Team Engineer, I want to promote a community-f…"]:::story
+  A_Spin_up_an_environment_T_Pick_a_blueprint_and_provision --> A_Spin_up_an_environment_T_Pick_a_blueprint_and_provision_pi_2_S1
+  A_Spin_up_an_environment_T_Apply_tags_and_metadata_at_creation["Apply tags and metadata at creation"]:::task
+  A_Spin_up_an_environment --> A_Spin_up_an_environment_T_Apply_tags_and_metadata_at_creation
+  A_Spin_up_an_environment_T_Apply_tags_and_metadata_at_creation_pi_1_S0["[pi-1] As an Application Developer, I want the env-creation form to…"]:::story
+  A_Spin_up_an_environment_T_Apply_tags_and_metadata_at_creation --> A_Spin_up_an_environment_T_Apply_tags_and_metadata_at_creation_pi_1_S0
+  A_Spin_up_an_environment_T_Apply_tags_and_metadata_at_creation_pi_1_S1["[pi-1] As a Platform Team Engineer, I want team, cost-center, and e…"]:::story
+  A_Spin_up_an_environment_T_Apply_tags_and_metadata_at_creation --> A_Spin_up_an_environment_T_Apply_tags_and_metadata_at_creation_pi_1_S1
+  A_Spin_up_an_environment_T_Override_defaults_with_justification["Override defaults with justification"]:::task
+  A_Spin_up_an_environment --> A_Spin_up_an_environment_T_Override_defaults_with_justification
+  A_Spin_up_an_environment_T_Override_defaults_with_justification_pi_1_S0["[pi-1] As an Application Developer, I want to override a default po…"]:::story
+  A_Spin_up_an_environment_T_Override_defaults_with_justification --> A_Spin_up_an_environment_T_Override_defaults_with_justification_pi_1_S0
+  A_Spin_up_an_environment_T_Override_defaults_with_justification_pi_2_S0["[pi-2] As a Platform Team Engineer, I want a &quot;high-risk policy&quot; sub…"]:::story
+  A_Spin_up_an_environment_T_Override_defaults_with_justification --> A_Spin_up_an_environment_T_Override_defaults_with_justification_pi_2_S0
+  A_Connect_services_and_secrets_T_Self_service_secrets_for_non_prod["Self-service secrets for non-prod"]:::task
+  A_Connect_services_and_secrets --> A_Connect_services_and_secrets_T_Self_service_secrets_for_non_prod
+  A_Connect_services_and_secrets_T_Self_service_secrets_for_non_prod_pi_1_S0["[pi-1] As an Application Developer, I want to store and retrieve no…"]:::story
+  A_Connect_services_and_secrets_T_Self_service_secrets_for_non_prod --> A_Connect_services_and_secrets_T_Self_service_secrets_for_non_prod_pi_1_S0
+  A_Connect_services_and_secrets_T_Self_service_secrets_for_non_prod_pi_1_S1["[pi-1] As an Application Developer, I want the IDP to inject secret…"]:::story
+  A_Connect_services_and_secrets_T_Self_service_secrets_for_non_prod --> A_Connect_services_and_secrets_T_Self_service_secrets_for_non_prod_pi_1_S1
+  A_Connect_services_and_secrets_T_Request_access_to_managed_services["Request access to managed services"]:::task
+  A_Connect_services_and_secrets --> A_Connect_services_and_secrets_T_Request_access_to_managed_services
+  A_Connect_services_and_secrets_T_Request_access_to_managed_services_pi_1_S0["[pi-1] As an Application Developer, I want a list of internally-ava…"]:::story
+  A_Connect_services_and_secrets_T_Request_access_to_managed_services --> A_Connect_services_and_secrets_T_Request_access_to_managed_services_pi_1_S0
+  A_Connect_services_and_secrets_T_Request_access_to_managed_services_pi_2_S0["[pi-2] As an Application Developer, I want to request a new shared …"]:::story
+  A_Connect_services_and_secrets_T_Request_access_to_managed_services --> A_Connect_services_and_secrets_T_Request_access_to_managed_services_pi_2_S0
+  A_Connect_services_and_secrets_T_Bring_my_own_tools_non_prod_only["Bring my own tools (non-prod only)"]:::task
+  A_Connect_services_and_secrets --> A_Connect_services_and_secrets_T_Bring_my_own_tools_non_prod_only
+  A_Connect_services_and_secrets_T_Bring_my_own_tools_non_prod_only_pi_1_S0["[pi-1] As an Application Developer, I want to install arbitrary too…"]:::story
+  A_Connect_services_and_secrets_T_Bring_my_own_tools_non_prod_only --> A_Connect_services_and_secrets_T_Bring_my_own_tools_non_prod_only_pi_1_S0
+  A_Connect_services_and_secrets_T_Bring_my_own_tools_non_prod_only_pi_1_S1["[pi-1] As a Platform Team Engineer, I want a background SBOM/scan j…"]:::story
+  A_Connect_services_and_secrets_T_Bring_my_own_tools_non_prod_only --> A_Connect_services_and_secrets_T_Bring_my_own_tools_non_prod_only_pi_1_S1
+  A_Deploy_to_staging_T_Push_to_staging_without_a_ticket["Push to staging without a ticket"]:::task
+  A_Deploy_to_staging --> A_Deploy_to_staging_T_Push_to_staging_without_a_ticket
+  A_Deploy_to_staging_T_Push_to_staging_without_a_ticket_pi_1_S0["[pi-1] As an Application Developer, I want to deploy my containeriz…"]:::story
+  A_Deploy_to_staging_T_Push_to_staging_without_a_ticket --> A_Deploy_to_staging_T_Push_to_staging_without_a_ticket_pi_1_S0
+  A_Deploy_to_staging_T_Push_to_staging_without_a_ticket_pi_1_S1["[pi-1] As an Application Developer, I want my deploy to show me log…"]:::story
+  A_Deploy_to_staging_T_Push_to_staging_without_a_ticket --> A_Deploy_to_staging_T_Push_to_staging_without_a_ticket_pi_1_S1
+  A_Deploy_to_staging_T_Push_to_staging_without_a_ticket_pi_2_S0["[pi-2] As an Application Developer, I want preview environments per…"]:::story
+  A_Deploy_to_staging_T_Push_to_staging_without_a_ticket --> A_Deploy_to_staging_T_Push_to_staging_without_a_ticket_pi_2_S0
+  A_Deploy_to_staging_T_Prod_deploys_carve_out_approval_gated["Prod deploys (carve-out — approval-gated)"]:::task
+  A_Deploy_to_staging --> A_Deploy_to_staging_T_Prod_deploys_carve_out_approval_gated
+  A_Deploy_to_staging_T_Prod_deploys_carve_out_approval_gated_pi_2_S0["[pi-2] As a Platform Team Engineer, I want prod deploys to require …"]:::story
+  A_Deploy_to_staging_T_Prod_deploys_carve_out_approval_gated --> A_Deploy_to_staging_T_Prod_deploys_carve_out_approval_gated_pi_2_S0
+  A_Deploy_to_staging_T_Prod_deploys_carve_out_approval_gated_pi_2_S1["[pi-2] As an Application Developer, I want to submit a prod deploy …"]:::story
+  A_Deploy_to_staging_T_Prod_deploys_carve_out_approval_gated --> A_Deploy_to_staging_T_Prod_deploys_carve_out_approval_gated_pi_2_S1
+  A_Operate_and_observe_T_See_my_env_cost_and_usage["See my env cost and usage"]:::task
+  A_Operate_and_observe --> A_Operate_and_observe_T_See_my_env_cost_and_usage
+  A_Operate_and_observe_T_See_my_env_cost_and_usage_pi_1_S0["[pi-1] As an Application Developer, I want to see my env's running …"]:::story
+  A_Operate_and_observe_T_See_my_env_cost_and_usage --> A_Operate_and_observe_T_See_my_env_cost_and_usage_pi_1_S0
+  A_Operate_and_observe_T_See_my_env_cost_and_usage_pi_1_S1["[pi-1] As a Platform Team Engineer, I want a project-wide spend das…"]:::story
+  A_Operate_and_observe_T_See_my_env_cost_and_usage --> A_Operate_and_observe_T_See_my_env_cost_and_usage_pi_1_S1
+  A_Operate_and_observe_T_See_my_env_cost_and_usage_pi_1_S2["[pi-1] As an Application Developer, I want to receive a budget aler…"]:::story
+  A_Operate_and_observe_T_See_my_env_cost_and_usage --> A_Operate_and_observe_T_See_my_env_cost_and_usage_pi_1_S2
+  A_Operate_and_observe_T_Tear_down_and_clean_up["Tear down and clean up"]:::task
+  A_Operate_and_observe --> A_Operate_and_observe_T_Tear_down_and_clean_up
+  A_Operate_and_observe_T_Tear_down_and_clean_up_pi_1_S0["[pi-1] As an Application Developer, I want to tear down my env in o…"]:::story
+  A_Operate_and_observe_T_Tear_down_and_clean_up --> A_Operate_and_observe_T_Tear_down_and_clean_up_pi_1_S0
+  A_Operate_and_observe_T_Tear_down_and_clean_up_pi_2_S0["[pi-2] As a Platform Team Engineer, I want auto-expiry on sandbox e…"]:::story
+  A_Operate_and_observe_T_Tear_down_and_clean_up --> A_Operate_and_observe_T_Tear_down_and_clean_up_pi_2_S0
+  A_Operate_and_observe_T_Audit_trail_for_the_platform_team["Audit trail for the platform team"]:::task
+  A_Operate_and_observe --> A_Operate_and_observe_T_Audit_trail_for_the_platform_team
+  A_Operate_and_observe_T_Audit_trail_for_the_platform_team_pi_1_S0["[pi-1] As a Platform Team Engineer, I want every env creation, over…"]:::story
+  A_Operate_and_observe_T_Audit_trail_for_the_platform_team --> A_Operate_and_observe_T_Audit_trail_for_the_platform_team_pi_1_S0
+  A_Non_backbone_Governance_hardening_deferr_T_Governance_hardening_deferred_per_VP_Eng["Governance hardening (deferred per VP Eng stance)"]:::task
+  A_Non_backbone_Governance_hardening_deferr --> A_Non_backbone_Governance_hardening_deferr_T_Governance_hardening_deferred_per_VP_Eng
+  A_Non_backbone_Governance_hardening_deferr_T_Governance_hardening_deferred_per_V["[pi-2] Soft cost cap per env with override-and-justify (the next st…"]:::story
+  A_Non_backbone_Governance_hardening_deferr_T_Governance_hardening_deferred_per_VP_Eng --> A_Non_backbone_Governance_hardening_deferr_T_Governance_hardening_deferred_per_V
+  A_Non_backbone_Governance_hardening_deferr_T_Governance_hardening_deferred_per_V["[pi-2] Platform-team review queue for new &quot;official&quot; blueprints"]:::story
+  A_Non_backbone_Governance_hardening_deferr_T_Governance_hardening_deferred_per_VP_Eng --> A_Non_backbone_Governance_hardening_deferr_T_Governance_hardening_deferred_per_V
+  A_Non_backbone_Governance_hardening_deferr_T_Governance_hardening_deferred_per_V["[pi-3] Hard cost caps with break-glass — only if PI 1/2 cost-alert …"]:::story
+  A_Non_backbone_Governance_hardening_deferr_T_Governance_hardening_deferred_per_VP_Eng --> A_Non_backbone_Governance_hardening_deferr_T_Governance_hardening_deferred_per_V
+  A_Non_backbone_Governance_hardening_deferr_T_Governance_hardening_deferred_per_V["[pi-3] Allowlist-style approval workflow for env creation — deferre…"]:::story
+  A_Non_backbone_Governance_hardening_deferr_T_Governance_hardening_deferred_per_VP_Eng --> A_Non_backbone_Governance_hardening_deferr_T_Governance_hardening_deferred_per_V
+  A_Non_backbone_Platform_reliability_T_Platform_reliability["Platform reliability"]:::task
+  A_Non_backbone_Platform_reliability --> A_Non_backbone_Platform_reliability_T_Platform_reliability
+  A_Non_backbone_Platform_reliability_T_Platform_reliability_pi_2_S0["[pi-2] IDP itself has SLO + on-call rotation"]:::story
+  A_Non_backbone_Platform_reliability_T_Platform_reliability --> A_Non_backbone_Platform_reliability_T_Platform_reliability_pi_2_S0
+  A_Non_backbone_Platform_reliability_T_Platform_reliability_pi_2_S1["[pi-2] Blueprint provisioning has retry/idempotency so a half-creat…"]:::story
+  A_Non_backbone_Platform_reliability_T_Platform_reliability --> A_Non_backbone_Platform_reliability_T_Platform_reliability_pi_2_S1
+  A_Non_backbone_Platform_reliability_T_Platform_reliability_pi_3_S0["[pi-3] Multi-region IDP for DR"]:::story
+  A_Non_backbone_Platform_reliability_T_Platform_reliability --> A_Non_backbone_Platform_reliability_T_Platform_reliability_pi_3_S0
+  A_Non_backbone_Security_and_compliance_T_Security_and_compliance["Security and compliance"]:::task
+  A_Non_backbone_Security_and_compliance --> A_Non_backbone_Security_and_compliance_T_Security_and_compliance
+  A_Non_backbone_Security_and_compliance_T_Security_and_compliance_pi_2_S0["[pi-2] Prod-secret request flow (request → approve → time-bound acc…"]:::story
+  A_Non_backbone_Security_and_compliance_T_Security_and_compliance --> A_Non_backbone_Security_and_compliance_T_Security_and_compliance_pi_2_S0
+  A_Non_backbone_Security_and_compliance_T_Security_and_compliance_pi_2_S1["[pi-2] SBOM findings escalation policy (when a CVE crosses a thresh…"]:::story
+  A_Non_backbone_Security_and_compliance_T_Security_and_compliance --> A_Non_backbone_Security_and_compliance_T_Security_and_compliance_pi_2_S1
+  A_Non_backbone_Security_and_compliance_T_Security_and_compliance_pi_3_S0["[pi-3] SOC2/ISO evidence export from the audit store"]:::story
+  A_Non_backbone_Security_and_compliance_T_Security_and_compliance --> A_Non_backbone_Security_and_compliance_T_Security_and_compliance_pi_3_S0

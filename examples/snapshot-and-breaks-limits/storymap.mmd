@@ -1,0 +1,92 @@
+graph TD
+  classDef activity fill:#e0e7ff,stroke:#4338ca,stroke-width:2px;
+  classDef task fill:#fef3c7,stroke:#b45309,stroke-width:1px;
+  classDef story fill:#ecfdf5,stroke:#047857,stroke-width:1px;
+
+  A_Sign_in["Sign in"]:::activity
+  A_Find_transaction["Find transaction"]:::activity
+  A_Review_transaction["Review transaction"]:::activity
+  A_Submit_refund["Submit refund"]:::activity
+  A_Approve_refund["Approve refund"]:::activity
+  A_Notify_stakeholders["Notify stakeholders"]:::activity
+  A_Audit_compliance["Audit / compliance"]:::activity
+  A_Detect_anomalies["Detect anomalies"]:::activity
+  A_Provision_tenant_users["Provision tenant users"]:::activity
+  A_Sign_in --> A_Find_transaction --> A_Review_transaction --> A_Submit_refund --> A_Approve_refund --> A_Notify_stakeholders --> A_Audit_compliance --> A_Detect_anomalies --> A_Provision_tenant_users
+
+  A_Sign_in_T_Authenticate_via_corporate_SSO["Authenticate via corporate SSO"]:::task
+  A_Sign_in --> A_Sign_in_T_Authenticate_via_corporate_SSO
+  A_Sign_in_T_Authenticate_via_corporate_SSO_pi_1_S0["[pi-1] As a CS agent, I want to sign in with my company SSO, so tha…"]:::story
+  A_Sign_in_T_Authenticate_via_corporate_SSO --> A_Sign_in_T_Authenticate_via_corporate_SSO_pi_1_S0
+  A_Find_transaction_T_Look_up_by_identifier["Look up by identifier"]:::task
+  A_Find_transaction --> A_Find_transaction_T_Look_up_by_identifier
+  A_Find_transaction_T_Look_up_by_identifier_pi_1_S0["[pi-1] As a CS agent, I want to find a transaction by ID, so that I…"]:::story
+  A_Find_transaction_T_Look_up_by_identifier --> A_Find_transaction_T_Look_up_by_identifier_pi_1_S0
+  A_Find_transaction_T_Look_up_by_customer["Look up by customer"]:::task
+  A_Find_transaction --> A_Find_transaction_T_Look_up_by_customer
+  A_Find_transaction_T_Look_up_by_customer_pi_1_S0["[pi-1] As a CS agent, I want to find transactions by customer email…"]:::story
+  A_Find_transaction_T_Look_up_by_customer --> A_Find_transaction_T_Look_up_by_customer_pi_1_S0
+  A_Review_transaction_T_Inspect_details_before_action["Inspect details before action"]:::task
+  A_Review_transaction --> A_Review_transaction_T_Inspect_details_before_action
+  A_Review_transaction_T_Inspect_details_before_action_pi_1_S0["[pi-1] As a CS agent, I want to view full transaction details, so t…"]:::story
+  A_Review_transaction_T_Inspect_details_before_action --> A_Review_transaction_T_Inspect_details_before_action_pi_1_S0
+  A_Submit_refund_T_Issue_refund_within_auto_approve_thresho["Issue refund within auto-approve threshold"]:::task
+  A_Submit_refund --> A_Submit_refund_T_Issue_refund_within_auto_approve_thresho
+  A_Submit_refund_T_Issue_refund_within_auto_approve_thresho_pi_1_S0["[pi-1] As a CS agent, I want to submit refunds under $100 with rule…"]:::story
+  A_Submit_refund_T_Issue_refund_within_auto_approve_thresho --> A_Submit_refund_T_Issue_refund_within_auto_approve_thresho_pi_1_S0
+  A_Submit_refund_T_Issue_refund_above_threshold["Issue refund above threshold"]:::task
+  A_Submit_refund --> A_Submit_refund_T_Issue_refund_above_threshold
+  A_Submit_refund_T_Issue_refund_above_threshold_pi_1_S0["[pi-1] As a CS agent, I want to submit refunds over $100 into the a…"]:::story
+  A_Submit_refund_T_Issue_refund_above_threshold --> A_Submit_refund_T_Issue_refund_above_threshold_pi_1_S0
+  A_Approve_refund_T_Supervisor_review["Supervisor review"]:::task
+  A_Approve_refund --> A_Approve_refund_T_Supervisor_review
+  A_Approve_refund_T_Supervisor_review_pi_1_S0["[pi-1] As a refund approver, I want a dashboard of pending refunds,…"]:::story
+  A_Approve_refund_T_Supervisor_review --> A_Approve_refund_T_Supervisor_review_pi_1_S0
+  A_Notify_stakeholders_T_Notify_customer["Notify customer"]:::task
+  A_Notify_stakeholders --> A_Notify_stakeholders_T_Notify_customer
+  A_Notify_stakeholders_T_Notify_customer_pi_1_S0["[pi-1] As a customer, I want an email when my refund is approved, s…"]:::story
+  A_Notify_stakeholders_T_Notify_customer --> A_Notify_stakeholders_T_Notify_customer_pi_1_S0
+  A_Notify_stakeholders_T_Notify_approver["Notify approver"]:::task
+  A_Notify_stakeholders --> A_Notify_stakeholders_T_Notify_approver
+  A_Notify_stakeholders_T_Notify_approver_pi_1_S0["[pi-1] As an approver, I want a Slack ping when a refund needs my r…"]:::story
+  A_Notify_stakeholders_T_Notify_approver --> A_Notify_stakeholders_T_Notify_approver_pi_1_S0
+  A_Notify_stakeholders_T_Handle_failed_refunds["Handle failed refunds"]:::task
+  A_Notify_stakeholders --> A_Notify_stakeholders_T_Handle_failed_refunds
+  A_Notify_stakeholders_T_Handle_failed_refunds_pi_1_S0["[pi-1] As a CS agent, I want failed refunds to retry automatically,…"]:::story
+  A_Notify_stakeholders_T_Handle_failed_refunds --> A_Notify_stakeholders_T_Handle_failed_refunds_pi_1_S0
+  A_Audit_compliance_T_Emit_audit_events["Emit audit events"]:::task
+  A_Audit_compliance --> A_Audit_compliance_T_Emit_audit_events
+  A_Audit_compliance_T_Emit_audit_events_pi_1_S0["[pi-1] Emit audit log events for every refund action, so that audit…"]:::story
+  A_Audit_compliance_T_Emit_audit_events --> A_Audit_compliance_T_Emit_audit_events_pi_1_S0
+  A_Audit_compliance_T_Search_audit_log["Search audit log"]:::task
+  A_Audit_compliance --> A_Audit_compliance_T_Search_audit_log
+  A_Audit_compliance_T_Search_audit_log_pi_1_S0["[pi-1] As a compliance reviewer, I want to search the audit log by …"]:::story
+  A_Audit_compliance_T_Search_audit_log --> A_Audit_compliance_T_Search_audit_log_pi_1_S0
+  A_Audit_compliance_T_Retention_policy["Retention policy"]:::task
+  A_Audit_compliance --> A_Audit_compliance_T_Retention_policy
+  A_Audit_compliance_T_Retention_policy_pi_1_S0["[pi-1] Enforce SOC 2 audit log retention policy (7 years), so that …"]:::story
+  A_Audit_compliance_T_Retention_policy --> A_Audit_compliance_T_Retention_policy_pi_1_S0
+  A_Audit_compliance_T_Export_evidence["Export evidence"]:::task
+  A_Audit_compliance --> A_Audit_compliance_T_Export_evidence
+  A_Audit_compliance_T_Export_evidence_pi_1_S0["[pi-1] As a compliance officer, I want to export the audit log to C…"]:::story
+  A_Audit_compliance_T_Export_evidence --> A_Audit_compliance_T_Export_evidence_pi_1_S0
+  A_Detect_anomalies_T_Pattern_detection_on_refunds["Pattern detection on refunds"]:::task
+  A_Detect_anomalies --> A_Detect_anomalies_T_Pattern_detection_on_refunds
+  A_Detect_anomalies_T_Pattern_detection_on_refunds_pi_1_S0["[pi-1] As a security engineer, I want suspicious refund clusters to…"]:::story
+  A_Detect_anomalies_T_Pattern_detection_on_refunds --> A_Detect_anomalies_T_Pattern_detection_on_refunds_pi_1_S0
+  A_Provision_tenant_users_T_Establish_SCIM_2_0_endpoint_surface["Establish SCIM 2.0 endpoint surface"]:::task
+  A_Provision_tenant_users --> A_Provision_tenant_users_T_Establish_SCIM_2_0_endpoint_surface
+  A_Provision_tenant_users_T_Establish_SCIM_2_0_endpoint_surface_pi_1_scim_S0["[pi-1-scim] As an enterprise IT admin, I want a SCIM 2.0 endpoint scaffo…"]:::story
+  A_Provision_tenant_users_T_Establish_SCIM_2_0_endpoint_surface --> A_Provision_tenant_users_T_Establish_SCIM_2_0_endpoint_surface_pi_1_scim_S0
+  A_Provision_tenant_users_T_Provision_users["Provision users"]:::task
+  A_Provision_tenant_users --> A_Provision_tenant_users_T_Provision_users
+  A_Provision_tenant_users_T_Provision_users_pi_1_scim_S0["[pi-1-scim] As an enterprise IT admin, I want to create and update users…"]:::story
+  A_Provision_tenant_users_T_Provision_users --> A_Provision_tenant_users_T_Provision_users_pi_1_scim_S0
+  A_Provision_tenant_users_T_Deprovision_users["Deprovision users"]:::task
+  A_Provision_tenant_users --> A_Provision_tenant_users_T_Deprovision_users
+  A_Provision_tenant_users_T_Deprovision_users_pi_1_scim_S0["[pi-1-scim] As an enterprise IT admin, I want SCIM DELETE to disable acc…"]:::story
+  A_Provision_tenant_users_T_Deprovision_users --> A_Provision_tenant_users_T_Deprovision_users_pi_1_scim_S0
+  A_Provision_tenant_users_T_Group_to_role_mapping["Group-to-role mapping"]:::task
+  A_Provision_tenant_users --> A_Provision_tenant_users_T_Group_to_role_mapping
+  A_Provision_tenant_users_T_Group_to_role_mapping_deferred_or_pi_1_scim_S0["[deferred-or-pi-1-scim] As an enterprise IT admin, I want my IdP group memberships t…"]:::story
+  A_Provision_tenant_users_T_Group_to_role_mapping --> A_Provision_tenant_users_T_Group_to_role_mapping_deferred_or_pi_1_scim_S0

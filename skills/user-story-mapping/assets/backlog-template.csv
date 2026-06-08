@@ -1,0 +1,2 @@
+id,activity,task,story,persona,outcome,slice,method,score,reasoning,depends_on,okr,okr_contribution,acceptance_criteria_file,wsjf_value,wsjf_time,wsjf_risk,wsjf_size,rice_reach,rice_impact,rice_confidence,rice_effort,moscow
+S001,,,,,,,wsjf,,,"","","","slice-1-acceptance-criteria.md#S001",,,,,,,,,

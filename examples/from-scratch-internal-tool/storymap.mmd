@@ -1,0 +1,154 @@
+graph TD
+  classDef activity fill:#e0e7ff,stroke:#4338ca,stroke-width:2px;
+  classDef task fill:#fef3c7,stroke:#b45309,stroke-width:1px;
+  classDef story fill:#ecfdf5,stroke:#047857,stroke-width:1px;
+
+  A_Sign_in_access_the_portal["Sign in & access the portal"]:::activity
+  A_Find_the_transaction["Find the transaction"]:::activity
+  A_Review_decide["Review & decide"]:::activity
+  A_Issue_the_refund["Issue the refund"]:::activity
+  A_Confirm_communicate["Confirm & communicate"]:::activity
+  A_Non_backbone_Compliance_security_baselin["Non-backbone: Compliance & security baseline"]:::activity
+  A_Non_backbone_Reliability_observability["Non-backbone: Reliability & observability"]:::activity
+  A_Non_backbone_Tech_foundations["Non-backbone: Tech foundations"]:::activity
+  A_Non_backbone_Onboarding_enablement["Non-backbone: Onboarding & enablement"]:::activity
+  A_Sign_in_access_the_portal --> A_Find_the_transaction --> A_Review_decide --> A_Issue_the_refund --> A_Confirm_communicate --> A_Non_backbone_Compliance_security_baselin --> A_Non_backbone_Reliability_observability --> A_Non_backbone_Tech_foundations --> A_Non_backbone_Onboarding_enablement
+
+  A_Sign_in_access_the_portal_T_Authenticate_via_company_SSO["Authenticate via company SSO"]:::task
+  A_Sign_in_access_the_portal --> A_Sign_in_access_the_portal_T_Authenticate_via_company_SSO
+  A_Sign_in_access_the_portal_T_Authenticate_via_company_SSO_pi_1_S0["[pi-1] As a CS Agent, I want to sign in to the portal using my comp…"]:::story
+  A_Sign_in_access_the_portal_T_Authenticate_via_company_SSO --> A_Sign_in_access_the_portal_T_Authenticate_via_company_SSO_pi_1_S0
+  A_Sign_in_access_the_portal_T_Authenticate_via_company_SSO_pi_1_S1["[pi-1] As a CS Agent, I want to be auto-signed-out after a period o…"]:::story
+  A_Sign_in_access_the_portal_T_Authenticate_via_company_SSO --> A_Sign_in_access_the_portal_T_Authenticate_via_company_SSO_pi_1_S1
+  A_Sign_in_access_the_portal_T_Authenticate_via_company_SSO_pi_2_S0["[pi-2] As a CS Agent, I want SSO to remember me across browser sess…"]:::story
+  A_Sign_in_access_the_portal_T_Authenticate_via_company_SSO --> A_Sign_in_access_the_portal_T_Authenticate_via_company_SSO_pi_2_S0
+  A_Sign_in_access_the_portal_T_Get_the_right_access_scope_for_my_role["Get the right access scope for my role"]:::task
+  A_Sign_in_access_the_portal --> A_Sign_in_access_the_portal_T_Get_the_right_access_scope_for_my_role
+  A_Sign_in_access_the_portal_T_Get_the_right_access_scope_for_my_role_pi_1_S0["[pi-1] As a CS Agent, I want to land on a page scoped to refund act…"]:::story
+  A_Sign_in_access_the_portal_T_Get_the_right_access_scope_for_my_role --> A_Sign_in_access_the_portal_T_Get_the_right_access_scope_for_my_role_pi_1_S0
+  A_Sign_in_access_the_portal_T_Get_the_right_access_scope_for_my_role_pi_1_S1["[pi-1] As a CS Team Lead, I want to see a &quot;pending approvals&quot; entry…"]:::story
+  A_Sign_in_access_the_portal_T_Get_the_right_access_scope_for_my_role --> A_Sign_in_access_the_portal_T_Get_the_right_access_scope_for_my_role_pi_1_S1
+  A_Sign_in_access_the_portal_T_Get_the_right_access_scope_for_my_role_pi_2_S0["[pi-2] As a CS Team Lead, I want to view the list of CS Agents curr…"]:::story
+  A_Sign_in_access_the_portal_T_Get_the_right_access_scope_for_my_role --> A_Sign_in_access_the_portal_T_Get_the_right_access_scope_for_my_role_pi_2_S0
+  A_Sign_in_access_the_portal_T_Get_the_right_access_scope_for_my_role_pi_3_S0["[pi-3] As a CS Team Lead, I want to grant/revoke a CS Agent's refun…"]:::story
+  A_Sign_in_access_the_portal_T_Get_the_right_access_scope_for_my_role --> A_Sign_in_access_the_portal_T_Get_the_right_access_scope_for_my_role_pi_3_S0
+  A_Find_the_transaction_T_Look_up_by_customer["Look up by customer"]:::task
+  A_Find_the_transaction --> A_Find_the_transaction_T_Look_up_by_customer
+  A_Find_the_transaction_T_Look_up_by_customer_pi_1_S0["[pi-1] As a CS Agent, I want to search for a customer by email addr…"]:::story
+  A_Find_the_transaction_T_Look_up_by_customer --> A_Find_the_transaction_T_Look_up_by_customer_pi_1_S0
+  A_Find_the_transaction_T_Look_up_by_customer_pi_1_S1["[pi-1] As a CS Agent, I want to see the customer's recent transacti…"]:::story
+  A_Find_the_transaction_T_Look_up_by_customer --> A_Find_the_transaction_T_Look_up_by_customer_pi_1_S1
+  A_Find_the_transaction_T_Look_up_by_customer_pi_2_S0["[pi-2] As a CS Agent, I want to filter the transaction list by date…"]:::story
+  A_Find_the_transaction_T_Look_up_by_customer --> A_Find_the_transaction_T_Look_up_by_customer_pi_2_S0
+  A_Find_the_transaction_T_Look_up_by_customer_pi_2_S1["[pi-2] As a CS Agent, I want to search by customer ID or account ID…"]:::story
+  A_Find_the_transaction_T_Look_up_by_customer --> A_Find_the_transaction_T_Look_up_by_customer_pi_2_S1
+  A_Find_the_transaction_T_Look_up_by_transaction_ID_directly["Look up by transaction ID directly"]:::task
+  A_Find_the_transaction --> A_Find_the_transaction_T_Look_up_by_transaction_ID_directly
+  A_Find_the_transaction_T_Look_up_by_transaction_ID_directly_pi_1_S0["[pi-1] As a CS Agent, I want to paste a transaction ID into a singl…"]:::story
+  A_Find_the_transaction_T_Look_up_by_transaction_ID_directly --> A_Find_the_transaction_T_Look_up_by_transaction_ID_directly_pi_1_S0
+  A_Find_the_transaction_T_Handle_no_results["Handle &quot;no results&quot;"]:::task
+  A_Find_the_transaction --> A_Find_the_transaction_T_Handle_no_results
+  A_Find_the_transaction_T_Handle_no_results_pi_1_S0["[pi-1] As a CS Agent, I want a clear &quot;not found&quot; message when a cus…"]:::story
+  A_Find_the_transaction_T_Handle_no_results --> A_Find_the_transaction_T_Handle_no_results_pi_1_S0
+  A_Find_the_transaction_T_Handle_no_results_pi_2_S0["[pi-2] As a CS Agent, I want suggestions when my search has a near-…"]:::story
+  A_Find_the_transaction_T_Handle_no_results --> A_Find_the_transaction_T_Handle_no_results_pi_2_S0
+  A_Review_decide_T_See_the_transaction_in_context["See the transaction in context"]:::task
+  A_Review_decide --> A_Review_decide_T_See_the_transaction_in_context
+  A_Review_decide_T_See_the_transaction_in_context_pi_1_S0["[pi-1] As a CS Agent, I want to see transaction details (amount, da…"]:::story
+  A_Review_decide_T_See_the_transaction_in_context --> A_Review_decide_T_See_the_transaction_in_context_pi_1_S0
+  A_Review_decide_T_See_the_transaction_in_context_pi_1_S1["[pi-1] As a CS Agent, I want to see prior refunds against this same…"]:::story
+  A_Review_decide_T_See_the_transaction_in_context --> A_Review_decide_T_See_the_transaction_in_context_pi_1_S1
+  A_Review_decide_T_See_the_transaction_in_context_pi_2_S0["[pi-2] As a CS Agent, I want to see this customer's refund history …"]:::story
+  A_Review_decide_T_See_the_transaction_in_context --> A_Review_decide_T_See_the_transaction_in_context_pi_2_S0
+  A_Review_decide_T_Understand_whether_I_m_allowed_to_refund["Understand whether I'm allowed to refund this"]:::task
+  A_Review_decide --> A_Review_decide_T_Understand_whether_I_m_allowed_to_refund
+  A_Review_decide_T_Understand_whether_I_m_allowed_to_refund_pi_1_S0["[pi-1] As a CS Agent, I want the portal to tell me explicitly wheth…"]:::story
+  A_Review_decide_T_Understand_whether_I_m_allowed_to_refund --> A_Review_decide_T_Understand_whether_I_m_allowed_to_refund_pi_1_S0
+  A_Review_decide_T_Understand_whether_I_m_allowed_to_refund_pi_1_S1["[pi-1] As a CS Agent, I want a clear reason when a transaction is n…"]:::story
+  A_Review_decide_T_Understand_whether_I_m_allowed_to_refund --> A_Review_decide_T_Understand_whether_I_m_allowed_to_refund_pi_1_S1
+  A_Review_decide_T_Understand_whether_I_m_allowed_to_refund_pi_2_S0["[pi-2] As a CS Agent, I want the eligibility rules and approval thr…"]:::story
+  A_Review_decide_T_Understand_whether_I_m_allowed_to_refund --> A_Review_decide_T_Understand_whether_I_m_allowed_to_refund_pi_2_S0
+  A_Issue_the_refund_T_Submit_a_refund_within_my_limit["Submit a refund within my limit"]:::task
+  A_Issue_the_refund --> A_Issue_the_refund_T_Submit_a_refund_within_my_limit
+  A_Issue_the_refund_T_Submit_a_refund_within_my_limit_pi_1_S0["[pi-1] As a CS Agent, I want to click a single &quot;Refund&quot; button for …"]:::story
+  A_Issue_the_refund_T_Submit_a_refund_within_my_limit --> A_Issue_the_refund_T_Submit_a_refund_within_my_limit_pi_1_S0
+  A_Issue_the_refund_T_Submit_a_refund_within_my_limit_pi_1_S1["[pi-1] As a CS Agent, I want to enter a short reason code + free-te…"]:::story
+  A_Issue_the_refund_T_Submit_a_refund_within_my_limit --> A_Issue_the_refund_T_Submit_a_refund_within_my_limit_pi_1_S1
+  A_Issue_the_refund_T_Submit_a_refund_within_my_limit_pi_1_S2["[pi-1] As a CS Agent, I want a confirm step (&quot;Refund $X to <custome…"]:::story
+  A_Issue_the_refund_T_Submit_a_refund_within_my_limit --> A_Issue_the_refund_T_Submit_a_refund_within_my_limit_pi_1_S2
+  A_Issue_the_refund_T_Submit_a_refund_within_my_limit_pi_2_S0["[pi-2] As a CS Agent, I want the submit action to be idempotent if …"]:::story
+  A_Issue_the_refund_T_Submit_a_refund_within_my_limit --> A_Issue_the_refund_T_Submit_a_refund_within_my_limit_pi_2_S0
+  A_Issue_the_refund_T_Send_a_refund_above_my_limit_for_approva["Send a refund above my limit for approval"]:::task
+  A_Issue_the_refund --> A_Issue_the_refund_T_Send_a_refund_above_my_limit_for_approva
+  A_Issue_the_refund_T_Send_a_refund_above_my_limit_for_approva_pi_1_S0["[pi-1] As a CS Agent, I want to submit a refund-with-approval-reque…"]:::story
+  A_Issue_the_refund_T_Send_a_refund_above_my_limit_for_approva --> A_Issue_the_refund_T_Send_a_refund_above_my_limit_for_approva_pi_1_S0
+  A_Issue_the_refund_T_Send_a_refund_above_my_limit_for_approva_pi_1_S1["[pi-1] As a CS Team Lead, I want to see a list of pending refund ap…"]:::story
+  A_Issue_the_refund_T_Send_a_refund_above_my_limit_for_approva --> A_Issue_the_refund_T_Send_a_refund_above_my_limit_for_approva_pi_1_S1
+  A_Issue_the_refund_T_Send_a_refund_above_my_limit_for_approva_pi_1_S2["[pi-1] As a CS Team Lead, I want to approve or deny with a required…"]:::story
+  A_Issue_the_refund_T_Send_a_refund_above_my_limit_for_approva --> A_Issue_the_refund_T_Send_a_refund_above_my_limit_for_approva_pi_1_S2
+  A_Issue_the_refund_T_Send_a_refund_above_my_limit_for_approva_pi_2_S0["[pi-2] As a CS Team Lead, I want to be notified (email + in-portal)…"]:::story
+  A_Issue_the_refund_T_Send_a_refund_above_my_limit_for_approva --> A_Issue_the_refund_T_Send_a_refund_above_my_limit_for_approva_pi_2_S0
+  A_Issue_the_refund_T_Send_a_refund_above_my_limit_for_approva_pi_2_S1["[pi-2] As a CS Agent, I want to see the status of my pending approv…"]:::story
+  A_Issue_the_refund_T_Send_a_refund_above_my_limit_for_approva --> A_Issue_the_refund_T_Send_a_refund_above_my_limit_for_approva_pi_2_S1
+  A_Issue_the_refund_T_Handle_failures_from_the_payments_servic["Handle failures from the payments service"]:::task
+  A_Issue_the_refund --> A_Issue_the_refund_T_Handle_failures_from_the_payments_servic
+  A_Issue_the_refund_T_Handle_failures_from_the_payments_servic_pi_1_S0["[pi-1] As a CS Agent, I want a clear human-readable error message i…"]:::story
+  A_Issue_the_refund_T_Handle_failures_from_the_payments_servic --> A_Issue_the_refund_T_Handle_failures_from_the_payments_servic_pi_1_S0
+  A_Issue_the_refund_T_Handle_failures_from_the_payments_servic_pi_2_S0["[pi-2] As a CS Agent, I want the portal to auto-retry transient pay…"]:::story
+  A_Issue_the_refund_T_Handle_failures_from_the_payments_servic --> A_Issue_the_refund_T_Handle_failures_from_the_payments_servic_pi_2_S0
+  A_Confirm_communicate_T_See_that_the_refund_actually_happened["See that the refund actually happened"]:::task
+  A_Confirm_communicate --> A_Confirm_communicate_T_See_that_the_refund_actually_happened
+  A_Confirm_communicate_T_See_that_the_refund_actually_happened_pi_1_S0["[pi-1] As a CS Agent, I want a clear &quot;Refund complete&quot; confirmation…"]:::story
+  A_Confirm_communicate_T_See_that_the_refund_actually_happened --> A_Confirm_communicate_T_See_that_the_refund_actually_happened_pi_1_S0
+  A_Confirm_communicate_T_See_that_the_refund_actually_happened_pi_1_S1["[pi-1] As a CS Agent, I want the original transaction row to update…"]:::story
+  A_Confirm_communicate_T_See_that_the_refund_actually_happened --> A_Confirm_communicate_T_See_that_the_refund_actually_happened_pi_1_S1
+  A_Confirm_communicate_T_Communicate_to_the_customer["Communicate to the customer"]:::task
+  A_Confirm_communicate --> A_Confirm_communicate_T_Communicate_to_the_customer
+  A_Confirm_communicate_T_Communicate_to_the_customer_pi_1_S0["[pi-1] As a CS Agent, I want a copyable confirmation snippet (refun…"]:::story
+  A_Confirm_communicate_T_Communicate_to_the_customer --> A_Confirm_communicate_T_Communicate_to_the_customer_pi_1_S0
+  A_Confirm_communicate_T_Communicate_to_the_customer_pi_3_S0["[pi-3] As a CS Agent, I want the portal to send a transactional ref…"]:::story
+  A_Confirm_communicate_T_Communicate_to_the_customer --> A_Confirm_communicate_T_Communicate_to_the_customer_pi_3_S0
+  A_Confirm_communicate_T_Leave_a_trail_for_finance_and_audit["Leave a trail for finance and audit"]:::task
+  A_Confirm_communicate --> A_Confirm_communicate_T_Leave_a_trail_for_finance_and_audit
+  A_Confirm_communicate_T_Leave_a_trail_for_finance_and_audit_pi_1_S0["[pi-1] As a system, log every refund attempt (success and failure) …"]:::story
+  A_Confirm_communicate_T_Leave_a_trail_for_finance_and_audit --> A_Confirm_communicate_T_Leave_a_trail_for_finance_and_audit_pi_1_S0
+  A_Confirm_communicate_T_Leave_a_trail_for_finance_and_audit_pi_1_S1["[pi-1] As a Finance analyst, I want to export the refund audit log …"]:::story
+  A_Confirm_communicate_T_Leave_a_trail_for_finance_and_audit --> A_Confirm_communicate_T_Leave_a_trail_for_finance_and_audit_pi_1_S1
+  A_Confirm_communicate_T_Leave_a_trail_for_finance_and_audit_pi_2_S0["[pi-2] As a CS Team Lead, I want a per-agent refund summary (count,…"]:::story
+  A_Confirm_communicate_T_Leave_a_trail_for_finance_and_audit --> A_Confirm_communicate_T_Leave_a_trail_for_finance_and_audit_pi_2_S0
+  A_Confirm_communicate_T_Leave_a_trail_for_finance_and_audit_pi_2_S1["[pi-2] As a Finance analyst, I want the audit-log export to include…"]:::story
+  A_Confirm_communicate_T_Leave_a_trail_for_finance_and_audit --> A_Confirm_communicate_T_Leave_a_trail_for_finance_and_audit_pi_2_S1
+  A_Non_backbone_Compliance_security_baselin_T_Identity_access_and_audit_trail_integrit["Identity, access, and audit-trail integrity"]:::task
+  A_Non_backbone_Compliance_security_baselin --> A_Non_backbone_Compliance_security_baselin_T_Identity_access_and_audit_trail_integrit
+  A_Non_backbone_Compliance_security_baselin_T_Identity_access_and_audit_trail_int["[pi-1] Wire portal authentication to company SSO with `cs-agent` an…"]:::story
+  A_Non_backbone_Compliance_security_baselin_T_Identity_access_and_audit_trail_integrit --> A_Non_backbone_Compliance_security_baselin_T_Identity_access_and_audit_trail_int
+  A_Non_backbone_Compliance_security_baselin_T_Identity_access_and_audit_trail_int["[pi-1] All refund actions require an authenticated session; backend…"]:::story
+  A_Non_backbone_Compliance_security_baselin_T_Identity_access_and_audit_trail_integrit --> A_Non_backbone_Compliance_security_baselin_T_Identity_access_and_audit_trail_int
+  A_Non_backbone_Compliance_security_baselin_T_Identity_access_and_audit_trail_int["[pi-1] Audit log is append-only and stored separately from the appl…"]:::story
+  A_Non_backbone_Compliance_security_baselin_T_Identity_access_and_audit_trail_integrit --> A_Non_backbone_Compliance_security_baselin_T_Identity_access_and_audit_trail_int
+  A_Non_backbone_Compliance_security_baselin_T_Identity_access_and_audit_trail_int["[pi-2] Pen-test pass against the portal before scaling beyond pilot…"]:::story
+  A_Non_backbone_Compliance_security_baselin_T_Identity_access_and_audit_trail_integrit --> A_Non_backbone_Compliance_security_baselin_T_Identity_access_and_audit_trail_int
+  A_Non_backbone_Reliability_observability_T_Operability_baseline["Operability baseline"]:::task
+  A_Non_backbone_Reliability_observability --> A_Non_backbone_Reliability_observability_T_Operability_baseline
+  A_Non_backbone_Reliability_observability_T_Operability_baseline_pi_1_S0["[pi-1] Structured logs + a basic dashboard: refund attempts/hour, s…"]:::story
+  A_Non_backbone_Reliability_observability_T_Operability_baseline --> A_Non_backbone_Reliability_observability_T_Operability_baseline_pi_1_S0
+  A_Non_backbone_Reliability_observability_T_Operability_baseline_pi_1_S1["[pi-1] On-call alert if refund-success rate drops below threshold o…"]:::story
+  A_Non_backbone_Reliability_observability_T_Operability_baseline --> A_Non_backbone_Reliability_observability_T_Operability_baseline_pi_1_S1
+  A_Non_backbone_Reliability_observability_T_Operability_baseline_pi_2_S0["[pi-2] Runbook for &quot;payments service is down&quot; — portal degrades to …"]:::story
+  A_Non_backbone_Reliability_observability_T_Operability_baseline --> A_Non_backbone_Reliability_observability_T_Operability_baseline_pi_2_S0
+  A_Non_backbone_Tech_foundations_T_Repo_CI_and_environments["Repo, CI, and environments"]:::task
+  A_Non_backbone_Tech_foundations --> A_Non_backbone_Tech_foundations_T_Repo_CI_and_environments
+  A_Non_backbone_Tech_foundations_T_Repo_CI_and_environments_pi_1_S0["[pi-1] Stand up the portal repo, CI, deploy pipeline, and a non-pro…"]:::story
+  A_Non_backbone_Tech_foundations_T_Repo_CI_and_environments --> A_Non_backbone_Tech_foundations_T_Repo_CI_and_environments_pi_1_S0
+  A_Non_backbone_Tech_foundations_T_Repo_CI_and_environments_pi_2_S0["[pi-2] Add an automated end-to-end smoke test that issues a refund …"]:::story
+  A_Non_backbone_Tech_foundations_T_Repo_CI_and_environments --> A_Non_backbone_Tech_foundations_T_Repo_CI_and_environments_pi_2_S0
+  A_Non_backbone_Onboarding_enablement_T_Get_CS_productive_with_the_portal["Get CS productive with the portal"]:::task
+  A_Non_backbone_Onboarding_enablement --> A_Non_backbone_Onboarding_enablement_T_Get_CS_productive_with_the_portal
+  A_Non_backbone_Onboarding_enablement_T_Get_CS_productive_with_the_portal_pi_1_S0["[pi-1] Short written runbook for CS Agents (one page) — &quot;how to iss…"]:::story
+  A_Non_backbone_Onboarding_enablement_T_Get_CS_productive_with_the_portal --> A_Non_backbone_Onboarding_enablement_T_Get_CS_productive_with_the_portal_pi_1_S0
+  A_Non_backbone_Onboarding_enablement_T_Get_CS_productive_with_the_portal_pi_1_S1["[pi-1] One in-person/Zoom training session with the CS team before …"]:::story
+  A_Non_backbone_Onboarding_enablement_T_Get_CS_productive_with_the_portal --> A_Non_backbone_Onboarding_enablement_T_Get_CS_productive_with_the_portal_pi_1_S1
+  A_Non_backbone_Onboarding_enablement_T_Get_CS_productive_with_the_portal_pi_2_S0["[pi-2] In-app first-run tour for new CS Agents"]:::story
+  A_Non_backbone_Onboarding_enablement_T_Get_CS_productive_with_the_portal --> A_Non_backbone_Onboarding_enablement_T_Get_CS_productive_with_the_portal_pi_2_S0
+  A_Non_backbone_Onboarding_enablement_T_Get_CS_productive_with_the_portal_pi_3_S0["[pi-3] Recorded training video that ships with CS team onboarding"]:::story
+  A_Non_backbone_Onboarding_enablement_T_Get_CS_productive_with_the_portal --> A_Non_backbone_Onboarding_enablement_T_Get_CS_productive_with_the_portal_pi_3_S0

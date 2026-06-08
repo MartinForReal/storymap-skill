@@ -1,0 +1,282 @@
+{
+  "skill_name": "user-story-mapping",
+  "version": "1.0",
+  "description": "18 eval scenarios spanning invocation modes (A/B/C/D), app types (web/mobile/desktop/API/CLI/enterprise), framework integrations (Superpowers/gstack/GSD), and the iter-5+ capabilities (interview synthesis, dependency tracking, OKR alignment, persona simulation, Mode D + breach detection, context loop short-circuit, framework artifacts + backbone criteria).",
+  "evals": [
+    {
+      "id": 1,
+      "name": "from-scratch-internal-tool",
+      "category": "Mode A — from scratch",
+      "prompt": "Hey so my team (we're 4 engineers + 1 PM at a mid-size fintech) is kicking off a new internal tool — basically a self-service portal where our customer-success folks can refund individual transactions without filing a Jira to engineering every time. Right now they file ~30 of those a week and it's eating my team's bandwidth. We have a 12-week PI starting in 3 weeks and PI planning is next Thursday. I have nothing written down yet — just the verbal ask from CS leadership. Help me figure out what we should actually build, what the MVP slice is, and what the priorities should be. We use SAFe loosely (PI cadence yes, full ART no). Use WSJF since the org is used to it.",
+      "files": [],
+      "assertions": [
+        "Produces all six canonical files: design.md, storymap.md, storymap.csv, storymap.mmd, backlog.md, backlog.csv",
+        "storymap.csv has canonical header: id,activity,task,story,persona,outcome,slice",
+        "storymap.mmd starts with 'graph TD' (valid Mermaid)",
+        "Design doc contains a personas section",
+        "Design doc contains an explicit outcome statement",
+        "Design doc has an 'Assumptions to validate' section (no live user available)",
+        "Backbone has 3+ activities in user voice, not system voice",
+        "First slice (PI-1) covers every backbone activity",
+        "backlog.csv has WSJF columns (wsjf_value/time/risk/size)",
+        "Slicing uses SAFe PI terminology (PI 1 / PI 2 / PI 3)"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "from-problem-brief-mobile-onboarding",
+      "category": "Mode B — from a brief",
+      "prompt": "Here's the brief from our head of product — can you turn this into a story map and backlog? We need the MVP defined by end of week.\n\nFROM: Sarah Kim (VP Product) / TO: Mobile pod / RE: Onboarding redesign — Q2 priority\n\nProblem: 47% of new app installs never complete first-time setup. Of those who do, 22% don't return after day 1. Top SaaS competitors hit 70%+ activation on equivalent funnels.\n\nWho: First-time users on the mobile app (iOS + Android), primarily 25-45, mix of solo professionals and small-business owners. Sub-segment: users invited by a teammate (currently treated identical to organic).\n\nGoal: Lift 7-day activation from 41% to 60% by end of Q2. Activation = first meaningful action (creating a project OR accepting an invite OR completing the import flow).\n\nWhat we know: Drop-off cliff on screen 3 (integrations connect step). Users who skip integrations and import a file activate at 73%. Invited users at 82%.\n\nConstraints: iOS+Android parity. Cannot break connect-flow API (Salesforce paying customer). App Store review 7-10 days.\n\nNon-goals: web onboarding (different team), enterprise SSO (separate roadmap), gamification.\n\nUse RICE since we have the activation metric to ground impact estimates.",
+      "files": [],
+      "assertions": [
+        "All six canonical files produced",
+        "storymap.csv has canonical header",
+        "storymap.mmd valid Mermaid",
+        "Design doc contains personas + outcome",
+        "Backbone in user voice with first-slice coverage of every activity",
+        "backlog.csv has RICE columns (rice_reach/impact/confidence/effort)",
+        "Non-goals recorded (web onboarding, enterprise SSO, gamification)",
+        "Brief metrics referenced (60%, 41%, 47%, 22%, 73%, 82%)"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "from-existing-backlog-messy-csv",
+      "category": "Mode C — from existing backlog",
+      "prompt": "We have a backlog in the property-search vertical that's gotten unwieldy. Reorganize it into a proper story map for the next PI. Use MoSCoW.\n\n```csv\nkey,title,type,labels\nPROP-101,User can search listings by city,Story,search\nPROP-102,Add price filter to search results,Story,search;filter\nPROP-103,Refactor search index to OpenSearch,Task,tech-debt\nPROP-104,Show map view of search results,Story,search;map\nPROP-105,User can save a listing to favorites,Story,favorites\nPROP-106,Email digest of saved listings weekly,Story,favorites;email\nPROP-107,User schedules viewing via in-app calendar,Story,scheduling\nPROP-108,Confirm viewing via SMS,Story,scheduling;sms\nPROP-109,Agent sees viewing requests in dashboard,Story,scheduling;agent\nPROP-110,User submits offer through app,Story,offers\nPROP-111,Offer status updates in real-time,Story,offers;realtime\nPROP-112,Push notification on offer accepted,Story,offers;push\nPROP-113,Mortgage pre-approval upload (PDF),Story,financing\nPROP-114,Connect to Plaid for income verification,Story,financing;integration\nPROP-115,Compliance log for every offer event,Task,compliance\nPROP-116,Migrate legacy DB schema for offers v2,Task,tech-debt\nPROP-117,Dark mode toggle,Story,ui\nPROP-118,Localize app for French (Quebec market),Task,localization\n```",
+      "files": [],
+      "assertions": [
+        "All six canonical files produced",
+        "Backbone reverse-engineered into 4-6 user activities",
+        "First slice covers every backbone activity",
+        "backlog.csv has MoSCoW column",
+        "All 18 PROP-XXX Jira keys preserved in outputs",
+        "Tech-debt / orphan items surfaced as cross-cutting (PROP-103, 115, 116, 117, 118)"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "gstack-handoff-developer-portal",
+      "category": "Framework integration",
+      "prompt": "We're a 3-person team at a Series-A SaaS, currently using **gstack** (Garry Tan's slash-command pack) as our day-to-day Claude Code workflow. I want to build a developer portal for our public API — docs, key management, usage dashboard, sandbox. We don't have a backlog yet, just exec interest. We use loose SAFe and prefer WSJF.\n\nProduce the story map and backlog. Since we live in gstack, make sure your handoff tells me exactly which gstack slash commands to run next and what each one will read from your outputs. We will literally copy-paste from your handoff message.",
+      "files": [],
+      "assertions": [
+        "All six canonical files produced",
+        "Backbone in user voice with slice-1 coverage",
+        "backlog.csv has WSJF columns",
+        "Handoff names ≥2 specific gstack commands (/plan-ceo-review, /plan-eng-review, /office-hours, /autoplan, etc.)",
+        "Handoff maps each named gstack command to a specific output file",
+        "Handoff does NOT auto-invoke gstack commands — only suggests them"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "gsd-handoff-solo-builder-saas",
+      "category": "Framework integration",
+      "prompt": "Solo founder here. I've been using **GSD (Get Shit Done, getshitdone.help)** for a few weeks — `/gsd discuss`, `/gsd plan-milestone`, `/gsd auto`, the whole context-engineering pipeline. I'm starting a new project: a small SaaS that helps freelance contractors track billable hours per client with a Stripe-integrated invoicing flow at month-end.\n\nProduce the story map and backlog. Since I'm in the GSD flow, make sure your handoff tells me how each output file maps to GSD's Milestone / Slice / Task hierarchy and which `/gsd` command I should run next. Watch the terminology — GSD's 'Slice' is not the same as your 'slice'. Use Now/Next/Later for prioritization since I'm in solo-discovery mode.",
+      "files": [],
+      "assertions": [
+        "All six canonical files produced",
+        "Uses Now/Next/Later slicing as requested",
+        "Handoff names GSD terminology collision explicitly (this skill's 'slice' = GSD 'Milestone')",
+        "Handoff maps design.md to GSD's Brief",
+        "Handoff suggests a specific /gsd command (/gsd discuss or /gsd plan-milestone)",
+        "Handoff does NOT write into .gsd/ directly"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "pure-api-sdk-python",
+      "category": "App type — API/SDK",
+      "prompt": "We're shipping a Python SDK (v1) for our existing REST payments API — think Stripe-like surface but smaller scope. The current API has 18 endpoints (charges, refunds, customers, webhooks, balance). Our customers right now build their own thin HTTP wrappers; we want a first-class idiomatic SDK they can pip install. Two engineers, 8 weeks. The user here is a developer at a customer org integrating our API — there is no UI for them, just import + call. No backlog yet, just the API surface. Use Now/Next/Later — we're in discovery for the SDK shape. Tell me what v1 needs and what waits.",
+      "files": [],
+      "assertions": [
+        "All six canonical files produced",
+        "Backbone in developer voice (Discover SDK / Install / Make first call / Handle errors / Go to production)",
+        "Persona = developer (not generic 'user')",
+        "Uses Now/Next/Later slicing",
+        "Handoff names smallest next decision"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "desktop-password-manager",
+      "category": "App type — desktop",
+      "prompt": "We're building a cross-platform desktop password manager (Mac, Windows, Linux). Native app, not Electron — using Tauri. Local-first encrypted vault with optional encrypted sync to user-controlled S3/Backblaze/iCloud Drive. 5 engineers, looking at a 12-week PI to first beta. We use SAFe loosely and WSJF. Concerns specific to this being a desktop app: code-signed installers per OS, auto-update with delta patches, OS keychain integration, offline-first with conflict resolution, accessibility (screen-readers), and bus-factor for the encryption design. No backlog yet. Give me a sliced plan with what goes in PI 1.",
+      "files": [],
+      "assertions": [
+        "All six canonical files produced",
+        "Backbone covers desktop-app lifecycle (install → set up vault → use → sync → update)",
+        "Install/auto-update/code-signing handled as cross-cutting non-backbone items",
+        "backlog.csv has WSJF columns",
+        "SAFe PI slicing"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "enterprise-analytics-multitenant",
+      "category": "App type — enterprise multi-tenant",
+      "prompt": "Enterprise multi-tenant analytics platform — SaaS, sold to mid-market and enterprise. Two distinct user types: (a) Tenant Admins (one per customer org) who provision the workspace, manage SSO, configure RBAC roles, set data-retention policies, view audit logs; (b) End Users who build dashboards, run queries, share reports with their team. Customers are demanding SOC 2 Type II within Q3, SAML SSO, scoped API keys, and per-row RBAC. Sales is pushing on-prem for two whales. We use SAFe properly (full ART), 4-team ART, PI planning in 5 weeks. Use WSJF. Give me the story map, especially be careful with how admin vs end-user personas interleave in the backbone — that's where most enterprise products go wrong.",
+      "files": [],
+      "assertions": [
+        "All six canonical files produced",
+        "Two distinct personas surfaced (Tenant Admin AND End User) with explicit interleaving in backbone",
+        "Per-story persona annotation in backlog.csv",
+        "Compliance work (SOC 2, SAML, RBAC) addressed as either backbone activities or cross-cutting depending on user-facing-ness",
+        "Slice-1 covers all backbone activities including both personas",
+        "backlog.csv has WSJF columns"
+      ]
+    },
+    {
+      "id": 9,
+      "name": "cli-log-parser",
+      "category": "App type — CLI",
+      "prompt": "Two of us (me + one other engineer, plus a designer who doesn't help much with CLI ergonomics) are building an open-source CLI tool — think rg/jq-flavored — for fast structured-log parsing. Reads JSONL or k8s-style structured logs from stdin or files, lets the user filter/project/aggregate with a query language similar to PromQL. Single binary, written in Rust, no daemon. Target audience: SREs, devops, backend devs debugging prod incidents. Distribution: brew / scoop / apt / cargo install / GitHub releases. We have 6 weeks until KubeCon where we want a demo. Use MoSCoW — early enough that we don't have data for WSJF.",
+      "files": [],
+      "assertions": [
+        "All six canonical files produced",
+        "Backbone in CLI-user voice (Install / Invoke / Filter / Aggregate / Pipe out / Share)",
+        "Persona = developer/SRE in terminal",
+        "Cross-cutting addresses distribution (brew/scoop/apt/cargo)",
+        "backlog.csv has MoSCoW column"
+      ]
+    },
+    {
+      "id": 10,
+      "name": "mobile-consumer-fitness",
+      "category": "App type — mobile B2C",
+      "prompt": "Consumer mobile app (B2C, freemium). Strength-training app for intermediate-to-advanced lifters who hate the bloat of MyFitnessPal/Strong. Currently sub-1k MAU after 4 months of organic launch. Need to drive engagement (D30 retention is 12%, target 25%) and word-of-mouth (we have no paid acquisition budget). 3 engineers + 1 designer. We use RICE since we have funnel metrics. Concerns specific to consumer mobile: TestFlight cadence vs App Store review windows, Apple's discovery-not-marketing rule on push notifications, ASO. We DO want to consider gamification (streaks, PRs, badges) — it's well-aligned with the lifter persona, not generic mobile bloat. iOS + Android parity (Flutter codebase). Give me the v1 reshape — what's MVP, what's R2 to drive retention, what's R3 to drive growth.",
+      "files": [],
+      "assertions": [
+        "All six canonical files produced",
+        "Slicing MVP / R2 (retention) / R3 (growth) as user framed",
+        "backlog.csv has RICE columns anchored to 12% → 25% D30 retention",
+        "Apple guideline 4.5.4 (push) and TestFlight cadence handled as cross-cutting",
+        "Gamification (streaks/PRs/badges) treated as in-scope per user's framing (NOT auto-excluded as bloat)"
+      ]
+    },
+    {
+      "id": 11,
+      "name": "customer-interview-synthesis",
+      "category": "Discovery — interview synthesis",
+      "prompt": "Notes from three customer-discovery calls last week. Help me turn these into a story map and backlog for a refund-portal product we're scoping. Use Now/Next/Later — still in discovery.\n\nCALL 1: Aisha @ Northwind (CS rep, 40 tix/day): 'It's like a 20-minute process every time...' [verbatim notes about Salesforce + Stripe lookup, $100 auto-approve, never uses bulk action, please don't make us learn another tool]\n\nCALL 2: Marcus @ Acme (CS lead, 8 reps): [approves 40-50/day over Slack, audit log critical for quarterly auditor, wants a queue not Slack pings with customer history visible, occasional bulk refunds via Jira, would NOT trust AI to auto-approve]\n\nCALL 3: Priya @ Globex (Director CX, 25 reps): [my problem is reporting — count/who/reasons/MTTR, want it in Tableau, doesn't do refunds herself, SOC 2 traceability critical, customer self-service is a 2027 conversation]",
+      "files": [],
+      "assertions": [
+        "design.md includes verbatim quotes from interviews",
+        "design.md has theme/cluster section synthesizing across interviews",
+        "All three interviewees surface as personas (Aisha/Marcus/Priya OR CS rep/CS lead/Director)",
+        "Non-goals capture explicit anti-signals (AI auto-approve, customer self-service, new tool sprawl)",
+        "slice-1-acceptance-criteria.md produced",
+        "Uses Now/Next/Later slicing"
+      ]
+    },
+    {
+      "id": 12,
+      "name": "dependency-aware-backlog",
+      "category": "Prioritization — dependencies",
+      "prompt": "Pre-PI sequencing for a healthcare-records SaaS. We've sketched ~14 stories and I need a sliced plan, but I'm worried about dependencies because some of these literally cannot ship without others. Use WSJF since we use SAFe. Output should explicitly track dependencies and flag any cycles or slice-1-infeasible recommendations.\n\n[14 stories S-AUTH..S-TEMPLATE-MGMT with deps, including a deliberate cycle between S-TEMPLATE and S-TEMPLATE-MGMT — surface, don't silently break]",
+      "files": [],
+      "assertions": [
+        "backlog.csv has depends_on column populated",
+        "Depends_on entries use H:<id> / S:<id> format from dependency-tracking.md",
+        "S-TEMPLATE ↔ S-TEMPLATE-MGMT cycle detected + surfaced (NOT silently broken)",
+        "PI-1 feasibility check performed (every hard dep of PI-1 story also in PI-1)",
+        "All 14 user-provided story IDs preserved",
+        "backlog.csv has WSJF columns"
+      ]
+    },
+    {
+      "id": 13,
+      "name": "okr-aligned-roadmap",
+      "category": "Prioritization — OKR alignment",
+      "prompt": "I'm a PM at a B2B observability SaaS. Our exec team set 2026 OKRs last week and I need to scope our team's Q3 PI against them. Use WSJF (we're on SAFe). [3 OKRs × 3 KRs each. Team owns 'platform' surface, other ARTs own dashboards/integrations/alerting engine. Want PI-1 stories to ladder to specific KRs and surface KRs we OWN with no story coverage.]",
+      "files": [],
+      "assertions": [
+        "backlog.csv has okr column",
+        "okr column has KR-x.y references populated",
+        "design.md has OKR coverage matrix",
+        "Orphan KRs surfaced (KRs we own but have no coverage — KR-2.2 alert routing, KR-2.3 correlation)",
+        "All 9 KRs (KR-1.1 through KR-3.3) referenced",
+        "backlog.csv has WSJF columns"
+      ]
+    },
+    {
+      "id": 14,
+      "name": "thin-brief-gap-discovery",
+      "category": "Persona simulation",
+      "prompt": "Help me scope a new feature: an in-app feedback widget for our SaaS product. Users are: customers, our CSMs, and product managers. Use WSJF. That's all I have right now.",
+      "files": [],
+      "assertions": [
+        "design.md has explicit 'gaps' section listing what's blocking commitment",
+        "Sources tagged ([user-stated], [simulated: X], [inferred])",
+        "design.md surfaces persona conflict matrix or perspective table",
+        "handoff.md documents blocking decisions / smallest-next-decision",
+        "Conditional commitments tagged with gap-ids",
+        "All six canonical files + slice-1-acceptance-criteria.md produced"
+      ]
+    },
+    {
+      "id": 15,
+      "name": "multi-stakeholder-conflict",
+      "category": "User-input-authoritative",
+      "prompt": "We're scoping an internal developer platform (IDP). Two stakeholder groups whose interests are known to conflict: Platform team wants tight governance (approval workflows, mandatory tags, cost limits) after a $40K AWS spike; Application developers want speed (minimum friction, no approval gates non-prod, BYO tools). My stance (VP Engineering): I lean strongly toward developer velocity. Defaults favor 'permit by default in non-prod' with auditing rather than 'block by default with approval workflow'. Do NOT recommend approval-gated env creation in PI 1 — that's a non-starter for me politically, even if simulation tells you the platform team wants it. Use WSJF, SAFe PI cadence, 12-week PI.",
+      "files": [],
+      "assertions": [
+        "Approval-gated env creation NOT in PI 1 (user stance honored, not overridden by simulation)",
+        "User-input-authoritative principle explicitly invoked",
+        "Platform-team objections logged as future-slice risk, not silenced",
+        "design.md has conflict matrix showing how each conflict was resolved",
+        "Decisions log captures contested decisions (approval-gated env creation deferred per VP Eng stance)",
+        "backlog.csv has WSJF columns"
+      ]
+    },
+    {
+      "id": 16,
+      "name": "snapshot-and-breaks-limits",
+      "category": "Mode D — limit-breach detection",
+      "prompt": "We finished PI planning 6 weeks ago for our refund-portal product. Current PI 1 is mid-flight (4 engineers, 12-week PI, ~100 SP capacity, ~50 SP remaining). Sales just sold a $400K ARR deal that needs SCIM provisioning before EOQ — they assumed we'd build it in. [15 stories S001-S015 with SP and KR tags, SOC 2 audit window in 5 weeks for KR-1.1, KR-2.1 committed at all-hands, decisions log says no AI auto-approve.] New: F-SCIM ~25 SP, ladders to KR-1.2, introduces new backbone activity 'Provision tenant users'. Give me a snapshot, change-impact analysis, trade-off options. Don't silently say 'yes we'll add it'. Surface what gives.",
+      "files": [],
+      "assertions": [
+        "Output includes a snapshot of current state (capacity used / remaining / cap)",
+        "Breaches surfaced with explicit trade-off options (not silently absorbed)",
+        "Capacity breach analyzed (~50 SP remaining vs ~25 SP new SCIM work)",
+        "New backbone activity 'Provision tenant users' handled per slice-1 rule",
+        "SOC 2 audit deadline vs SCIM EOQ deadline collision surfaced",
+        "F-SCIM decomposed into 3+ specific stories",
+        "KR-2.1 displacement risk surfaced",
+        "handoff.md includes diff-style summary (ADDED / MOVED / CUT / UNCHANGED)"
+      ]
+    },
+    {
+      "id": 17,
+      "name": "empty-dir-loop-shortcircuit",
+      "category": "Context loop — from scratch",
+      "prompt": "I have an idea for a small SaaS — a focus-timer for people with ADHD that adapts session length based on past performance. Solo founder, working alone. No code yet, no PRD, no anything — just the idea. Help me figure out the v1 scope. Use Now/Next/Later since I'm in discovery. Working directory: empty (this is a fresh notes folder).",
+      "files": [],
+      "assertions": [
+        "Context loop short-circuits (≤5 context-mining tool calls when working dir is empty)",
+        "design.md has 'Context loop trace' section showing the loop exited early",
+        "Saved budget spent on Step 0.4 persona simulation (ADHD user persona)",
+        "All six canonical files + slice-1-acceptance-criteria.md produced",
+        "Story count manageable (~15-25) — discovery, not detailed PI planning",
+        "Uses Now/Next/Later slicing"
+      ]
+    },
+    {
+      "id": 18,
+      "name": "framework-artifacts-and-criteria",
+      "category": "Framework artifacts + backbone criteria",
+      "prompt": "I'm starting Mode D against my existing TimeBoard project. There's a .gsd/ directory with my Brief, Roadmap, and 2 Decision records. I want a story map. Two perspectives matter for the backbone: the consultant doing weekly admin AND the client-side view (receiving invoices, paying). I'm not sure which perspective should drive the backbone — both? Just consultant? Please confirm the backbone criteria with me before generating. Use WSJF, M1/M2/M3 slicing per the existing Roadmap.\n\n[Project has .gsd/Brief.md, .gsd/Roadmap.md with M1/M2/M3 milestones, .gsd/Decisions/0001-single-user-only-v1.md, .gsd/Decisions/0002-auto-categorization-threshold.md]",
+      "files": [],
+      "assertions": [
+        "Reads .gsd/ artifacts FIRST, before asking anything",
+        "design.md has explicit 'Backbone criteria' table with 6 rows (Frame / Persona / Time horizon / Granularity / Scope / Aggregation)",
+        "User's perspective question addressed with explicit default + rationale (consultant-only per Decision 0001)",
+        "Backbone criteria recorded for reproducibility (note in design.md about future Mode D runs)",
+        "Does NOT re-ask what .gsd/ has (outcome, milestones, decisions all sourced from .gsd/)",
+        "Honors both Decisions (single-user constrains backbone; ≥85% threshold appears in ACs)",
+        "handoff.md has Mode D diff (what's NEW vs what was already in .gsd/)"
+      ]
+    }
+  ]
+}

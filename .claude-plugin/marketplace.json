@@ -1,0 +1,35 @@
+{
+  "name": "storymap-skill",
+  "owner": {
+    "name": "MartinForReal",
+    "url": "https://github.com/MartinForReal"
+  },
+  "metadata": {
+    "version": "0.0.1",
+    "description": "Self-contained marketplace for storymap-skill — a single Agent Skill for user story mapping (Jeff Patton style)."
+  },
+  "plugins": [
+    {
+      "name": "storymap-skill",
+      "source": "./",
+      "description": "User story mapping (Jeff Patton style). Turns a goal, brief, or messy backlog into a sliced, prioritized delivery plan with WSJF/RICE/MoSCoW prioritization. Mode D (iterative refinement) detects capacity/dependency/OKR/scope limit breaches. Mines existing context (README, code, tests, ADRs, Jira/ADO/GitHub via MCP, .gsd/, prior design.md) before asking the user. Plays well inside Superpowers / gstack / GSD; works standalone.",
+      "version": "0.0.1",
+      "homepage": "https://github.com/MartinForReal/storymap-skill",
+      "license": "MIT",
+      "keywords": [
+        "user-story-mapping",
+        "story-mapping",
+        "agile",
+        "safe",
+        "wsjf",
+        "rice",
+        "moscow",
+        "mvp",
+        "pi-planning",
+        "product-discovery",
+        "jeff-patton",
+        "backlog-management"
+      ]
+    }
+  ]
+}

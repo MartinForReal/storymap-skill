@@ -1,0 +1,45 @@
+name: release
+
+# Builds the .skill bundle when a vX.Y.Z tag is pushed and attaches it to the
+# matching GitHub Release. The .skill file is a release artifact — it is not
+# committed to the repo (see .gitignore).
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Build .skill bundle
+        run: python scripts/build_skill_bundle.py
+
+      - name: Verify bundle structure
+        run: |
+          python -c "
+          import zipfile
+          z = zipfile.ZipFile('user-story-mapping.skill')
+          names = z.namelist()
+          assert 'SKILL.md' in names, 'SKILL.md must be at zip root'
+          print(f'bundle contains {len(names)} files')
+          "
+
+      - name: Create GitHub Release with bundle
+        uses: softprops/action-gh-release@v2
+        with:
+          files: user-story-mapping.skill
+          generate_release_notes: true
+          fail_on_unmatched_files: true
