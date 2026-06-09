@@ -277,6 +277,40 @@
         "Honors both Decisions (single-user constrains backbone; ≥85% threshold appears in ACs)",
         "handoff.md has Mode D diff (what's NEW vs what was already in .gsd/)"
       ]
+    },
+    {
+      "id": 19,
+      "name": "output-routing-from-scratch",
+      "category": "Output routing — from-scratch",
+      "prompt": "I'm starting a fresh side project — a CLI that wraps `git log` into a weekly standup digest. Solo dev, nothing built yet, empty repo (no package.json, no .git history beyond `git init`). I want a story map, plus help getting the work into a tracker so I can actually execute. No `.gsd/` or `.superpowers/` here. Use MoSCoW slicing — this is small enough that prioritized must/should/could is the right shape. I'll pick the tracker; just generate the import script for whichever one fits a solo dev (GitHub Projects is fine if you don't have a strong opinion).",
+      "files": [],
+      "assertions": [
+        "All six canonical files produced",
+        "storymap.csv has canonical header",
+        "Method columns reflect MoSCoW (must/should/could)",
+        "Detects from-scratch (empty repo, no tracker mentioned, no framework state) and routes to tracker-seeding branch",
+        "Generates a tracker import script or command (gh issue create / az boards / Jira CSV / Linear) — does NOT auto-run it",
+        "Writes or references .user-story-mapping/state.json so a future Mode D run can find the tracker",
+        "Does NOT also write items into a TODO.md as the primary destination (from-scratch → tracker is system of record)",
+        "Handoff line names the tracker destination + the import script path"
+      ]
+    },
+    {
+      "id": 20,
+      "name": "output-routing-existing-cascade",
+      "category": "Output routing — existing-project cascade",
+      "prompt": "We have a mature ML inference service — 2 years old, 800+ commits, ~30 open issues in our populated GitHub backlog (refactor work, perf bugs, two open feature requests). PM just handed me a 1-pager: add a per-tenant rate-limit feature. Help me story-map that feature for the next two-week sprint. WSJF for prioritization. IMPORTANT: do not push anything into our existing GitHub Issues tracker — the backlog is already curated and the team would hate seeing 12 new auto-created issues. Keep the plan in-place. We're not using any sister framework (no `.gsd/`, no `.superpowers/`).",
+      "files": [],
+      "assertions": [
+        "All six canonical files produced",
+        "storymap.csv has canonical header",
+        "Method columns reflect WSJF",
+        "Detects existing-project (populated tracker mentioned + 800 commits) and routes to keep-in-place cascade",
+        "Writes slice-1 to TODO.md at repo root (no framework state to write to)",
+        "Appends rather than overwrites if TODO.md already exists (dated section header)",
+        "Does NOT generate or run a GitHub Issues import script (user explicitly forbade it)",
+        "Handoff line names TODO.md as the destination, not the tracker"
+      ]
     }
   ]
 }

@@ -957,6 +957,67 @@ def grade_run(eval_id: int, out_dir: Path) -> list[dict]:
             "passed": ("new" in handoff.lower() and ("already" in handoff.lower() or "diff" in handoff.lower() or "from .gsd" in handoff.lower())),
             "evidence": "Mode D diff format found",
         })
+    elif eval_id == 19:
+        # Output routing — from-scratch branch
+        handoff = read_file(out_dir, "handoff.md") or ""
+        text = read_all_text(out_dir).lower()
+        results.append(grade_outcome(out_dir))
+        results.append(grade_backbone_user_voice(out_dir))
+        results.append(grade_first_slice_coverage(out_dir))
+        results.append(grade_method_columns(out_dir, "moscow"))
+        results.append({
+            "text": "Routes to from-scratch branch (mentions from-scratch detection / tracker seeding)",
+            "passed": any(t in text for t in ["from-scratch", "from scratch", "seed the tracker", "seed a tracker", "seed tracker"]),
+            "evidence": "from-scratch routing signal found",
+        })
+        results.append({
+            "text": "Generates a tracker import command/script (gh / az boards / Jira CSV / Linear)",
+            "passed": any(t in text for t in ["gh issue create", "gh project", "az boards", "jira csv", "jira import", "linear import", "import script", "bulk-import", "bulk import"]),
+            "evidence": "tracker import mechanics named",
+        })
+        results.append({
+            "text": "Does NOT auto-run the import script (asks user to run it)",
+            "passed": any(t in handoff.lower() for t in ["don't auto-run", "do not auto-run", "you run it", "run this when", "not run", "have not run", "haven't run", "run the script", "user to run", "you to run", "review before running", "run when ready"]) or ("script" in handoff.lower() and "not" in handoff.lower()),
+            "evidence": "explicit non-execution signal",
+        })
+        results.append({
+            "text": "References .user-story-mapping/state.json for Mode-D continuity",
+            "passed": ".user-story-mapping" in text or "state.json" in text,
+            "evidence": ".user-story-mapping reference found",
+        })
+        results.append({
+            "text": "TODO.md is NOT the primary destination (from-scratch → tracker is system of record)",
+            "passed": not (re.search(r"todo\.md", handoff.lower()) and "primary" in handoff.lower()),
+            "evidence": "TODO.md not designated as primary",
+        })
+    elif eval_id == 20:
+        # Output routing — existing-project cascade
+        handoff = read_file(out_dir, "handoff.md") or ""
+        text = read_all_text(out_dir).lower()
+        results.append(grade_outcome(out_dir))
+        results.append(grade_backbone_user_voice(out_dir))
+        results.append(grade_first_slice_coverage(out_dir))
+        results.append(grade_method_columns(out_dir, "wsjf"))
+        results.append({
+            "text": "Routes to existing-project keep-in-place cascade",
+            "passed": any(t in text for t in ["existing project", "existing-project", "keep-in-place", "keep in place", "in-place", "cascade"]),
+            "evidence": "existing-project routing signal found",
+        })
+        results.append({
+            "text": "Writes slice-1 to TODO.md (no framework state available)",
+            "passed": "todo.md" in text or "todo md" in text,
+            "evidence": "TODO.md destination found",
+        })
+        results.append({
+            "text": "Honors user's no-tracker constraint (no gh issue create / no GitHub bulk import)",
+            "passed": not any(t in text for t in ["gh issue create", "gh project create", "bulk-create", "bulk create"]) or "do not push" in text or "not push" in text or "won't push" in text or "skip tracker" in text,
+            "evidence": "tracker-push avoided",
+        })
+        results.append({
+            "text": "Handoff line names TODO.md as the destination",
+            "passed": "todo.md" in handoff.lower() and any(t in handoff.lower() for t in ["→", "written to", "wrote to", "landed in", "destination"]),
+            "evidence": "TODO.md named in handoff",
+        })
 
     return results
 

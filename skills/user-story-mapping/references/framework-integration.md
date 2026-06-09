@@ -89,6 +89,8 @@ If Superpowers is active, mention this in your hand-off message: "Slice 1 is rea
 
 ## Jira / Azure DevOps / GitHub Issues / Linear / Trello / spreadsheets
 
+> See `output-routing.md` for *whether* to push to a tracker at all — for existing projects, the sister-framework state directories are usually the right destination instead.
+
 See `references/work-item-tracking.md` for the full per-tool mapping. Short version: the CSV outputs are import sources, don't recreate stories by hand inside the tool.
 
 ## SAFe ART tooling (Jira Align, Targetprocess, Tempo)

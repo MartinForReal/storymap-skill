@@ -2,6 +2,25 @@
 
 All notable changes to **storymap-skill** are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning is [SemVer](https://semver.org/).
 
+## [0.0.2] — 2026-06-09 — output-routing decision
+
+Adds an explicit decision branch for *where* the generated items physically land, so the agent stops defaulting to "push to a tracker" on mature projects with curated backlogs.
+
+### Added
+- New reference [`skills/user-story-mapping/references/output-routing.md`](skills/user-story-mapping/references/output-routing.md) — the from-scratch vs existing detection rule + the three-destination persistence cascade (sister-framework state → `TODO.md` → Memory MCP) with `TodoWrite` as an orthogonal in-session execution helper.
+- Two new evals (#19 `output-routing-from-scratch`, #20 `output-routing-existing-cascade`) in [`skills/user-story-mapping/evals/evals.json`](skills/user-story-mapping/evals/evals.json) with matching grader handlers in [`tests/grade_runs.py`](tests/grade_runs.py). Eval suite is now 20 scenarios (was 18).
+- New `TODO.md` row schema (persona / score / depends-on / dated section header) for projects without sister-framework state.
+
+### Changed
+- `SKILL.md` Step 6 now leads with `Route the items first` instead of asking "where should this go?" at handoff — the from-scratch / existing decision is explicit.
+- `SKILL.md` "Pushing the artifacts into a tracker" renamed to `Where the artifacts land`; the per-tracker mapping bullets remain authoritative in [`work-item-tracking.md`](skills/user-story-mapping/references/work-item-tracking.md).
+- Callouts at the top of `work-item-tracking.md` and inside `framework-integration.md` flag the routing decision before readers jump to per-tool mechanics.
+- README "What it does" gains an *Output routing* bullet.
+
+### Behavior change
+- **From-scratch (empty/near-empty repo, no tracker mentioned, no framework state)** → generates a tracker import script via `work-item-tracking.md`; writes a thin `.user-story-mapping/state.json` for Mode-D continuity; does not also populate `TODO.md` (the tracker is the system of record).
+- **Existing project** → walks the persistence cascade (sister-framework state → `TODO.md` → Memory MCP); does not push to a populated tracker without explicit user opt-in. `TodoWrite` is opt-in pairing for when the user is about to execute slice 1.
+
 ## [0.0.1] — 2026-06-08 — initial public release
 
 First public release. The skill was built and validated over 11 internal iterations before being shipped here as a single commit.

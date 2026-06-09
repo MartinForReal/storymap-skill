@@ -43,3 +43,12 @@
 - Three with-skill runs took small dings: eval-10 mobile (8/9 — 51 stories, +1 over the 50-story soft cap), eval-17 loop short-circuit (8/9 — Now/Next/Later signals partially matched), eval-8 enterprise (9/10 — single backbone-coverage check tripped). All within tolerance.
 - Three baseline runs scored above their typical 0-2/N range: eval-11 (3/10 — verbatim quote preservation when the prompt has long quotes inline), eval-16 (6/8 — user explicitly demanded breach surfacing), eval-18 (3/10 — .gsd/ files were readable and the baseline read them). When prompts are explicit and inputs are structured, baselines do better; when prompts are sparse, baseline collapses (eval-1: 0/10, eval-10: 0/9, eval-14: 0/10).
 - Plugin-format restructure (v1.3.0) preserved skill quality — iter-11 numbers are equal-to-better than iter-10's, confirming the move to skills/user-story-mapping/ + .claude-plugin/ marketplace.json did not regress behavior.
+
+## Coverage updates since iter-11
+
+The eval suite has grown from 18 → 20 scenarios. Two new evals exercise the explicit output-routing decision added in v0.0.2:
+
+- **eval-19 — output-routing-from-scratch** — verifies the skill detects an empty/near-empty repo + no tracker mentioned + no framework state, generates a tracker import script for the from-scratch branch (does not auto-run it), references `.user-story-mapping/state.json` for Mode-D continuity, and does NOT designate `TODO.md` as the primary destination.
+- **eval-20 — output-routing-existing-cascade** — verifies the skill detects an existing project (populated tracker mentioned + 800+ commits), routes to the keep-in-place cascade, writes slice-1 to `TODO.md` at the repo root, honors the user's explicit no-tracker constraint (no `gh issue create` / no bulk import), and names `TODO.md` in the handoff line.
+
+Grader handlers live in [tests/grade_runs.py](../tests/grade_runs.py) as inline branches off `grade_run()` for `eval_id == 19` and `eval_id == 20`. Next benchmark iteration will pick up the 20-eval baseline.

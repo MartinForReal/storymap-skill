@@ -5,7 +5,7 @@ license: MIT
 compatibility: Requires Python 3.10+ for bundled scripts (storymap_to_csv.py, storymap_to_mermaid.py). No other system dependencies. Works across Claude Code, Claude.ai, and any Agent Skills-compliant agent (Cursor, Codex, Copilot, Gemini CLI, OpenCode, Goose, etc.).
 metadata:
   author: MartinForReal
-  version: "0.0.1"
+  version: "0.0.2"
   homepage: https://github.com/MartinForReal/storymap-skill
 allowed-tools: Bash(python:*) Read Write Edit Glob Grep Agent Skill
 ---
@@ -34,7 +34,7 @@ Map the user's ask to the right step + reference to load:
 | Wants engineering-ready acceptance criteria | any | `acceptance-criteria.md` |
 | Wants E2E test scenarios | any | `e2e-verification-and-contract.md` |
 | Working inside Superpowers / gstack / GSD | any | `framework-integration.md` |
-| Wants to push the result into Jira / ADO / Linear / etc. | any | `work-item-tracking.md` |
+| Wants stories pushed somewhere (tracker, TODO.md, framework state, memory) | any | `output-routing.md` (decides from-scratch vs existing); then `work-item-tracking.md` for tracker mechanics |
 
 ## Workflow at a glance
 
@@ -427,6 +427,13 @@ Don't hand-write CSV/Mermaid. The scripts enforce the canonical format and save 
 
 Tell the user what was produced, what's still uncertain, and what the smallest next decision is. Don't summarize the map back — they can read it. Surface what they need to decide.
 
+**Route the items first.** Decide where the slice-1 stories physically land per the from-scratch vs existing rule in `references/output-routing.md`:
+
+- **From-scratch project** (empty/near-empty repo, no tracker mentioned, no framework state) → generate a tracker import script via `work-item-tracking.md`. Don't auto-run it.
+- **Existing project** → walk the persistence cascade (sister-framework state → plain `TODO.md` → Memory MCP) and write to the first that applies. Optionally also populate Claude Code's `TodoWrite` if the user is about to execute slice 1 in this session — `TodoWrite` is an orthogonal helper, not a persistence destination. Don't push to a populated tracker without explicit user opt-in.
+
+End the handoff with a single line naming the destination(s) you wrote to, e.g. `"Slice 1 (12 stories) → .gsd/Roadmap.md + TODO.md; run /gsd discuss next."`
+
 If a sister framework is active (Superpowers / gstack / GSD), end with the explicit next command they should run. See `references/framework-integration.md`.
 
 **Persist memory (if enabled).** When `.user-story-mapping/state.json` or MCP memory was used in this run, write the updated delta back at the end — preferences, current backbone criteria, active PI, persona-cache, decisions-log appendix. Never overwrite the decisions log; append only. Tell the user in one line what was saved: "Persisted to `.user-story-mapping/state.json`: backbone criteria, 4 personas, decisions D0017-D0019, active PI = 2026-Q3."
@@ -451,16 +458,11 @@ When the user has an existing story map and wants to add work, re-slice, or exte
 
 Detailed protocol: `references/iterative-refinement-and-snapshots.md`.
 
-## Pushing the artifacts into a tracker
+## Where the artifacts land
 
-CSV outputs are the import source — don't recreate stories by hand inside the tool.
+Slice-1 stories need a home. **From-scratch (empty/near-empty repo, no tracker mentioned, no framework state) → seed an issue tracker via `references/work-item-tracking.md`.** **Existing project → walk the persistence cascade (sister-framework state → `TODO.md` → Memory MCP); optionally pair with `TodoWrite` if the user is coding now.** Don't push to a populated tracker without explicit opt-in. Full decision tree + the cascade walk: `references/output-routing.md`.
 
-- **Jira / ADO / Jira Align / Targetprocess**: Activity → Epic, Task → Feature, Story → Story, Slice → Fix Version / Iteration
-- **GitHub Issues + Projects v2**: labels for activity/slice/persona, Project custom fields for score, `gh` CLI for bulk creation
-- **Linear**: Project per Activity, Cycle per Slice, native CSV importer
-- **Trello / Notion / Airtable / spreadsheet**: import the CSV as-is
-
-**Don't auto-create issues without asking** — generate the import command or script, then let the user run it. Detail: `references/work-item-tracking.md`.
+**Don't auto-create issues or auto-populate `TodoWrite` without asking** — generate the import command or script and tell the user what running it would do.
 
 ## Working with sister skill frameworks
 
@@ -526,4 +528,5 @@ Templates and column schemas live in `assets/`. Use them.
 | `acceptance-criteria.md` | Step 4a — Given/When/Then generation |
 | `e2e-verification-and-contract.md` | Step 4b — backbone-as-E2E-contract |
 | `framework-integration.md` | Step 6 — Superpowers/gstack/GSD/Jira/ADO/GitHub handoff |
-| `work-item-tracking.md` | Step 6 — per-tool import details |
+| `output-routing.md` | Step 6 — the from-scratch vs existing decision; cascade across tracker / framework state / TODO.md / Memory MCP / TodoWrite |
+| `work-item-tracking.md` | Step 6 — per-tool import details (from-scratch branch) |

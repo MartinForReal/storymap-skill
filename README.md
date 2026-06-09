@@ -27,6 +27,7 @@ It produces a project design doc, a three-format story map (markdown + Mermaid +
 - **Acceptance criteria** — Given/When/Then for slice 1 + INVEST check
 - **E2E test contract** — backbone activities as E2E swimlanes
 - **Mode D limit-breach detection** — capacity / dependencies / OKR coverage / scope; surfaces trade-offs rather than silently absorbing
+- **Output routing** — from-scratch projects → seed an issue tracker (Jira/ADO/GitHub Projects/Linear/Trello); existing projects → keep-in-place cascade (sister-framework state → `TODO.md` → Memory MCP), with optional Claude Code `TodoWrite` pairing when the user is about to execute
 - **Persistent memory** — opt-in `.user-story-mapping/state.json` or MCP memory server
 - **Skill chaining** — invokes other installed skills (code-explorer, db-analyzer, etc.) for context gathering
 

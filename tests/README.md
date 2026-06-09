@@ -1,6 +1,6 @@
 # Test infrastructure
 
-This directory contains the eval grading + benchmarking scripts used to validate the `user-story-mapping` skill across the 18 scenarios in `../user-story-mapping/evals/evals.json`.
+This directory contains the eval grading + benchmarking scripts used to validate the `user-story-mapping` skill across the 20 scenarios in `../user-story-mapping/evals/evals.json`.
 
 ## What's here
 

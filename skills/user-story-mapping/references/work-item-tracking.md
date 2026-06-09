@@ -1,5 +1,7 @@
 # Work item tracking integration
 
+> **When to use this reference.** This file covers the *from-scratch* branch — seeding a fresh tracker with the backlog. For existing projects, check `output-routing.md` first; pushing to a populated tracker is usually the wrong destination.
+
 After this skill produces `storymap.md`, `storymap.csv`, `backlog.md`, and `backlog.csv`, most teams will want to push the result into their existing tracker. This file is the reference for doing that cleanly across the popular tools.
 
 The pattern is the same everywhere: **the CSV is the import source, you do not need to re-enter stories by hand.** Don't reinvent the structure inside each tool — keep this skill's artifacts as the source of truth and use the tool's import.
