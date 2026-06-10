@@ -144,7 +144,7 @@ Each contains the canonical six-file output (design.md, storymap.md, storymap.cs
 - Framework integrations: Superpowers, gstack, GSD
 - Capabilities: customer interview synthesis, dependency tracking, OKR alignment, persona simulation + conflict resolution, Mode D limit-breach detection, context loop short-circuit, framework-artifact mining + backbone criteria
 
-Test infrastructure (`grade_runs.py`, `build_benchmark.py`, `build_viewer.py`, `setup_iter10.py`) lives in `tests/`. See `tests/README.md`.
+Test infrastructure (`grade_runs.py`, `build_benchmark.py`, `build_viewer.py`, `run-benchmark.sh`) lives in `tests/`. See `tests/README.md`.
 
 ## Benchmark
 

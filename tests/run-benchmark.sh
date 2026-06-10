@@ -5,7 +5,7 @@
 #   ./tests/run-benchmark.sh iteration-11 # explicit iteration name
 #
 # Steps:
-#   1. Set up workspace dirs + eval_metadata.json files for all 18 evals
+#   1. Set up workspace dirs + eval_metadata.json files for all 25 evals
 #   2. (Manual) Spawn the test runs — see comments below
 #   3. Capture timing.json per run (you do this from your runner's output)
 #   4. Grade all runs (assertions)
@@ -30,11 +30,11 @@ WORKSPACE="user-story-mapping-workspace/$ITER"
 echo "▶ Setting up workspace: $WORKSPACE"
 mkdir -p "$WORKSPACE"
 
-# Update setup_iter10.py to point at the chosen iteration, or use the simpler approach:
+# Set up the iteration workspace from evals.json (inlined Python, no separate scaffold script needed):
 PYTHONUTF8=1 python -c "
 import json
 from pathlib import Path
-evals = json.load(open('user-story-mapping/evals/evals.json', encoding='utf-8'))
+evals = json.load(open('skills/user-story-mapping/evals/evals.json', encoding='utf-8'))
 for e in evals['evals']:
     d = Path('$WORKSPACE') / f\"eval-{e['id']}-{e['name']}\"
     (d / 'with_skill' / 'outputs').mkdir(parents=True, exist_ok=True)
@@ -64,7 +64,7 @@ cat <<EOF
   For Claude Code: use the Agent tool with subagent_type=general-purpose.
   For other hosts: see your host's parallel-execution / subagent docs.
 
-  Press Enter when all 36 runs (18 evals × 2 configs) are complete.
+  Press Enter when all 50 runs (25 evals × 2 configs) are complete.
 EOF
 read -r
 

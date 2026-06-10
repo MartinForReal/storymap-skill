@@ -40,7 +40,7 @@ This directory contains the eval grading + benchmarking scripts used to validate
 
 ## Expected results
 
-With-skill should score ≥90% across all 18 evals. Baseline typically scores 15-25%. The big discriminators:
+With-skill should score ≥90% across all 25 evals. Baseline typically scores 15-25%. The big discriminators:
 
 - Structural conformance — baseline rarely produces the canonical 6-file output
 - Methodology correctness — baseline rarely uses the canonical CSV header / Mermaid format

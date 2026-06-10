@@ -16,7 +16,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).parent.parent
-DEFAULT_ITERATION = ROOT / "user-story-mapping-workspace" / "iteration-11"
+DEFAULT_ITERATION = ROOT / "user-story-mapping-workspace" / "iteration-12"
 EVALS_PATH = ROOT / "skills" / "user-story-mapping" / "evals" / "evals.json"
 
 

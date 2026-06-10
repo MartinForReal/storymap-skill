@@ -1,14 +1,21 @@
 #!/usr/bin/env python3
-"""Aggregate iteration-1 grading + timing into benchmark.json + a static HTML viewer."""
+"""Aggregate per-iteration grading + timing into benchmark.json + a Markdown summary.
+
+Reads from `user-story-mapping-workspace/<ITERATION>/eval-*/` and writes the aggregated
+benchmark.json + benchmark.md back into the same iteration directory. Override the
+target iteration via the ITERATION_OVERRIDE env var; defaults to iteration-12.
+"""
 from __future__ import annotations
 
 import html
 import json
+import os
 import statistics
 from pathlib import Path
 
 ROOT = Path(__file__).parent.parent
-ITERATION = ROOT / "user-story-mapping-workspace" / "iteration-11"
+DEFAULT_ITERATION_NAME = os.environ.get("ITERATION_OVERRIDE", "iteration-12")
+ITERATION = ROOT / "user-story-mapping-workspace" / DEFAULT_ITERATION_NAME
 PREV_ITERATION = None
 SKILL_NAME = "user-story-mapping"
 
@@ -76,7 +83,7 @@ def main() -> int:
 
     benchmark = {
         "skill_name": SKILL_NAME,
-        "iteration": 11,
+        "iteration": int("".join(c for c in DEFAULT_ITERATION_NAME if c.isdigit()) or "12"),
         "configurations": {
             "with_skill": aggregate_config(with_skill_runs),
             "without_skill": aggregate_config(without_skill_runs),
@@ -89,16 +96,9 @@ def main() -> int:
             "tokens": aggregate_config(with_skill_runs)["tokens_mean"] - aggregate_config(without_skill_runs)["tokens_mean"],
         },
         "analyst_notes": [
-            "Iteration 11 — full 18-eval benchmark against the v1.3.0 skill (now in claude-code plugin format). With-skill 171/174 (98.3%) vs baseline 35/174 (20.1%). 4.9x improvement, +0.6pp over iter-10.",
-            "All 6 structural evals (modes A/B/C + 3 framework integrations) score 10/10+ with-skill (eval-5 GSD: 11/11).",
-            "All 5 app-type evals (API, desktop, enterprise, CLI, mobile B2C) score 8-9/9. Baselines hit 0-2/9 — the skill's value is structural conformance the baseline can't replicate.",
-            "5 capability evals (interview synthesis, dependency tracking, OKR alignment, persona-sim, multi-stakeholder) all score 10/10 with-skill.",
-            "3 advanced behavior evals (Mode D snapshot+breaches, empty-dir loop short-circuit, framework artifacts + backbone criteria) score 8/8, 8/9, 10/10. The loop short-circuit eval (17) used 1 Bash call total — the rest of the budget went to ADHD persona simulation.",
-            "Eval-16 (Mode D + breach detection) has the smallest with/baseline gap: 8/8 vs 6/8. Because the prompt explicitly demanded breach surfacing, even baseline did well. The skill's value lies in *consistent* breach detection across less-structured prompts.",
-            "Token usage: with-skill mean ~216K vs baseline ~163K (~33% more tokens for ~5x quality). Duration with-skill mean ~554s vs baseline ~236s.",
-            "Three with-skill runs took small dings: eval-10 mobile (8/9 — 51 stories, +1 over the 50-story soft cap), eval-17 loop short-circuit (8/9 — Now/Next/Later signals partially matched), eval-8 enterprise (9/10 — single backbone-coverage check tripped). All within tolerance.",
-            "Three baseline runs scored above their typical 0-2/N range: eval-11 (3/10 — verbatim quote preservation when the prompt has long quotes inline), eval-16 (6/8 — user explicitly demanded breach surfacing), eval-18 (3/10 — .gsd/ files were readable and the baseline read them). When prompts are explicit and inputs are structured, baselines do better; when prompts are sparse, baseline collapses (eval-1: 0/10, eval-10: 0/9, eval-14: 0/10).",
-            "Plugin-format restructure (v1.3.0) preserved skill quality — iter-11 numbers are equal-to-better than iter-10's, confirming the move to skills/user-story-mapping/ + .claude-plugin/ marketplace.json did not regress behavior.",
+            f"Iteration {DEFAULT_ITERATION_NAME[len('iteration-'):]} — auto-generated from per-eval grading.json + timing.json files. Re-run `tests/grade_runs.py {DEFAULT_ITERATION_NAME}` to refresh.",
+            "Per-eval breakdown above shows assertion pass rates. With-skill should consistently beat baseline; the gap is what the skill is buying you.",
+            "Without-skill runs may be skipped for refactor-only releases (where SKILL.md changes don't affect non-skill agent behavior); see the per-iteration README for the comparison strategy.",
         ],
     }
 

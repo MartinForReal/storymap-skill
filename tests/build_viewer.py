@@ -1,19 +1,23 @@
 #!/usr/bin/env python3
-"""Generate a single-file static HTML viewer for iteration-1 results.
+"""Generate a single-file static HTML viewer for a benchmark iteration's results.
 
 The HTML embeds every output file inline (markdown rendered, CSV as tables,
 Mermaid as text with a render hint). Includes a Benchmark tab with the same
 numbers as benchmark.md, and a per-eval feedback textbox. "Submit All Reviews"
 downloads feedback.json which can be re-read into the next iteration.
+
+Override the target iteration via the ITERATION_OVERRIDE env var; defaults to
+iteration-12.
 """
 from __future__ import annotations
 
 import html
 import json
+import os
 from pathlib import Path
 
 ROOT = Path(__file__).parent.parent
-ITERATION = ROOT / "user-story-mapping-workspace" / "iteration-11"
+ITERATION = ROOT / "user-story-mapping-workspace" / os.environ.get("ITERATION_OVERRIDE", "iteration-12")
 OUT_HTML = ITERATION / "review.html"
 
 
