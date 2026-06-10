@@ -2,6 +2,8 @@
 
 User stories change over time. A story map written 3 months ago has stale priorities, outdated personas, finished work, and new constraints. Mode D is how this skill handles "extend / re-slice / add a feature" requests against an existing map — and crucially, how it **detects when a new request breaks the team's limits** rather than silently absorbing it.
 
+> **Mode D always runs Step 0.5 first.** Before producing the snapshot below, reconcile prior storymap ↔ tracker ↔ code state per [`progress-reconciliation.md`](progress-reconciliation.md). Status changes since the prior run (stories shipped, activities graduated, tracker drift) populate the snapshot — they're not re-derived inside Mode D.
+
 ## When this applies
 
 - The user has an existing `storymap.md`, `backlog.csv`, or equivalent — produced by this skill, by another tool, or hand-written
@@ -11,6 +13,7 @@ User stories change over time. A story map written 3 months ago has stale priori
   - Reprioritize after new data
   - Get a snapshot of current state ("where are we?")
   - Validate the plan against new constraints (team change, deadline change, OKR change)
+  - Sync the storymap with reality after a sprint or two of execution (status pull from tracker; cuts pushed back)
 
 If they have nothing prior, you're in Mode A/B/C, not D.
 
@@ -23,7 +26,14 @@ Before changing anything, capture **current state**. The snapshot is a focused s
 ```markdown
 ## Snapshot (as of YYYY-MM-DD)
 
-### Slice composition
+### Implementation status (sourced from Step 0.5 reconciliation)
+| Activity | Total | Done | In-progress | Blocked | Deferred | Cut | Unchanged | Notes |
+|---|---|---|---|---|---|---|---|---|
+| 1. Sign in | 4 | 4 | 0 | 0 | 0 | 0 | 0 | **GRADUATED** |
+| 2. Find transaction | 5 | 2 | 1 | 0 | 1 | 0 | 1 | |
+| 3. Submit refund | 7 | 0 | 2 | 1 | 0 | 0 | 4 | |
+
+### Slice composition (active backbone only — graduated activities excluded)
 | Slice | Stories | Backbone activities covered | Capacity used | Capacity remaining |
 |---|---|---|---|---|
 | PI 1 | 18 | 5/5 ✓ | 92 SP / 100 cap | 8 SP |
@@ -49,7 +59,7 @@ Before changing anything, capture **current state**. The snapshot is a focused s
 
 Don't fabricate the limits. Get them from:
 - The prior `design.md` if it exists
-- Memory (Step 0.1)
+- Memory loaded as a Step 0 starter signal (see [`persistent-knowledge.md`](persistent-knowledge.md))
 - The user's prompt
 - Tagged in `[user-stated]` if user provided in this conversation
 

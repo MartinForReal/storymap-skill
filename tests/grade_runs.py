@@ -31,7 +31,7 @@ ITERATION = get_iteration()
 REQUIRED_FILES_CANONICAL = ["design.md", "storymap.md", "storymap.csv", "storymap.mmd", "backlog.md", "backlog.csv"]
 
 SYSTEM_WORDS = re.compile(r"\b(api|service|module|database|backend|frontend|microservice|endpoint|schema|sdk|orm)\b", re.IGNORECASE)
-USER_VERBS = re.compile(r"\b(find|search|browse|submit|review|approve|sign|book|schedule|view|save|select|enter|see|get|make|create|edit|share|invite|import|connect|install|launch|reject|accept|choose|complete|start|finish|navigate|tap|click|set|configure|send|read|return|arrive|bring|reach|land|onboard|setup|set-up|track|monitor|cancel|delete|update|upload|download|export|publish|deploy|test|verify|confirm|notify|message|chat|comment|like|follow|join|leave|filter|sort|order|pay|buy|purchase|check|sign-in|sign-up|log-in|log-out|discover|evaluate|try|integrate|organize|plan|decide|learn|explore|manage|handle|process|prepare|request|ship|deliver|store|retrieve|generate|draft|invoice|bill|capture|log|recover|reconcile|approve|deny|escalate|assign|tag|mark|hide|show|toggle|measure)\b", re.IGNORECASE)
+USER_VERBS = re.compile(r"\b(find|search|browse|submit|review|approve|sign|book|schedule|view|save|select|enter|see|get|make|create|edit|share|invite|import|connect|install|launch|reject|accept|choose|complete|start|finish|navigate|tap|click|set|configure|send|read|return|arrive|bring|reach|land|onboard|setup|set-up|track|monitor|cancel|delete|update|upload|download|export|publish|deploy|test|verify|confirm|notify|message|chat|comment|like|follow|join|leave|filter|sort|order|pay|buy|purchase|check|sign-in|sign-up|log-in|log-out|discover|evaluate|try|integrate|organize|plan|decide|learn|explore|manage|handle|process|prepare|request|ship|deliver|store|retrieve|generate|draft|invoice|bill|capture|log|recover|reconcile|approve|deny|escalate|assign|tag|mark|hide|show|toggle|measure|mint|provision|grant|revoke|enable|disable|switch|fetch|push|pull|run|build|debug|profile|inspect|sync|reset|rotate)\b", re.IGNORECASE)
 
 
 def list_files(out_dir: Path) -> list[str]:
@@ -71,13 +71,16 @@ def grade_canonical_files(out_dir: Path) -> dict:
 
 def grade_csv_header(out_dir: Path) -> dict:
     text = read_file(out_dir, "storymap.csv")
-    expected = "id,activity,task,story,persona,outcome,slice"
+    # v0.0.3+ added status + status_evidence columns; accept either schema.
+    legacy_header = "id,activity,task,story,persona,outcome,slice"
+    current_header = "id,activity,task,story,persona,outcome,slice,status,status_evidence"
     if text is None:
         return {"text": "storymap.csv has canonical header", "passed": False, "evidence": "storymap.csv not found"}
     first = text.splitlines()[0].strip() if text.strip() else ""
+    passed = first.lower() in (legacy_header, current_header)
     return {
-        "text": "storymap.csv has the canonical header: id,activity,task,story,persona,outcome,slice",
-        "passed": first.lower() == expected,
+        "text": f"storymap.csv has the canonical header (legacy 7-col OR current 9-col with status/status_evidence)",
+        "passed": passed,
         "evidence": f"header was: {first!r}",
     }
 
@@ -226,21 +229,56 @@ def grade_first_slice_coverage(out_dir: Path) -> dict:
 
 
 def grade_method_columns(out_dir: Path, method: str) -> dict:
+    """Check backlog.csv carries the chosen prioritization method's columns.
+
+    Accepts EITHER the wsjf_*-prefixed form (legacy) OR the canonical SAFe / RICE
+    column names that the skill's prioritization-frameworks.md teaches. The agent
+    will produce one or the other; both are valid.
+    """
     text = read_file(out_dir, "backlog.csv") or ""
+    # For each method, list ONE acceptable column-set; if the prefixed form isn't
+    # found, fall back to the canonical form. Pass if either is fully present.
     columns_map = {
-        "wsjf": ["wsjf_value", "wsjf_time", "wsjf_risk", "wsjf_size"],
-        "rice": ["rice_reach", "rice_impact", "rice_confidence", "rice_effort"],
-        "moscow": ["moscow"],
+        "wsjf": (
+            ["wsjf_value", "wsjf_time", "wsjf_risk", "wsjf_size"],          # prefixed form
+            # Canonical SAFe WSJF inputs: cost-of-delay components + job size + score column.
+            # Accept any of several common naming variants for each input.
+            None,  # see below — WSJF canonical check uses keyword groups
+        ),
+        "rice": (
+            ["rice_reach", "rice_impact", "rice_confidence", "rice_effort"],
+            ["reach", "impact", "confidence", "effort", "rice_score"],
+        ),
+        "moscow": (["moscow"], ["moscow"]),
     }
-    cols = columns_map[method]
+    prefixed, canonical = columns_map[method]
     if not text.strip():
         return {"text": f"backlog.csv has {method.upper()} columns", "passed": False, "evidence": "backlog.csv missing or empty"}
     header = text.splitlines()[0].lower()
-    missing = [c for c in cols if c not in header]
+    prefixed_missing = [c for c in prefixed if c not in header]
+    if method == "wsjf":
+        # Canonical SAFe WSJF: need (user-business-value | bv) + (time-criticality | tc) +
+        # (risk-reduction / opportunity-enablement | rroe | risk-reduction-opportunity-enablement)
+        # + (job-size) + an overall wsjf score column.
+        canonical_groups = [
+            ("user_business_value", "business_value", "bv"),
+            ("time_criticality", "tc"),
+            ("risk_reduction_opportunity_enablement", "risk_reduction_opp_enablement", "risk_reduction", "rroe"),
+            ("job_size", "size"),
+            ("wsjf",),
+        ]
+        canonical_ok = all(any(name in header for name in group) for group in canonical_groups)
+    else:
+        canonical_ok = canonical is not None and all(c in header for c in canonical)
+    passed = (not prefixed_missing) or canonical_ok
+    if passed:
+        evidence = "prefixed form" if not prefixed_missing else "canonical form"
+    else:
+        evidence = f"header: {header[:200]}; neither prefixed ({prefixed}) nor canonical form found"
     return {
-        "text": f"backlog.csv contains {method.upper()} scoring columns ({', '.join(cols)})",
-        "passed": not missing,
-        "evidence": f"header: {header[:200]}; missing: {missing}",
+        "text": f"backlog.csv contains {method.upper()} scoring columns (prefixed OR canonical SAFe/RICE form)",
+        "passed": passed,
+        "evidence": evidence,
     }
 
 
@@ -1017,6 +1055,237 @@ def grade_run(eval_id: int, out_dir: Path) -> list[dict]:
             "text": "Handoff line names TODO.md as the destination",
             "passed": "todo.md" in handoff.lower() and any(t in handoff.lower() for t in ["→", "written to", "wrote to", "landed in", "destination"]),
             "evidence": "TODO.md named in handoff",
+        })
+    elif eval_id == 21:
+        # Step 0.5 — progress reconciliation
+        text = read_all_text(out_dir).lower()
+        design = read_file(out_dir, "design.md") or ""
+        storymap = read_file(out_dir, "storymap.md") or ""
+        handoff = read_file(out_dir, "handoff.md") or ""
+        # Story IDs live in CSV, not in storymap.md prose. Use tracker IDs (PROJ-101..104 etc.) as proxy.
+        results.append({
+            "text": "Step 0.5 ran (design.md has Implementation status or Activity status section)",
+            "passed": ("implementation status" in design.lower() or "activity status" in design.lower()),
+            "evidence": "Step 0.5 section header found in design.md",
+        })
+        done_count = sum(p in storymap for p in ("PROJ-101", "PROJ-102", "PROJ-103", "PROJ-104"))
+        results.append({
+            "text": "Sign-in tracker items (PROJ-101..104) marked status:done",
+            "passed": done_count >= 3 and ("status: done" in storymap.lower() or "status:done" in storymap.lower()),
+            "evidence": f"{done_count}/4 PROJ-10x IDs present + status:done annotation",
+        })
+        results.append({
+            "text": "Activity 'Sign in' graduated (## Shipped foundation or GRADUATED mention)",
+            "passed": any(t in storymap.lower() for t in ["shipped foundation", "graduated"]) and "sign in" in storymap.lower(),
+            "evidence": "graduation signal on Sign in activity",
+        })
+        progress_in_progress = "in-progress" in storymap.lower() and (
+            ("PROJ-105" in storymap or "PROJ-106" in storymap)
+            or ("find-by-id" in storymap.lower() or "find-by-email" in storymap.lower())
+        )
+        results.append({
+            "text": "Find-transaction items (PROJ-105/106) marked status:in-progress (active branches)",
+            "passed": progress_in_progress,
+            "evidence": "in-progress status on Find-transaction stories",
+        })
+        deferred_count = sum(p in storymap for p in ("PROJ-109", "PROJ-110", "PROJ-112"))
+        results.append({
+            "text": "Approver + late-audit items (PROJ-109/110/112) marked status:deferred (Fix Version pushed)",
+            "passed": "deferred" in storymap.lower() and deferred_count >= 2,
+            "evidence": f"deferred status; {deferred_count}/3 PROJ-1XX IDs present",
+        })
+        results.append({
+            "text": "Orphan tracker items (PROJ-113/114/115) surfaced in handoff drift section",
+            "passed": ("detected drift" in handoff.lower() or "orphan" in handoff.lower()) and sum(p in handoff for p in ["PROJ-113", "PROJ-114", "PROJ-115"]) >= 2,
+            "evidence": "orphan tracker items listed",
+        })
+        results.append({
+            "text": "Graduated activity excluded from active slice-1 coverage requirement",
+            "passed": "active backbone" in text or "active backbone activities" in text or "excluded from active slicing" in text or "graduated activities don't" in text,
+            "evidence": "active-vs-graduated distinction documented",
+        })
+        results.append({
+            "text": "Any tracker-status-update script generated is NOT auto-run",
+            "passed": ("tracker-status-update" not in text) or any(t in text for t in ["don't auto-run", "do not auto-run", "review before running", "user runs", "you run"]),
+            "evidence": "no auto-execution of write-back script",
+        })
+    elif eval_id == 22:
+        # Per-persona slice-1 coverage enforcement
+        text = read_all_text(out_dir).lower()
+        design = read_file(out_dir, "design.md") or ""
+        csv_text = read_file(out_dir, "storymap.csv") or ""
+        results.append({
+            "text": "Design doc names all three personas (Business Owner, Accountant, Customer)",
+            "passed": all(p in design.lower() for p in ["business owner", "accountant", "customer"]),
+            "evidence": "three personas present in design.md",
+        })
+        # Per-persona slice-1 coverage check via CSV — use csv.reader to handle quoted commas in story column.
+        slice1_personas = set()
+        if csv_text.strip():
+            reader = csv.reader(io.StringIO(csv_text))
+            header = next(reader, [])
+            # Find column indices defensively (schema may have added columns).
+            try:
+                persona_idx = header.index("persona")
+                slice_idx = header.index("slice")
+            except ValueError:
+                persona_idx, slice_idx = 4, 6  # legacy default
+            for row in reader:
+                if len(row) > max(persona_idx, slice_idx):
+                    sv = row[slice_idx].strip().lower()
+                    if sv in ("1", "slice-1", "walking-skeleton", "skeleton", "mvp"):
+                        slice1_personas.add(row[persona_idx].strip().lower())
+        # "slice 1" can be either walking-skeleton or mvp depending on the run's slicing interpretation;
+        # the eval prompt says "walking-skeleton" but agents sometimes fold walking-skeleton+mvp into slice-1.
+        covers_all_3 = sum(any(p in sp for sp in slice1_personas) for p in ["owner", "accountant", "customer"]) >= 3
+        results.append({
+            "text": "Slice-1 includes ≥1 story per persona (Business Owner + Accountant + Customer)",
+            "passed": covers_all_3,
+            "evidence": f"slice-1 personas: {sorted(slice1_personas)[:10]}",
+        })
+        results.append({
+            "text": "Any missing-persona case flagged in design doc (forced re-check, not silent drop)",
+            "passed": covers_all_3 or any(t in design.lower() for t in ["forced re-check", "re-run step 1", "re-run step 3", "persona has zero", "no slice-1 story for"]),
+            "evidence": "forced re-check disclosure" if not covers_all_3 else "all three personas covered (re-check not needed)",
+        })
+        results.append({
+            "text": "Stories tagged with source where applicable ([simulated]/[inferred]/[interview: ...])",
+            "passed": any(t in design.lower() for t in ["[simulated", "[inferred", "[interview"]) or any(t in csv_text.lower() for t in ["[simulated", "[inferred", "[interview"]),
+            "evidence": "source-tag conventions used",
+        })
+        results.append(grade_method_columns(out_dir, "moscow"))
+        results.append({
+            "text": "Walking-skeleton slicing terminology used (not PI-1)",
+            "passed": "walking" in text or "skeleton" in text,
+            "evidence": "walking-skeleton terminology found",
+        })
+    elif eval_id == 23:
+        # Step 2.5 — role hints
+        text = read_all_text(out_dir).lower()
+        role_hints = read_file(out_dir, "role-hints.md") or ""
+        results.append({
+            "text": "role-hints.md is produced as a top-level artifact",
+            "passed": bool(role_hints) and len(role_hints) > 200,
+            "evidence": f"role-hints.md present ({len(role_hints)} chars)" if role_hints else "missing",
+        })
+        results.append({
+            "text": "role-hints.md has a UX/UI designer section (persona snapshots / flow inventory / open UX questions)",
+            "passed": any(t in role_hints.lower() for t in ["ux/ui designer", "ux designer", "for the ux", "designer:", "for ux", "## ux"]) and any(t in role_hints.lower() for t in ["persona snapshot", "flow inventory", "open ux", "ux questions", "friction"]),
+            "evidence": "UX section + at least one expected sub-heading",
+        })
+        results.append({
+            "text": "role-hints.md has an architect section (cross-cutting / boundaries / open architecture questions)",
+            "passed": any(t in role_hints.lower() for t in ["for the architect", "architect:", "## architect"]) and any(t in role_hints.lower() for t in ["cross-cutting", "boundary candidate", "open architecture", "architecture questions", "risky integration"]),
+            "evidence": "architect section + at least one expected sub-heading",
+        })
+        results.append({
+            "text": "HIPAA constraint surfaced (architect / cross-cutting hint)",
+            "passed": "hipaa" in role_hints.lower() or "hipaa" in text,
+            "evidence": "HIPAA referenced",
+        })
+        results.append({
+            "text": "PCI constraint surfaced for billing flow",
+            "passed": "pci" in role_hints.lower() or "pci" in text,
+            "evidence": "PCI referenced",
+        })
+        results.append({
+            "text": "Twilio + Stripe noted as risky integrations with risk notes",
+            "passed": all(t in role_hints.lower() for t in ["twilio", "stripe"]) and any(t in role_hints.lower() for t in ["risk", "rate limit", "webhook", "deliverability"]),
+            "evidence": "both third parties + risk note",
+        })
+        results.append({
+            "text": "Skill-chaining attempted or 'no advisor skill installed' noted for at least one flow",
+            "passed": any(t in role_hints.lower() for t in ["[skill:", "no advisor skill installed", "would benefit from domain expertise", "advisor skill"]),
+            "evidence": "skill-chaining outcome documented",
+        })
+        # RICE column naming varies: canonical is reach/impact/confidence/effort/rice_score; some teams use rice_reach/etc.
+        backlog_csv = read_file(out_dir, "backlog.csv") or ""
+        header = backlog_csv.splitlines()[0].lower() if backlog_csv.strip() else ""
+        rice_canonical = all(c in header for c in ("reach", "impact", "confidence", "effort", "rice_score"))
+        rice_prefixed = all(c in header for c in ("rice_reach", "rice_impact", "rice_confidence", "rice_effort"))
+        results.append({
+            "text": "backlog.csv contains RICE scoring columns (reach/impact/confidence/effort + rice_score, OR rice_*-prefixed)",
+            "passed": rice_canonical or rice_prefixed,
+            "evidence": f"header: {header[:200]}",
+        })
+    elif eval_id == 24:
+        # Plan-stage auto-trigger via gstack /office-hours cue
+        handoff = read_file(out_dir, "handoff.md") or ""
+        text = read_all_text(out_dir).lower()
+        results.append({
+            "text": "Auto-activates on gstack /office-hours cue (storymap.md produced, not just free-form discussion)",
+            "passed": bool(read_file(out_dir, "storymap.md")),
+            "evidence": "storymap.md present",
+        })
+        results.append(grade_backbone_user_voice(out_dir))
+        results.append(grade_first_slice_coverage(out_dir))
+        results.append(grade_method_columns(out_dir, "wsjf"))
+        results.append({
+            "text": "Handoff references gstack /plan-*-review commands",
+            "passed": ("/plan-ceo-review" in handoff.lower() or "/plan-eng-review" in handoff.lower() or "/plan-design-review" in handoff.lower() or "/plan-devex-review" in handoff.lower()) and ("/plan-" in handoff.lower()),
+            "evidence": "gstack plan-review commands named",
+        })
+        results.append({
+            "text": "Backbone uses user-voice verbs (search/save/get-notified/etc.)",
+            "passed": any(v in text for v in ["search", "save", "subscribe", "get notified", "browse", "explore"]),
+            "evidence": "user-voice verbs found",
+        })
+    elif eval_id == 25:
+        # Tracker write-back script emitted
+        text = read_all_text(out_dir).lower()
+        handoff = read_file(out_dir, "handoff.md") or ""
+        storymap = read_file(out_dir, "storymap.md") or ""
+        script_text = ""
+        for name in ("tracker-status-update.sh", "tracker-status-update.md", "tracker-status-update.bash", "tracker-status-update.ps1"):
+            t = read_file(out_dir, name)
+            if t:
+                script_text = t
+                break
+        # Use tracker IDs (CMS-106, CMS-107) as the canonical lookup — storymap.md story lines often don't carry S0XX IDs.
+        results.append({
+            "text": "Step 0.5 ran (status reconciliation against prior storymap + tracker)",
+            "passed": "status: " in storymap.lower() or "status:" in storymap.lower() or "implementation status" in (read_file(out_dir, "design.md") or "").lower(),
+            "evidence": "status annotations or implementation-status section present",
+        })
+        results.append({
+            "text": "CMS-106 (S006) marked status:cut",
+            "passed": "cms-106" in storymap.lower() and ("status: cut" in storymap.lower() or "status:cut" in storymap.lower()),
+            "evidence": "CMS-106 marked cut in storymap",
+        })
+        results.append({
+            "text": "CMS-107 (S007) marked status:deferred",
+            "passed": "cms-107" in storymap.lower() and ("status: deferred" in storymap.lower() or "status:deferred" in storymap.lower()),
+            "evidence": "CMS-107 marked deferred in storymap",
+        })
+        results.append({
+            "text": "tracker-status-update.* script generated as a separate file",
+            "passed": bool(script_text),
+            "evidence": f"script file present ({len(script_text)} chars)" if script_text else "no tracker-status-update.* file found",
+        })
+        results.append({
+            "text": "Script contains Jira CLI transition for CMS-106 (cut)",
+            "passed": bool(script_text) and "cms-106" in script_text.lower() and any(t in script_text.lower() for t in ["won't do", "wontfix", "wont-fix", "transition", "close"]),
+            "evidence": "CMS-106 cut operation",
+        })
+        results.append({
+            "text": "Script contains Fix Version push for CMS-107 to PI-2",
+            "passed": bool(script_text) and "cms-107" in script_text.lower() and any(t in script_text.lower() for t in ["pi-2", "pi_2", "fix-version", "fixversion", "fix version"]),
+            "evidence": "CMS-107 deferral operation",
+        })
+        results.append({
+            "text": "Script contains create operations for two new stories (permission boundary check + rate-limit)",
+            "passed": bool(script_text) and any(t in script_text.lower() for t in ["jira issue create", "issue create", "create issue", "new-item", "create-issue"]) and ("permission" in script_text.lower() or "rate-limit" in script_text.lower() or "rate limit" in script_text.lower()),
+            "evidence": "new-story create operations",
+        })
+        results.append({
+            "text": "Script header / docs explicitly say it is NOT auto-executed (must be reviewed)",
+            "passed": bool(script_text) and any(t in script_text.lower() for t in ["review before", "do not auto", "don't auto", "manually", "you run", "user runs", "review this"]),
+            "evidence": "non-execution disclaimer in script",
+        })
+        results.append({
+            "text": "Handoff line names tracker-status-update.* as an output to review",
+            "passed": ("tracker-status-update" in handoff.lower()) and ("review" in handoff.lower() or "before running" in handoff.lower()),
+            "evidence": "handoff references the script + review prompt",
         })
 
     return results

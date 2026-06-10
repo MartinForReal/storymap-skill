@@ -123,22 +123,22 @@ Transparency is non-negotiable. Hidden state = surprise = lost user trust.
 
 ## Wiring into the workflow
 
-Add as **Step 0a** (before context collection):
+Memory load is one of the cheap **starter signals** at the entry of **Step 0** (context collection loop) — alongside `ls`, prompt re-read, README, and any interview notes in the prompt:
 
 ```
-Step 0a (memory) — if .user-story-mapping/state.json exists OR memory MCP available:
-  - Read prior state
+Step 0 (context loop, starter signals) — if .user-story-mapping/state.json exists OR memory MCP available:
+  - Read prior state as a cheap signal (free or near-free tool call)
   - Surface in design.md "Loaded from memory" section
-  - Use as hints for Step 0 context collection (e.g., focus re-scan on changed areas)
+  - Tag loaded facts `[memory: <date>]`; verify against current state
   - On user signal "ignore memory", skip
-Step 0 (context collection) — proceeds as normal, augmented by memory hints
+Step 0 continues — proceeds as normal, augmented by memory hints
 Step 1+ — normal workflow
 ```
 
-End-of-run:
+End-of-run write-back rides on **Step 6 (Hand off)**:
 
 ```
-Step 7 (post-handoff) — if memory enabled OR user said "remember this":
+Step 6 (hand off) — if memory enabled OR user said "remember this":
   - Write delta to chosen backend
   - Append to decisions log
   - Tell user what was saved, in one line

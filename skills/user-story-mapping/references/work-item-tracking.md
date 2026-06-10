@@ -1,6 +1,8 @@
 # Work item tracking integration
 
 > **When to use this reference.** This file covers the *from-scratch* branch — seeding a fresh tracker with the backlog. For existing projects, check `output-routing.md` first; pushing to a populated tracker is usually the wrong destination.
+>
+> **Status pull-back and write-back** (existing projects, after Step 0.5 has reconciled storymap ↔ tracker ↔ code) are governed by [`progress-reconciliation.md`](progress-reconciliation.md), not this file. The per-tracker mappings below are the same; what differs is *who's authoritative for what* — when you're seeding a tracker, the storymap is. When you're reconciling, the tracker is authoritative for *status*, the storymap for *intent*. Read `progress-reconciliation.md` before generating any tracker write-back script.
 
 After this skill produces `storymap.md`, `storymap.csv`, `backlog.md`, and `backlog.csv`, most teams will want to push the result into their existing tracker. This file is the reference for doing that cleanly across the popular tools.
 

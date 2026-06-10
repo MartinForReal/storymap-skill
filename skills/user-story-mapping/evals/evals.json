@@ -1,7 +1,7 @@
 {
   "skill_name": "user-story-mapping",
   "version": "1.0",
-  "description": "18 eval scenarios spanning invocation modes (A/B/C/D), app types (web/mobile/desktop/API/CLI/enterprise), framework integrations (Superpowers/gstack/GSD), and the iter-5+ capabilities (interview synthesis, dependency tracking, OKR alignment, persona simulation, Mode D + breach detection, context loop short-circuit, framework artifacts + backbone criteria).",
+  "description": "25 eval scenarios spanning invocation modes (A/B/C/D), app types (web/mobile/desktop/API/CLI/enterprise), framework integrations (Superpowers/gstack/GSD), iter-5+ capabilities (interview synthesis, dependency tracking, OKR alignment, persona simulation, Mode D + breach detection, context loop short-circuit, framework artifacts + backbone criteria), and v0.0.3 additions (Step 0.5 progress reconciliation, Step 2.5 role hints, per-persona slice-1 enforcement, plan-stage auto-trigger, tracker write-back).",
   "evals": [
     {
       "id": 1,
@@ -310,6 +310,88 @@
         "Appends rather than overwrites if TODO.md already exists (dated section header)",
         "Does NOT generate or run a GitHub Issues import script (user explicitly forbade it)",
         "Handoff line names TODO.md as the destination, not the tracker"
+      ]
+    },
+    {
+      "id": 21,
+      "name": "step-0-5-progress-reconciliation",
+      "category": "Step 0.5 — progress reconciliation",
+      "prompt": "Mode D refresh on our refund-portal. Last storymap was generated 8 weeks ago — since then engineering has shipped a bunch and the tracker has shifted. Current state:\n\nPrior storymap had these slice-1 stories (S001-S012):\n- S001 [Sign in]: SSO setup (admin)\n- S002 [Sign in]: SSO sign-in (end-user)\n- S003 [Sign in]: role-claim verification (compliance)\n- S004 [Sign in]: SSO error states (end-user)\n- S005 [Find transaction]: search by ID (CS rep)\n- S006 [Find transaction]: search by customer email (CS rep)\n- S007 [Submit refund]: refund within auto-approve limit (CS rep)\n- S008 [Submit refund]: refund above limit → approval queue (CS rep)\n- S009 [Approver]: approver dashboard list view (approver)\n- S010 [Approver]: approve/deny action (approver)\n- S011 [Audit]: audit log emitted (compliance)\n- S012 [Audit]: audit search by date range (compliance)\n\nTracker state (Jira, project PROJ):\n- PROJ-101 (=S001): Closed 2026-04-18\n- PROJ-102 (=S002): Closed 2026-04-22\n- PROJ-103 (=S003): Closed 2026-05-02\n- PROJ-104 (=S004): Closed 2026-05-10\n- PROJ-105 (=S005): In Progress, branch feat/find-by-id (active commits this week)\n- PROJ-106 (=S006): In Progress, branch feat/find-by-email (active commits this week)\n- PROJ-107 (=S007): To Do\n- PROJ-108 (=S008): To Do\n- PROJ-109 (=S009): To Do, Fix Version pushed to PI-2 (deferred)\n- PROJ-110 (=S010): To Do, Fix Version pushed to PI-2 (deferred)\n- PROJ-111 (=S011): To Do\n- PROJ-112 (=S012): To Do, Fix Version pushed to PI-3 (deferred further)\n- PROJ-113 (NEW, no storymap mapping): 'Add Slack notifications for failed refunds'\n- PROJ-114 (NEW, no storymap mapping): 'Rate-limit refund submission endpoint'\n- PROJ-115 (NEW, no storymap mapping): 'Multi-region failover for audit log writes'\n\nCode state: src/auth/* and src/routes/auth/* exist with tests; src/routes/transactions/find_by_*.ts exist (partial); src/routes/refunds/, src/approver/, src/audit/ do not exist yet.\n\nRefresh the storymap. Reconcile against tracker + code. Surface drift. Tell me what's graduated and what new work fell outside the backbone.",
+      "files": [],
+      "assertions": [
+        "Step 0.5 ran (design.md has '## Implementation status' or '## Activity status' section)",
+        "S001-S004 marked status:done (all four shipped per tracker + code)",
+        "Activity 'Sign in' marked as GRADUATED (all four stories done)",
+        "S005, S006 marked status:in-progress (active branches + recent commits)",
+        "S009, S010, S012 marked status:deferred (Fix Version pushed forward)",
+        "Orphan tracker items (PROJ-113, PROJ-114, PROJ-115) surfaced in handoff.md ## Detected drift section",
+        "Graduated activity excluded from active slicing (Sign in not in next-slice coverage requirement)",
+        "If any storymap → tracker write-back is needed, a tracker-status-update.sh is generated but NOT auto-run"
+      ]
+    },
+    {
+      "id": 22,
+      "name": "per-persona-slice-1-coverage",
+      "category": "Per-persona enforcement",
+      "prompt": "We're building a small-business invoicing tool. Three distinct user types matter:\n1. **Business owner** — they create and send invoices, follow up on late payments. They're who we talk about most.\n2. **Accountant** (often external bookkeeper, sometimes the owner themselves) — they reconcile, export to QuickBooks at month-end, pull tax-time reports.\n3. **Customer (recipient of the invoice)** — they receive the invoice in email, click a link, pay. They never log in.\n\nHelp me story-map an MVP for a 10-week initial build. Walking-skeleton slicing. We use MoSCoW since we're pre-PI-planning.\n\nMost of the loud user research came from business owners (we have 20 interviews from them). Accountants we've talked to 4 of. Customers we have zero direct research on but they're load-bearing — without them paying, the product fails.\n\nBe honest about gaps for accountants and customers, but don't drop them from the design just because the data's thinner.",
+      "files": [],
+      "assertions": [
+        "Design doc names all three personas: Business Owner, Accountant, Customer",
+        "Slice 1 (walking skeleton) has ≥1 story per persona — Business Owner, Accountant, Customer all appear as <persona> in slice-1 stories",
+        "If Customer or Accountant has zero stories in slice-1, the design doc explicitly flags it as a forced re-check, not a silent drop",
+        "Gap-tagging: stories driven by simulated/inferred personas are tagged [simulated] or [inferred] vs [interview: ...] for owner stories",
+        "Method columns reflect MoSCoW (must/should/could)",
+        "Walking-skeleton slicing terminology used (slice-1 = walking skeleton, not PI-1)"
+      ]
+    },
+    {
+      "id": 23,
+      "name": "step-2-5-role-hints-generation",
+      "category": "Step 2.5 — role hints",
+      "prompt": "We're building a B2B booking platform — think OpenTable for medical clinics. Multiple user types: patients booking appointments, clinic admins managing schedules + staff, billing admins reconciling claims. It's a web app (React + Postgres + Stripe + Twilio for SMS). Compliance: HIPAA, PCI for billing. We have a designer (junior, just hired) and an architect (senior) on the team — neither has worked in healthcare before. Three-month MVP target. RICE for prioritization (we have funnel data from a competitor analysis).\n\nStory-map this. I want my designer and architect to be able to start their own work immediately based on what you produce, not have to ask follow-up questions.",
+      "files": [],
+      "assertions": [
+        "role-hints.md is produced as a top-level artifact",
+        "role-hints.md has a UX/UI designer section with persona snapshots + flow inventory + open UX questions",
+        "role-hints.md has an architect section with cross-cutting work index + boundary candidates + open architecture questions",
+        "HIPAA constraint surfaced in architect section (compliance/regulated-data hint)",
+        "PCI constraint surfaced for billing flow (third-party / Stripe boundary)",
+        "Twilio + Stripe surfaced under 'risky integrations' with one-line risk notes",
+        "Skill-chaining attempted or noted as 'no advisor skill installed' for at least one identifiable flow (auth, payment, accessibility, notifications)",
+        "Method columns reflect RICE (reach/impact/confidence/effort)"
+      ]
+    },
+    {
+      "id": 24,
+      "name": "plan-stage-auto-trigger-gstack",
+      "category": "Plan-stage auto-trigger",
+      "prompt": "/office-hours we just kicked off a new initiative — let's add a 'Saved Searches' feature to our property-search app. Users want to save filters and get notified when new listings match. PM wants a plan by end of week, engineering team is 3 people, 6-week cycle. WSJF preferred.",
+      "files": [],
+      "assertions": [
+        "Detects gstack /office-hours as a Plan-stage cue and auto-activates this skill (storymap.md is produced, not just a free-form discussion)",
+        "All six canonical files produced",
+        "Handoff line references gstack /plan-*-review commands explicitly (at minimum /plan-ceo-review on design.md and /plan-eng-review on slice 1)",
+        "Method columns reflect WSJF",
+        "Backbone in user voice (search, save, get notified, etc.) — not in system voice",
+        "Slice 1 covers every backbone activity (walking-skeleton coverage rule)"
+      ]
+    },
+    {
+      "id": 25,
+      "name": "tracker-write-back-script-emitted",
+      "category": "Tracker write-back",
+      "prompt": "Mode D refresh on our content-management product. Last storymap was 6 weeks ago, here's what's changed and what I want done:\n\nPrior slice-1 had S001-S010. Status as of today (Jira project CMS):\n- S001-S005: shipped, all closed in tracker — fine\n- S006 'inline drag-and-drop reorder' (CMS-106): I want to CUT this. Editors said it's confusing, we'll do a 'move to position N' modal instead in slice-2. Close the ticket as wontfix.\n- S007 'bulk delete with undo' (CMS-107): I want to DEFER to PI-2 — not critical for launch.\n- S008 'version history sidebar' (CMS-108): stays in slice-1, no change.\n- S009, S010: stay in slice-1.\n\nTwo NEW stories I want tracked: 'permission boundary check on publish action' and 'rate-limit on rapid edits API'.\n\nGive me a tracker-update script I can review before running. Don't auto-execute anything.",
+      "files": [],
+      "assertions": [
+        "Step 0.5 ran (status reconciliation against prior storymap + tracker)",
+        "S006 marked status:cut",
+        "S007 marked status:deferred",
+        "tracker-status-update.sh (or .md for Linear-style) is generated as a separate file",
+        "tracker-status-update.sh contains a Jira CLI transition to 'Won't Do' (or equivalent) for CMS-106",
+        "tracker-status-update.sh contains a Fix Version push for CMS-107 to PI-2 (or equivalent deferral)",
+        "tracker-status-update.sh contains create operations for the two new stories (jira issue create or similar)",
+        "Script has an explicit header comment stating it must be reviewed and is NOT auto-executed",
+        "Handoff line names tracker-status-update.sh as one of the outputs to review before running"
       ]
     }
   ]

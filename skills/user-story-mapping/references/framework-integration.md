@@ -2,6 +2,20 @@
 
 This skill is standalone. None of the tools below are required. When they *are* in play, follow these patterns to fit cleanly.
 
+## Auto-activation cues — Plan-stage commands of sister frameworks
+
+Before falling through to ad-hoc story drafting, **detect whether a sister framework is at its Plan stage and self-activate this skill there**. The story map + per-persona stories + role hints + test contract is what each of those frameworks' Plan-stage commands need as input — produce them once, here, and let the framework's own commands review/consume.
+
+| Framework | Plan-stage signal (any of these = activate this skill) | This skill produces what they consume |
+|---|---|---|
+| **Superpowers** | Just finished `brainstorming`; about to call `writing-plans` and the slice 1 stories aren't written yet | `storymap.md` slice 1 → input to `writing-plans` task decomposition |
+| **gstack** | User invokes `/office-hours`, `/autoplan`, `/plan-ceo-review`, `/plan-eng-review`, `/plan-design-review`, `/plan-devex-review` | `design.md` → `/plan-ceo-review`; slice 1 → `/plan-eng-review`; persona narratives + `role-hints.md` → `/plan-design-review`; `backlog.md` → `/plan-devex-review` |
+| **GSD** | User invokes `/gsd discuss`, `/gsd plan-milestone`; or is authoring `.gsd/Brief.md` / `.gsd/Roadmap.md` / a new `.gsd/Milestones/Mn/` directory | `design.md` → `.gsd/Brief.md`; slice 1 → `.gsd/Milestones/M1/`; `backlog.md` → `.gsd/Roadmap.md` |
+
+When activated under a sister framework, skip framework-specific authoring of artifacts (don't write `.gsd/` files directly), but use that framework's vocabulary in your final hand-off line. See per-framework notes below.
+
+**Disambiguation rule.** If both this skill's triggers AND a sister-framework slash-command fire on the same prompt (e.g., user types `/office-hours we need to plan our refund flow`), this skill runs *first* — produce the canonical six-to-nine artifacts — and the framework command runs against them. Don't try to satisfy both in one nested invocation.
+
 ## gstack (garrytan/gstack)
 
 [gstack](https://github.com/garrytan/gstack) — Garry Tan (Y Combinator) — is a Claude Code slash-command pack that organizes work into a Think → Plan → Build → Review → Test → Ship → Reflect sprint. It exposes 23+ commands like `/office-hours`, `/autoplan`, `/plan-ceo-review`, `/plan-eng-review`, `/design-review`, `/review`, `/qa`, `/ship`, `/retro`.
@@ -26,13 +40,13 @@ Practical mapping for the with-this-skill workflow inside gstack:
 | `/office-hours` (refine an idea) | Feed it `design.md` — the personas, opportunities, and hypotheses sections give it concrete framing |
 | `/autoplan` (turn a goal into work) | Skip if you've already produced `storymap.md` — point it at the first slice instead |
 | `/plan-ceo-review` | Reviews `design.md` for outcome clarity and the question being answered |
-| `/plan-eng-review` | Reviews `storymap.md` slice 1 for engineering feasibility |
-| `/plan-design-review` | Reviews persona narratives and activity backbone for UX coherence |
+| `/plan-eng-review` | Reviews `storymap.md` slice 1 for engineering feasibility — also surfaces `role-hints.md`§Architect open questions |
+| `/plan-design-review` | Reviews persona narratives, activity backbone, and `role-hints.md`§UX for UX coherence |
 | `/plan-devex-review` | Reviews `backlog.md` for ranking sanity |
 | `/ship`, `/canary` | Operate on built stories; this skill stops at the plan |
 | `/retro`, `/learn` | Use `design.md` Hypotheses table as the "what did we believe" input to retro |
 
-If gstack is active, after producing artifacts say: "Outputs are ready for `/plan-ceo-review` on `design.md` and `/plan-eng-review` on slice 1 of `storymap.md`." That makes the handoff explicit.
+If gstack is active, after producing artifacts say: "Outputs are ready for `/plan-ceo-review` on `design.md`, `/plan-eng-review` on slice 1 of `storymap.md` + `role-hints.md`§Architect, and `/plan-design-review` on persona narratives + `role-hints.md`§UX." That makes the handoff explicit.
 
 **Don't auto-invoke gstack commands from inside this skill.** They are user-facing slash commands the human runs when they want the review. This skill produces the *inputs* those commands need.
 
@@ -65,7 +79,7 @@ This skill (Mode A or B)
                              GSD /gsd discuss → /gsd plan-milestone → /gsd auto
 ```
 
-If GSD is active, after producing artifacts say something like: "Outputs map to GSD as: design.md → Brief; slice 1 of storymap.md → Milestone 1 (with 5 GSD slices = 5 backbone activities, ~15 GSD tasks). Ready for `/gsd discuss` to confirm framing or `/gsd plan-milestone` to start the pipeline."
+If GSD is active, after producing artifacts say something like: "Outputs map to GSD as: design.md → Brief; slice 1 of storymap.md → Milestone 1 (with 5 GSD slices = 5 backbone activities, ~15 GSD tasks); role-hints.md (UX + architect) sits alongside the Brief for the team to work through. Ready for `/gsd discuss` to confirm framing or `/gsd plan-milestone` to start the pipeline."
 
 **Don't write directly to `.gsd/` from inside this skill** — GSD owns that directory and has its own state-machine expectations. Produce the canonical six files; let the user (or GSD's own commands) import them.
 
@@ -83,9 +97,9 @@ brainstorming  →  user-story-mapping  →  writing-plans  →  rest of Superpo
 
 **Handoff in:** Superpowers' `brainstorming` produces a design doc clarifying intent. Use that doc as Mode B input (from a problem brief).
 
-**Handoff out:** The first slice of `storymap.md` becomes the input to `writing-plans`. Each story → 2-5 min tasks. `design.md` and `backlog.md` stay alongside as reference.
+**Handoff out:** The first slice of `storymap.md` becomes the input to `writing-plans`. Each story → 2-5 min tasks. `design.md` and `backlog.md` remain authoritative for scope decisions; `role-hints.md` rides alongside as a *head-start* for the designer and architect (resolve its open questions before `writing-plans` decomposes the work — but don't treat the hints themselves as scope-authoritative).
 
-If Superpowers is active, mention this in your hand-off message: "Slice 1 is ready for writing-plans. design.md and backlog.md remain authoritative for scope decisions."
+If Superpowers is active, mention this in your hand-off message: "Slice 1 is ready for `writing-plans`. design.md and backlog.md are authoritative for scope; role-hints.md (UX + architect) is a head-start — work through its open questions first."
 
 ## Jira / Azure DevOps / GitHub Issues / Linear / Trello / spreadsheets
 

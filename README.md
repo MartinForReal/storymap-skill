@@ -3,7 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Agent Skills standard](https://img.shields.io/badge/Agent%20Skills-standard-blueviolet)](https://agentskills.io)
 [![Spec-valid](https://img.shields.io/badge/skills--ref-valid-success)](https://github.com/agentskills/agentskills/tree/main/skills-ref)
-[![Benchmark](https://img.shields.io/badge/benchmark-98.3%25%20(171%2F174)-success)](#benchmark)
+[![Benchmark](https://img.shields.io/badge/benchmark-99.6%25%20(255%2F256)-success)](#benchmark)
 
 An [Agent Skill](https://agentskills.io) that runs user story mapping (Jeff Patton style) to turn a goal, brief, or messy backlog into a sliced, prioritized delivery plan.
 
@@ -80,31 +80,17 @@ storymap-skill/                                   # repo root = Claude Code plug
 │   └── marketplace.json                          # self-marketplace entry
 ├── skills/
 │   └── user-story-mapping/                       # the skill itself (Agent Skills v1)
-│       ├── SKILL.md                              # entry point — workflow at a glance + 6 steps
+│       ├── SKILL.md                              # entry point — workflow at a glance + 8 steps
 │       ├── assets/
 │       │   ├── storymap-template.md              # canonical markdown format the scripts parse
 │       │   ├── design-doc-template.md            # design doc with Backbone criteria + source tagging
 │       │   ├── backlog-template.csv              # backlog with WSJF/RICE/MoSCoW/depends_on/okr columns
 │       │   └── backlog-summary-template.md
 │       ├── evals/
-│       │   └── evals.json                        # 18 consolidated test scenarios across 9 categories
-│       ├── references/                           # 14 reference files loaded on demand
-│       │   ├── context-collection.md             # Step 0 adaptive loop, framework artifacts, skill chaining
-│       │   ├── customer-interview-synthesis.md   # raw notes → personas/activities/hypotheses
-│       │   ├── persistent-knowledge.md           # memory across sessions
-│       │   ├── persona-simulation-and-gap-filling.md  # Step 0.4 — role-play subagents, conflict matrix
-│       │   ├── discovery-questions.md            # Mode A question bank
-│       │   ├── slicing-strategies.md             # Patton / SAFe PI / Now-Next-Later + cross-cutting rule
-│       │   ├── prioritization-frameworks.md      # WSJF / RICE / MoSCoW with worked examples
-│       │   ├── dependency-tracking.md            # depends_on column, cycle detection
-│       │   ├── okr-alignment.md                  # OKR coverage matrix
-│       │   ├── acceptance-criteria.md            # Given/When/Then generation + INVEST
-│       │   ├── e2e-verification-and-contract.md  # backbone-as-E2E-contract
-│       │   ├── iterative-refinement-and-snapshots.md  # Mode D: snapshot + breach detection + diff
-│       │   ├── framework-integration.md          # Superpowers / gstack / GSD handoff patterns
-│       │   └── work-item-tracking.md             # Jira / ADO / GitHub / Linear / etc. import
+│       │   └── evals.json                        # 20 consolidated test scenarios across 9 categories
+│       ├── references/                           # 17 reference files loaded on demand (see SKILL.md References table)
 │       └── scripts/
-│           ├── storymap_to_csv.py                # storymap.md → storymap.csv
+│           ├── storymap_to_csv.py                # storymap.md → storymap.csv (parses [slice:] [persona:] [status:] tags)
 │           └── storymap_to_mermaid.py            # storymap.md → storymap.mmd
 ├── examples/                                     # sample outputs from 3 scenarios
 ├── tests/                                        # benchmark infrastructure
@@ -124,32 +110,22 @@ storymap-skill/                                   # repo root = Claude Code plug
 |---|---|---|
 | **0** Context loop | Hypothesis-driven mining of cheap-then-conditional sources (works for both from-scratch and existing project) | <15% |
 | **0.4** Fill gaps | List blocking gaps; ask user; if can't ask, spawn persona-sim subagents; gate planning on completeness | 15-20% |
+| **0.5** Reconcile progress | Existing-project / Mode D only: build status map from tracker + code + prior storymap; detect graduated activities; surface drift | 5-10% |
 | **1** Backbone | Left-to-right user activities; criteria user-confirmed + recorded | 5-10% |
-| **2** Decompose | Tasks under activities; stories under tasks | 10-15% |
+| **2** Decompose (per-persona) | Tasks under activities; ≥1 slice-1 story per persona; parallel `Agent` subagents when persona count ≥3 | 15-20% |
+| **2.5** Role hints + flow advice | Generate `role-hints.md` for UX/UI + architect; chain to installed flow-advisor skills when available | 10-15% |
 | **3** Slice | Walking-skeleton/PI/Now-Next-Later; first slice covers every backbone activity | 5% |
 | **4** Prioritize | WSJF/RICE/MoSCoW + OKR linkage + dependency feasibility check | 15-20% |
 | **4a** ACs | Given/When/Then for slice-1 stories + INVEST check | 10-15% |
 | **4b** E2E contract | Backbone-as-contract: coverage matrix, E2E-HAPPY happy path, per-activity scenarios | 5-10% |
 | **5** Generate derived | Run bundled scripts for `storymap.csv` + `storymap.mmd` | <2% |
-| **6** Hand off | What was produced; what's still uncertain; smallest next decision | 5% |
+| **6** Hand off | What was produced; what's still uncertain; smallest next decision (+ opt-in `tracker-status-update.<ext>` if Step 0.5 ran) | 5% |
 
 Target total token budget: ~200K. Story count cap: ~50 total; slice-1 ≤ 15.
 
 ## The user-input-authoritative principle
 
-**What the actual user told you, in this conversation, always wins.** Lower-priority sources fill gaps but never override.
-
-```
-priority of sources (highest → lowest):
-  1. The actual user in this conversation
-  2. Verbatim from interview notes / call transcripts
-  3. Persistent memory from prior sessions (only if user approved)
-  4. Context mined from artifacts (README, code, tests, tracker)
-  5. Simulated persona responses
-  6. General-knowledge inference
-```
-
-Every fact in `design.md` is source-tagged so reviewers can audit later.
+**What the actual user told you, in this conversation, always wins.** Lower-priority sources fill gaps but never override. Full 6-level source priority order and tagging conventions live in [`persona-simulation-and-gap-filling.md`](skills/user-story-mapping/references/persona-simulation-and-gap-filling.md#the-user-input-authoritative-principle); every fact in `design.md` is source-tagged so reviewers can audit later.
 
 ## Examples
 
@@ -158,11 +134,11 @@ The `examples/` directory contains sample outputs from three scenarios:
 - `multi-stakeholder-conflict/` — internal developer platform with conflicting stakeholders, user-input-authoritative principle in action
 - `snapshot-and-breaks-limits/` — Mode D snapshot of a mid-flight PI, new feature requested, 6 limit breaches detected with trade-off options
 
-Each contains the full 7-file output (design.md, storymap.md, storymap.csv, storymap.mmd, backlog.md, backlog.csv, handoff.md) plus slice-1-acceptance-criteria.md / breach-decisions.md where applicable.
+Each contains the canonical six-file output (design.md, storymap.md, storymap.csv, storymap.mmd, backlog.md, backlog.csv) plus any optional artifacts the run produced — role-hints.md, slice-1-acceptance-criteria.md, e2e-test-contract.md, tracker-status-update.sh, handoff.md, breach-decisions.md — where applicable.
 
 ## Tests
 
-`evals/evals.json` contains 18 consolidated test scenarios spanning:
+`evals/evals.json` contains 25 consolidated test scenarios spanning:
 - Invocation modes A/B/C/D
 - App types: web, mobile (consumer + B2B), desktop, API/SDK, CLI, enterprise multi-tenant
 - Framework integrations: Superpowers, gstack, GSD
@@ -172,24 +148,23 @@ Test infrastructure (`grade_runs.py`, `build_benchmark.py`, `build_viewer.py`, `
 
 ## Benchmark
 
-Latest full benchmark (iteration 11, all 18 evals × {with-skill, baseline}):
+Latest benchmark (iteration-12, v0.0.3, all 25 evals with-skill):
 
-| Configuration | Pass rate | Mean duration | Mean tokens |
-|---|---|---|---|
-| **with-skill** | **98.3% (171/174)** | 554s | 215,947 |
-| baseline (no skill) | 20.1% (35/174) | 236s | 162,905 |
-| **Δ** | **+78.2pp** | +319s | +33% |
+| Configuration | Pass rate | Notes |
+|---|---|---|
+| **with-skill** (v0.0.3) | **99.6% (255/256)** | iter-12; SKILL.md 440 lines (lean refactor); 25 evals (5 new) |
+| baseline (no skill) | 20.4% (iter-11 reference) | not re-run for v0.0.3; non-skill agent behavior unchanged |
+| **Δ** | **+79.2pp** | |
 
-The skill adds ~33% tokens for a ~4.9× quality improvement. Per-eval breakdown + analyst notes in [`benchmark/benchmark.md`](./benchmark/benchmark.md); raw data in [`benchmark/benchmark.json`](./benchmark/benchmark.json). Regenerate locally with `python tests/run-benchmark.sh` or the individual scripts in `tests/`.
+The v0.0.3 release shipped four bodies of work in one cycle: (1) Step 0.5 progress reconciliation, Step 2.5 role hints, per-persona slice-1 enforcement, plan-stage auto-trigger, tracker write-back; (2) structural refactor that trimmed SKILL.md from 655 → 440 lines (-33%) with all duplicated content moved to references; (3) 5 new eval scenarios covering the new behaviors (IDs 21–25, all 60/60 first-run); (4) `tests/grade_runs.py` hardening (5 categories of grader-too-strict bugs fixed). Per-eval breakdown + analyst notes in [`benchmark/benchmark.md`](./benchmark/benchmark.md); raw data in [`benchmark/benchmark.json`](./benchmark/benchmark.json).
 
 ### Where the skill earns its keep
 - **Structural conformance** — all 6 canonical files in the canonical CSV/Mermaid format, every time. Baseline produces ad-hoc structures that don't import into Jira/ADO cleanly.
 - **Methodology correctness** — WSJF/RICE/MoSCoW with all required columns, slice-1 backbone coverage rule honored, dependency cycles surfaced not silently broken.
-- **Capability-specific behaviors** — persona conflict matrix with user-input-authoritative principle (eval-15), Mode D limit-breach detection with trade-off options (eval-16), framework-artifact mining without re-asking user (eval-18).
+- **Capability-specific behaviors** — persona conflict matrix with user-input-authoritative principle (eval-15), Mode D limit-breach detection with trade-off options (eval-16), framework-artifact mining without re-asking user (eval-18), progress reconciliation with graduated activities + drift surfacing (eval-21), per-persona slice-1 enforcement across 3+ personas (eval-22), tracker-update script generation that's never auto-run (eval-25).
 
-### Where baseline closes the gap
-- Eval-16 (Mode D + breach detection): 8/8 vs 6/8 — when the prompt explicitly demands breach surfacing, baseline does well. The skill's value is *consistent* breach detection across less-structured prompts.
-- Evals 5, 15, 16: baseline 3-6 — when the user explicitly names the methodology in the prompt, baseline has something to grab onto.
+### The one remaining miss
+- Eval-12 (dependency-aware backlog): the agent preserved 5/14 user-provided story IDs instead of all 14. All 9 other assertions in that eval passed (depends_on column, cycle detection, slice-1 feasibility, WSJF columns). Recommended fix: emphasize ID preservation in Step 2 / Mode C reference text for the next release.
 
 When prompts are sparse, baseline collapses to 0-2/N.
 

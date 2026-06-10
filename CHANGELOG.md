@@ -2,6 +2,75 @@
 
 All notable changes to **storymap-skill** are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning is [SemVer](https://semver.org/).
 
+## [0.0.3] — 2026-06-10 — plan-stage auto-trigger, per-persona stories, role hints, progress reconciliation, lean SKILL.md
+
+A combined release covering four bodies of work that landed together: (1) **new workflow capabilities** — Step 0.5 progress reconciliation, Step 2.5 role hints, per-persona slice-1 enforcement, plan-stage auto-trigger, tracker write-back; (2) **structural refactor** — SKILL.md trimmed 655 → ~440 lines (-33%) with all duplicated content moved to references; (3) **5 new eval scenarios** covering the above behaviors (now 25 total); (4) **benchmark validation** at 99.6% with-skill pass rate on iteration-12 (255/256 assertions across 25 evals).
+
+### Added — new capabilities
+
+- **Plan-stage auto-activation** — `SKILL.md` description and new "Auto-activation cues" section in [`framework-integration.md`](skills/user-story-mapping/references/framework-integration.md) make it explicit the skill should self-activate when Superpowers / gstack / GSD enter their Plan stage (e.g., gstack `/office-hours`, GSD `/gsd discuss`, between Superpowers `brainstorming` and `writing-plans`).
+- **Step 2 — per-persona story sweep** — every persona in `design.md` must appear as `<persona>` in ≥1 slice-1 story; for ≥3 personas, the skill spawns parallel `Agent` subagents (one per persona) to produce per-persona story sets.
+- **Step 2.5 — role hints + flow advice** — new step generates `role-hints.md` with a UX/UI designer half (persona snapshots, flow inventory, friction hotspots, accessibility hints, open UX questions) and an architect half (cross-cutting work index, boundary candidates, hard constraints, risky integrations, open architecture questions).
+- **Step 0.5 — progress reconciliation** — new step (existing-project / Mode D only) that builds a status view from `prior storymap ⊕ tracker ⊕ code state`. Status taxonomy: `done | in-progress | blocked | deferred | cut | unchanged`. Detects orphan tracker issues, orphan storymap stories, and graduated backbone activities. Annotates `storymap.md` stories with `[status: …]` tags; appends `## Implementation status` and `## Activity status` sections to `design.md`.
+- **Storymap → tracker write-back (opt-in)** — Step 6 now generates `tracker-status-update.<ext>` alongside slice-1 routing when Step 0.5 produced status changes the user confirmed. Per-tracker script templates for Jira / Azure DevOps / GitHub / Linear. Never auto-executed; user reviews and runs.
+- **Skill chaining for flow advice** — Step 2.5 discovers and invokes installed domain-advisor skills (e.g., `auth-flow-advisor`, `payment-integration-best-practices`, `accessibility-checker`). Cap: 3 advisor invocations per run, separate from the existing 1-per-run cap on sister-framework slash-commands.
+- **5 new eval scenarios** (IDs 21–25): `step-0-5-progress-reconciliation`, `per-persona-slice-1-coverage`, `step-2-5-role-hints-generation`, `plan-stage-auto-trigger-gstack`, `tracker-write-back-script-emitted`. Each with 6–13 assertions in `tests/grade_runs.py`. Total = 25 scenarios.
+- New reference [`role-hints-and-flow-advice.md`](skills/user-story-mapping/references/role-hints-and-flow-advice.md) — Step 2.5 templates, skill-discovery protocol, advisor invocation patterns.
+- New reference [`progress-reconciliation.md`](skills/user-story-mapping/references/progress-reconciliation.md) — Step 0.5 algorithm, status taxonomy, conflict-resolution table, per-tracker write-back script templates.
+- New reference [`backbone-criteria.md`](skills/user-story-mapping/references/backbone-criteria.md) — absorbs the Step 1 explanatory prose, "why this matters", and common anti-patterns previously inlined in SKILL.md.
+
+### Changed — structural refactor (lean SKILL.md)
+
+The structural refactor was driven by a code review that flagged ~40% SKILL.md ↔ reference duplication. Three drift incidents in the same release cycle (caught manually) were symptoms. The fix: shrink SKILL.md to a routing-and-contract spine; expand the per-step references so they're self-contained.
+
+- `SKILL.md` Step 0 body: 106 → 17 lines (loop algorithm, starter signals, branch-conditional sources, exit conditions, worked traces moved to `context-collection.md`)
+- `SKILL.md` Step 0.4 body: 67 → 14 lines (gap classification table + resolution rules moved to `persona-simulation-and-gap-filling.md`)
+- `SKILL.md` Step 1 body: 47 → 23 lines (workflow narrative + why-it-matters + per-criterion explanations moved to `backbone-criteria.md`; six-criteria table stays inline)
+- `SKILL.md` Step 2 body: 37 → 14 lines (parallel-agent protocol prose compressed; per-persona enforcement rule stays inline)
+- `SKILL.md` Step 2.5 body: 38 → 12 lines (`role-hints.md` template + skill-chaining protocol moved to `role-hints-and-flow-advice.md`)
+- `SKILL.md` frontmatter `description`: 1768 → ~880 chars (drops the long trigger-keyword list and the per-command sister-framework enumeration; preserves the auto-activate signals + use-case framing)
+- `SKILL.md` "What this skill does" lists `role-hints.md` as the optional 4th artifact and reframes the chain as "test playbook in three levels of refinement"
+- `SKILL.md` Performance hard rule 8 distinguishes sister-framework chaining (1/run) from domain-advisor chaining (≤3/run)
+- `SKILL.md` per-stage matrix gains a Step 0.5 row; existing-project runs and Mode D now mandate reconciliation before backbone work
+- `SKILL.md` References table at the end: added `backbone-criteria.md` row
+- `framework-integration.md` per-framework hand-off lines reference `role-hints.md`§UX and `role-hints.md`§Architect where applicable; gstack `/plan-design-review` and `/plan-eng-review` mappings sharpened
+- `iterative-refinement-and-snapshots.md` opens with "Mode D always runs Step 0.5 first" and the snapshot template gains an Implementation-status table sourced from reconciliation
+- `work-item-tracking.md` opening callout disambiguates seed-from-scratch (storymap is authoritative) vs reconciliation write-back (tracker authoritative for status, storymap for intent)
+- [`persona-simulation-and-gap-filling.md`](skills/user-story-mapping/references/persona-simulation-and-gap-filling.md) gained a new opening section on gap criticality classification (blocking / stage-local / deferrable), resolution rules per class, mid-stage discovery, late-stage escalation
+- [`context-collection.md`](skills/user-story-mapping/references/context-collection.md) gained "Surface findings in design.md" example (Context loop trace + Contradictions flagged), cost-ceiling and override sub-sections, "What this gets right" worked cases
+- `plugin.json` keywords gain `personas`, `test-playbook`, `ux-hints`, `architect-hints`, `plan-stage`, `superpowers`, `gstack`, `gsd`
+
+### Removed
+
+- ~210 lines of duplicate content between SKILL.md and references (Step 0 algorithm, Step 0.4 gap classification, Step 1 explanatory prose, Step 2.5 role-hints template, Step 2 parallel-agent details — all live in references now)
+
+### Behavior changes
+
+- **Per-persona coverage is mandatory.** Slice 1 must include ≥1 story per persona named in `design.md`. A persona with zero candidate slice-1 stories is a forced re-check of Step 1 or Step 3, not a silent omission.
+- **`role-hints.md` is generated by default** when ≥1 persona faces a UI surface AND ≥1 backbone activity touches a non-trivial system boundary. Skipped only for solo / pre-PMF / pure-infra cases.
+- **Step 0.5 runs automatically for existing-project and Mode D invocations.** Storymap stories matching closed tracker issues + shipped code are marked `done`; activities with all stories done graduate out of active slicing. Drift (orphan tracker items, status conflicts) gets surfaced in `handoff.md`, never silently absorbed.
+- **Tracker write-back is opt-in and scripted.** Reading state is always safe; pushing storymap-driven status changes (cuts, re-slices) emits a runnable script that the user reviews before executing.
+- **`storymap.csv` schema gained `status` + `status_evidence` columns** (9 columns total, was 7). The bundled `scripts/storymap_to_csv.py` parses `[status: <state> | <evidence>]` tags from storymap.md. The grader (`tests/grade_runs.py`) accepts both 7- and 9-column schemas for back-compat.
+
+### Test infrastructure improvements
+
+- `tests/grade_runs.py` gained 5 new dispatch branches (evals 21–25) + several robustness fixes discovered during iteration-12 grading: (1) CSV header check accepts both legacy 7-col and current 9-col schema; (2) eval-21/25 ID lookups use tracker IDs (PROJ-101..PROJ-112 / CMS-106..107) instead of skill-internal story IDs (which don't appear in storymap.md prose); (3) eval-22 CSV parsing switched from naïve `line.split(",")` to `csv.reader` (handles quoted commas in story column); (4) `grade_method_columns` for WSJF/RICE accepts both prefixed (`wsjf_value`/`rice_reach`) and canonical SAFe/RICE forms (`user_business_value` / `reach`); (5) USER_VERBS regex expanded with `mint`, `provision`, `grant`, `revoke`, `enable`, `disable`, `switch`, `fetch`, `push`, `pull`, `run`, `build`, `debug`, `profile`, `inspect`, `sync`, `reset`, `rotate`.
+
+### Benchmark (iteration-12, all 25 evals)
+
+| Configuration | Pass rate | vs iter-11 (v0.0.2) |
+|---|---|---|
+| **with_skill** (v0.0.3) | **99.6% (255/256)** | +1.3 pp |
+| without_skill (carried over from iter-11) | 20.4% | — |
+| **Δ** | **+79.2 pp** | — |
+
+Only 1 real miss across 25 evals: `eval-12-dependency-aware-backlog` (9/10 — the agent preserved 5/14 of the user-provided story IDs instead of all 14; the other 13 assertions including dependency-cycle detection passed). All 5 new evals (21–25) hit 100% (60/60 assertions) on first run, confirming the new behaviors work end-to-end.
+
+### Migration notes
+
+- **CSV consumers** that depend on the legacy 7-column `storymap.csv` schema need to add two trailing columns (`status, status_evidence`) or ignore them. Both new columns are empty strings when no `[status:]` tag is present, preserving backward compatibility for from-scratch and pre-Step-0.5 runs.
+- **Existing iteration-N baselines** in `user-story-mapping-workspace/` were generated against the old SKILL.md shape and the old eval set. The published iteration-12 baseline is the new reference. Earlier iterations are still valid for v0.0.2 regression checks; for v0.0.3 use iteration-12.
+
 ## [0.0.2] — 2026-06-09 — output-routing decision
 
 Adds an explicit decision branch for *where* the generated items physically land, so the agent stops defaulting to "push to a tracker" on mature projects with curated backlogs.

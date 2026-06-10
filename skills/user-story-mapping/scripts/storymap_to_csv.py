@@ -12,7 +12,7 @@ Expected markdown shape (the canonical format this skill produces):
 
     ### Task: <task name>
 
-    - [slice:<slice>] [persona:<persona>] As a <persona>, I want to <action>, so that <outcome>
+    - [slice:<slice>] [persona:<persona>] [status:<status> | <evidence>] As a <persona>, I want to <action>, so that <outcome>
     - [slice:<slice>] <story without persona form>
     - ...
 
@@ -24,14 +24,16 @@ Expected markdown shape (the canonical format this skill produces):
 
 The slice tag is required on every story. Persona tag is optional; if missing,
 the script attempts to extract from "As a <persona>" form. If both fail, persona
-is left blank.
+is left blank. Status tag is optional (added by Step 0.5 reconciliation); first
+token before `|` becomes the `status` column, the remainder becomes
+`status_evidence` verbatim.
 
 Usage:
     python storymap_to_csv.py storymap.md > storymap.csv
     python storymap_to_csv.py storymap.md -o storymap.csv
 
 Output columns:
-    id, activity, task, story, persona, outcome, slice
+    id, activity, task, story, persona, outcome, slice, status, status_evidence
 """
 
 from __future__ import annotations
@@ -46,6 +48,7 @@ from typing import Iterator
 
 SLICE_RE = re.compile(r"\[slice:([^\]]+)\]", re.IGNORECASE)
 PERSONA_TAG_RE = re.compile(r"\[persona:([^\]]+)\]", re.IGNORECASE)
+STATUS_TAG_RE = re.compile(r"\[status:([^\]]+)\]", re.IGNORECASE)
 AS_A_RE = re.compile(r"\bAs an?\s+([^,]+?),", re.IGNORECASE)
 SO_THAT_RE = re.compile(r"\bso that\s+(.+?)\s*$", re.IGNORECASE)
 
@@ -118,9 +121,24 @@ def parse_story_line(text: str, story_id: int, activity: str, task: str) -> dict
     persona_tag_match = PERSONA_TAG_RE.search(text)
     persona = persona_tag_match.group(1).strip() if persona_tag_match else ""
 
+    status_tag_match = STATUS_TAG_RE.search(text)
+    # First token before `|` is the canonical status (done / in-progress / blocked / deferred / cut / unchanged).
+    # Remainder (date, tracker id, branch, etc.) is preserved verbatim in status_evidence.
+    status = ""
+    status_evidence = ""
+    if status_tag_match:
+        raw = status_tag_match.group(1).strip()
+        if "|" in raw:
+            head, _, rest = raw.partition("|")
+            status = head.strip()
+            status_evidence = rest.strip()
+        else:
+            status = raw
+
     # Strip tags from the story body
     body = SLICE_RE.sub("", text)
-    body = PERSONA_TAG_RE.sub("", body).strip()
+    body = PERSONA_TAG_RE.sub("", body)
+    body = STATUS_TAG_RE.sub("", body).strip()
 
     # If persona wasn't tagged, try to extract from "As a <persona>" form
     if not persona:
@@ -142,6 +160,8 @@ def parse_story_line(text: str, story_id: int, activity: str, task: str) -> dict
         "persona": persona,
         "outcome": outcome,
         "slice": slice_name,
+        "status": status,
+        "status_evidence": status_evidence,
     }
 
 
@@ -168,7 +188,7 @@ def main() -> int:
             file=sys.stderr,
         )
 
-    fieldnames = ["id", "activity", "task", "story", "persona", "outcome", "slice"]
+    fieldnames = ["id", "activity", "task", "story", "persona", "outcome", "slice", "status", "status_evidence"]
     out_handle = args.output.open("w", encoding="utf-8", newline="") if args.output else sys.stdout
     try:
         writer = csv.DictWriter(out_handle, fieldnames=fieldnames)

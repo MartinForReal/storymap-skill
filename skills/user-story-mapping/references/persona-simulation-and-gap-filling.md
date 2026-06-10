@@ -7,31 +7,51 @@ After context collection (Step 0), customer-interview synthesis (when notes were
 
 Both feed into the same arbitration step. **The user's word always overrides the simulation.** Simulated input is a hypothesis, not a commitment.
 
+## Gap criticality classification (the Step 0.4 gate)
+
+Not every gap should block planning. Classify each gap before deciding what to do with it. The Step 0.4 gate applies **only to blocking gaps**; stage-local and deferrable gaps move forward with the workflow.
+
+| Class | Definition | When to resolve | Example |
+|---|---|---|---|
+| **Blocking** | Would change the backbone, slicing strategy, or violate the user-input-authoritative principle | **At Step 0.4** (gate planning) | "Two stakeholders want incompatible flows — which one wins?"; "Is this single-persona or multi-persona?" |
+| **Stage-local** | Affects one downstream stage's output but not the backbone or other stages | **At the stage's entry** (mini-resolution, just-in-time) | "Don't know the WSJF size of S027" (affects Step 4 only); "Don't know what regex S015 should match" (affects Step 4a only) |
+| **Deferrable** | Refines output but doesn't change it; missing info is precision, not direction | **In `handoff.md`** as open questions | "Don't know exact pricing tier — assumed $10 for RICE calc"; "Don't know exact Salesforce field name — referenced as 'opportunity ID'" |
+
+### Resolving each class
+
+**Blocking:** Ask the user first (always); fall back to persona simulation (this reference's protocol) when asking would mean 20 questions. Do not proceed to Step 1 until all blocking conflicts are resolved (user decided or explicitly punted) AND any unfillable gaps are documented as open questions OR the user has said "proceed with these gaps".
+
+**Stage-local:** Note under `## Stage-local gaps to resolve` in `design.md`. When entering each subsequent stage, do a quick re-scan: do I have what I need for THIS stage? If a stage-local gap blocks the stage, run a mini Step 0.4 *scoped to that stage* — ask only what that stage needs, simulate only the relevant persona, mine only the relevant source. Resolve, then continue. Don't rewind earlier stages.
+
+**Deferrable:** Note under `## Open questions (deferrable)` in `design.md`; apply a reasonable default; tag the affected field with `[inferred — see open question Q-XX]`; surface in `handoff.md` so the user can validate. **Never silently apply a default without disclosure.**
+
+### Mid-stage discovery
+
+If a NEW gap surfaces mid-stage (e.g., during Step 2 you realize persona X has needs you don't know about):
+
+1. **Classify it** (blocking / stage-local / deferrable) using the table above
+2. If **blocking** and would invalidate an earlier stage's decision: stop, surface to the user (or in single-shot, to `handoff.md`), pause for user input or proceed with a clearly-flagged conditional commitment
+3. If **stage-local** and addressable now: resolve in-place (ask / simulate / mine), continue
+4. If **deferrable**: note it, apply a default, continue
+
+### Late-stage escalation
+
+If at Step 4 or Step 4a a gap emerges that *would have changed* a Step 1 (backbone) or Step 3 (slicing) decision had it been known upfront:
+
+1. **Don't silently rewrite** Steps 1-3 — that loses the audit trail
+2. Surface in `handoff.md` under `## Late-discovered gaps`: what the gap is, what stage's output it would have changed, what the current output assumed
+3. Recommend either (a) accept the current output with the caveat documented, or (b) re-run from the affected stage with the new info
+4. User decides
+
+### Why classify
+
+Without classification, Step 0.4 becomes a giant gate that either blocks too eagerly (every minor missing detail stops the workflow → user frustration, slow output) or is silently bypassed (agent proceeds with "I'll figure it out as I go" → buried assumptions surface in retro). Classification keeps the gate tight on what actually matters while letting the rest resolve at the right time and cost.
+
 ## The user-input-authoritative principle
 
-This is the meta-rule that governs every step of the skill — not just this one.
+This is the meta-rule that governs every step of the skill — not just this one. The full 6-level priority list and source-tagging conventions are stated once in [`SKILL.md`](../SKILL.md#the-user-input-authoritative-principle) and apply here verbatim.
 
-```
-priority order:
-  1. What the actual user said in this conversation
-  2. What real customers said in interview notes (if provided)
-  3. What persistent memory recorded from prior sessions (with the user's prior approval)
-  4. What context collection mined from artifacts (README, code, tests, tracker)
-  5. What persona simulation inferred in-character
-  6. What you (the skill) inferred from general knowledge
-```
-
-When two sources disagree, the higher-priority one wins. Never silently average them or pick by your own preference. When the user contradicts a lower-priority source, **update the cache** (memory, design doc) to match the user — don't keep the old version around.
-
-When the user is silent on a topic, you may use lower-priority sources to fill — but tag the result explicitly:
-- `[user-stated]` when from the prompt
-- `[from interview: Aisha]` when from interview notes
-- `[from memory: 2026-04-23]` when from cache
-- `[from code: src/routes/billing.ts]` when from context
-- `[simulated: Marcus persona]` when from a persona-sim subagent
-- `[inferred]` when you guessed from general knowledge
-
-Inferred content is a sign of a missing piece. Surface it; don't hide it.
+**Restated for this step:** when persona simulation and the actual user disagree, the user wins. Always. Log the simulated objection as a future-slice risk; don't re-litigate.
 
 ## When to use persona simulation
 
@@ -158,10 +178,8 @@ Each persona subagent costs roughly the same as a small synthesis run. For a typ
 ## Wiring into the workflow
 
 ```
-Step 0    — Context collection (artifacts)
-Step 0a   — Memory load (if enabled)
-Step 0b   — Interview synthesis (if notes provided)
-Step 0c   — Persona simulation (this step — when gaps remain)
+Step 0    — Context collection loop (memory load + interview synthesis fold in as sub-flavors)
+Step 0.4  — Gap-fill (this reference is the persona-sim half)
            ↓
            Arbitration: user input wins over simulation
            ↓

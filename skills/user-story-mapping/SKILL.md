@@ -1,11 +1,11 @@
 ---
 name: user-story-mapping
-description: Run user story mapping (Jeff Patton style) to turn a goal, brief, or messy backlog into a sliced delivery plan. Produces a story map (markdown + Mermaid + CSV), a prioritized backlog (WSJF, MoSCoW, or RICE), and a design doc. Mines existing context first — README, code, tests, docs, Jira/ADO/GitHub via MCP — so backbones reflect real user journeys. Invoke when the user is shaping work rather than coding it — discovery, MVP scoping, what to build first, organizing a backlog, or PI planning. Triggers include "what should we build first", "MVP for X", "walking skeleton", "organize this backlog", "PI planning", "discovery for", "user journey", "scan our repo for missing work"; and sister-framework cues like Superpowers `brainstorming` / `writing-plans`, gstack `/office-hours` / `/plan-*`, or GSD Brief / Roadmap / Milestone / `/gsd discuss`. Use even when the user doesn't say "story mapping". Skip for pure engineering — bug fixes, refactors, code review, deploy debugging, doc updates.
+description: Run user story mapping (Jeff Patton style) — turns a vague goal, brief, or messy backlog into a sliced delivery plan with per-persona user stories that act as the blueprint for the team's test playbook (acceptance criteria + E2E contract). Mines existing context first (README, code, tests, tracker via MCP). Produces design doc, story map (Markdown + Mermaid + CSV), prioritized backlog (WSJF / RICE / MoSCoW), and optional role-hints for UX/UI + architect. Auto-activates when a sister framework enters its Plan stage — Superpowers between `brainstorming` and `writing-plans`, gstack `/office-hours` / `/autoplan` / `/plan-*-review`, or GSD `/gsd discuss` / `/gsd plan-milestone` / Brief / Roadmap authoring. Use when shaping work (discovery, MVP scoping, "what should we build first", PI planning, organizing a backlog, "stories per persona"). Skip for pure engineering — bug fixes, refactors, code review, deploy debugging.
 license: MIT
-compatibility: Requires Python 3.10+ for bundled scripts (storymap_to_csv.py, storymap_to_mermaid.py). No other system dependencies. Works across Claude Code, Claude.ai, and any Agent Skills-compliant agent (Cursor, Codex, Copilot, Gemini CLI, OpenCode, Goose, etc.).
+compatibility: Requires Python 3.10+ for bundled scripts (storymap_to_csv.py, storymap_to_mermaid.py). No other system dependencies. Works across Claude Code, Claude.ai, and any Agent Skills v1 host (Cursor, Codex, Copilot, Gemini CLI, OpenCode, Goose, etc.).
 metadata:
   author: MartinForReal
-  version: "0.0.2"
+  version: "0.0.3"
   homepage: https://github.com/MartinForReal/storymap-skill
 allowed-tools: Bash(python:*) Read Write Edit Glob Grep Agent Skill
 ---
@@ -13,6 +13,20 @@ allowed-tools: Bash(python:*) Read Write Edit Glob Grep Agent Skill
 # User Story Mapping
 
 Turns vague intent into a sliced, prioritized plan that a SAFe/Scaled-Agile team can deliver against. Mode D (iterative refinement) re-opens an existing map to add/cut work and detect when a new feature breaks the team's limits.
+
+**Auto-trigger in sister-framework Plan stages.** When the host environment shows you're at a Plan-phase command in Superpowers / gstack / GSD, this skill should self-activate before user stories are written by hand:
+- **Superpowers** — between `brainstorming` (intent locked) and `writing-plans` (tasks not yet written)
+- **gstack** — at `/office-hours`, `/autoplan`, or any `/plan-*-review` command
+- **GSD** — at `/gsd discuss`, `/gsd plan-milestone`, or whenever the user is authoring `.gsd/Brief.md` / `.gsd/Roadmap.md` / a new `.gsd/Milestones/Mn/` directory
+
+The signal is "the user is shaping work, not coding it." If you see those cues, propose this skill explicitly rather than falling through to ad-hoc story drafting. Detail: `references/framework-integration.md`.
+
+**Stories here are a blueprint, not the final spec.** Per-persona stories produced by this skill are the input that downstream stages refine into:
+1. **Gherkin acceptance criteria** for slice-1 stories (`slice-1-acceptance-criteria.md`, Step 4a)
+2. **E2E test contract** scenarios derived from the backbone (`e2e-test-contract.md`, Step 4b)
+3. **Engineering tasks** (Superpowers `writing-plans`, gstack `/autoplan`, GSD Tasks)
+
+Treat the user-story map as **the test playbook in skeletal form** — every backbone activity becomes an E2E swimlane, every slice-1 story becomes ≥1 Gherkin scenario. The story map and the test playbook share the same backbone surface; they diverge only on detail level.
 
 ## Quick reference
 
@@ -29,6 +43,11 @@ Map the user's ask to the right step + reference to load:
 | Asks "what should we build first" / "find the MVP" | any | `slicing-strategies.md` for the slice; `prioritization-frameworks.md` for the rank |
 | Names WSJF / RICE / MoSCoW explicitly | any | `prioritization-frameworks.md` |
 | Has stakeholders with conflicting interests | any | `persona-simulation-and-gap-filling.md` |
+| Has multiple personas (admin + end-user + ops) | any | `persona-simulation-and-gap-filling.md` for sim; Step 2 below for **per-persona story sweep with parallel agents** |
+| Wants role hints for UX/UI designer or architect | any | `role-hints-and-flow-advice.md` (new — Step 2.5) |
+| Wants flow advice from another installed skill (auth flow, payment flow, onboarding flow, etc.) | any | `role-hints-and-flow-advice.md` — Skill-chaining section |
+| Has an existing project where some stories are already shipped, or a tracker that's drifted since the last storymap | C / D | `progress-reconciliation.md` (new — Step 0.5) — bidirectional storymap ↔ tracker ↔ code-state sync |
+| Treats stories as input to a test playbook | any | `acceptance-criteria.md` + `e2e-verification-and-contract.md` — backbone-as-contract |
 | Has OKRs / KRs to align to | any | `okr-alignment.md` |
 | Worries about story dependencies | any | `dependency-tracking.md` |
 | Wants engineering-ready acceptance criteria | any | `acceptance-criteria.md` |
@@ -42,12 +61,14 @@ Map the user's ask to the right step + reference to load:
 |---|---|---|---|
 | **0** Context loop | Hypothesis-driven mining of cheap-then-conditional sources (works for both from-scratch and existing project) | "Context loop trace" + "Contradictions flagged" in `design.md` | <15% (5-15 tool calls, hard cap 20) |
 | **0.4** Fill gaps | Classify gaps (blocking/stage-local/deferrable); gate only on blocking; resolve others at the right time | Gap checklist + conflict matrix | 15-20% |
+| **0.5** Reconcile progress (existing project / Mode D) | Build status map from code evidence + tracker state + prior storymap; detect graduated activities; flag drift between storymap intent and tracker reality | `## Implementation status` table in `design.md` + status annotations on stories in `storymap.md` (`[status: done \| 2026-05-12]`, `[status: in-progress \| …]`) | 5-10% (skip entirely for from-scratch / no tracker / no prior storymap) |
 | **1** Backbone | Left-to-right user activities in user voice; cross-cutting work in separate section | `storymap.md` backbone | 5-10% |
-| **2** Decompose | Tasks under activities; stories under tasks | `storymap.md` body | 10-15% |
+| **2** Decompose (per-persona sweep) | Tasks under activities; **for each persona, generate stories in parallel via the `Agent` tool** so every persona gets explicit coverage. Stories are blueprints — they will be refined into ACs/E2E later. | `storymap.md` body with per-persona stories | 15-20% |
+| **2.5** Role hints + flow advice | Generate `role-hints.md` for UX/UI designer + architect; chain to other installed skills (e.g. `auth-flow-advisor`, `payment-integration-best-practices`, `accessibility-checker`) for advice on specific flows | `role-hints.md` + skill-advice notes folded into `design.md` | 10-15% |
 | **3** Slice | Walking-skeleton/PI/Now-Next-Later; first slice covers every backbone activity | Slice tags on stories | 5% |
 | **4** Prioritize | WSJF/RICE/MoSCoW + OKR linkage + dependency feasibility check | `backlog.csv` + `backlog.md` | 15-20% |
-| **4a** ACs | Given/When/Then for slice-1 stories + INVEST check | `slice-1-acceptance-criteria.md` | 10-15% |
-| **4b** E2E contract | Backbone-as-contract: coverage matrix, E2E-HAPPY happy path, per-activity scenarios | `e2e-test-contract.md` | 5-10% |
+| **4a** ACs | Given/When/Then for slice-1 stories + INVEST check (refines the Step 2 stories into testable form) | `slice-1-acceptance-criteria.md` | 10-15% |
+| **4b** E2E contract | Backbone-as-contract: coverage matrix, E2E-HAPPY happy path, per-activity scenarios — **the test playbook** | `e2e-test-contract.md` | 5-10% |
 | **5** Generate derived | Run bundled scripts for `storymap.csv` + `storymap.mmd` | Two derived files | <2% |
 | **6** Hand off | What was produced; what's still uncertain; smallest next decision | `handoff.md` | 5% |
 
@@ -64,7 +85,7 @@ Concrete limits that prevent the most common failure modes (running out of turns
 5. **Batch related tool calls.** Independent reads / greps / globs can go in one message. Don't serialize what can be parallel.
 6. **Use bundled scripts** for `storymap.csv` + `storymap.mmd`. Hand-writing is slow, error-prone, and wastes turns.
 7. **80% turn-budget stop.** If you've consumed 80% of your turn budget and the backlog isn't written yet, stop new generation, write what you have, and document the rest as deferred in `handoff.md`. Better a partial run with a clear "what's missing" than a truncated run with no audit trail.
-8. **One framework-skill invocation per run** (Skill chaining cost ceiling). If you want to chain to more than one other installed skill, the discovery is too unscoped — push back to the user to narrow first.
+8. **Skill-chaining cost ceiling.** *Sister-framework* invocations (gstack/Superpowers/GSD slash-commands) — **one per run**. *Domain-advisor* skills (auth-flow-advisor, payment-integration-best-practices, accessibility-checker, etc.) invoked at Step 2.5 — **up to 3 per run, one per flow**. If you'd want either limit higher, the discovery is too unscoped — push back to the user to narrow first.
 9. **Context loop hard cap: 20 tool calls.** Same rule as cost ceiling above. If you hit it and hypothesis isn't stable, write your best understanding to `design.md`, flag the residual ambiguity, and proceed.
 10. **Defer non-blocking gaps.** Per Step 0.4 classification: only blocking gaps gate planning. Stage-local resolves at the stage's entry; deferrable goes to `handoff.md` as open questions. Don't pre-flight everything.
 
@@ -94,11 +115,16 @@ Tag every fact in `design.md` with its source — `[user-stated]`, `[interview: 
 Three deliverables, always:
 
 1. **Project design doc** (`design.md`) — personas, primary user activities, opportunities, hypotheses, the question this work answers.
-2. **Story map** (three formats) — `storymap.md` (readable), `storymap.mmd` (Mermaid graph), `storymap.csv` (Jira/ADO importable).
+2. **Story map** (three formats) — `storymap.md` (readable), `storymap.mmd` (Mermaid graph), `storymap.csv` (Jira/ADO importable). Stories are **per-persona** and intentionally a blueprint — they get refined in 4a/4b.
 3. **Prioritized backlog** — `backlog.csv` (full scoring) + `backlog.md` (one-page summary). Method = WSJF (SAFe default) / RICE / MoSCoW.
 
-Optional 4th: `slice-1-acceptance-criteria.md` (Given/When/Then) for engineering handoff.
-Optional 5th: `handoff.md` (what's done, what's open, smallest next decision).
+Optional 4th: `role-hints.md` (UX/UI designer + architect head-start) from Step 2.5.
+Optional 5th: `slice-1-acceptance-criteria.md` (Given/When/Then) for engineering handoff.
+Optional 6th: `e2e-test-contract.md` — **the test playbook**, derived from the backbone + slice-1 ACs.
+Optional 7th: `tracker-status-update.<ext>` — opt-in tracker write-back script from Step 6 (only when Step 0.5 ran and the user confirmed status changes).
+Optional 8th: `handoff.md` (what's done, what's open, smallest next decision).
+
+The story-map → ACs → E2E-contract chain is intentional: the skill produces a **test playbook in three levels of refinement**, not a one-shot spec. Per-persona stories from Step 2 are the seed; ACs in 4a pin down behavior; the E2E contract in 4b orchestrates the journey.
 
 ## When to choose this skill vs. just answering directly
 
@@ -125,7 +151,8 @@ When the project isn't from-scratch — there's an existing codebase, a prior `d
 |---|---|---|
 | **0** Context loop | Mine the conditional sources that match the hypothesis. Framework artifacts (`.gsd/`, prior `design.md`) take precedence over redundant mining. | Load `state.json` / memory MCP as a starter signal. Tag loaded facts `[memory: <date>]`. Verify each against current state — if contradicted, current wins. |
 | **0.4** Gaps | Gaps previously *resolved* in the decisions log carry forward — don't re-ask. Only newly-introduced gaps need filling. | Same — decisions log is the gap-resolution memory. |
-| **1** Backbone | Mined routes/handlers/test names become activity *candidates* — propose, don't impose. Existing system shape is one input among several. | If prior `design.md` has a `## Backbone criteria` section, **default to those criteria** (only re-derive if user says to change them). Same for backbone activities — preserve unless user requests re-derivation. |
+| **0.5** Reconcile progress | Required step. Build status map from tracker + code surfaces + prior storymap. Mark shipped stories `done`; detect graduated activities; surface tracker drift. See `progress-reconciliation.md`. | Prior `backlog.csv` `status` column carries forward as the seed. Re-pull from tracker for live status; tracker overrides prior `status` value when they conflict. |
+| **1** Backbone | Mined routes/handlers/test names become activity *candidates* — propose, don't impose. Existing system shape is one input among several. **Graduated activities (from Step 0.5) stay visible but are excluded from active slicing.** | If prior `design.md` has a `## Backbone criteria` section, **default to those criteria** (only re-derive if user says to change them). Same for backbone activities — preserve unless user requests re-derivation. |
 | **2** Decompose | Existing routes / components / handlers / endpoints are pre-existing task candidates under their activity. Reuse the team's existing naming. | Prior task/story IDs carry forward. New tasks/stories get fresh IDs starting from `max(prior_id) + 1` — don't renumber. |
 | **3** Slice | If the tracker has existing Fix Versions / Iteration Paths / Cycles, those are the canonical slice names — use them, don't invent. | Prior slicing strategy from `design.md` wins. Current PI name (e.g., "PI 2026-Q3") comes from memory's `active_pi`. |
 | **4** Prioritize | If the tracker stores WSJF/RICE values already (custom fields), pull them as the prior scores. Re-score only stories the team changed or new ones. | Method preference (WSJF / RICE / MoSCoW) from memory wins if user is silent. Prior scores reused; deltas annotated. |
@@ -144,235 +171,109 @@ Detail: `references/persistent-knowledge.md` (memory lifecycle) and `references/
 
 ## Workflow
 
-### Step 0 — Context collection loop (works for both from-scratch and existing-project)
+### Step 0 — Context collection loop
 
-Context collection is NOT a linear pipeline of "always run 0.1, then 0.2, then 0.3, then 0.4". That wastes turns on empty sources (greenfield) and over-investigates when one signal already answers the question. **Use a loop: cheap signal → form hypothesis → pick the next source based on hypothesis → repeat → exit on stable hypothesis or budget ceiling.**
+**Loop, don't pipeline.** Cheap signal → form hypothesis → pick the next source based on hypothesis → repeat → exit on stable hypothesis or budget ceiling. Wastes turns if you run sources in fixed order on greenfield, and over-investigates when one signal already gave the answer.
 
-#### Loop algorithm
+**Starter signals (always try first):** `ls`, prompt re-read, `.user-story-mapping/state.json` or memory MCP, `README.md`, interview notes already in the prompt. After these you should know: from-scratch vs existing-project, Mode A/B/C/D, tech-stack hint.
 
-```
-hypothesis = "unknown"
-turns_used = 0
+**Branch-conditional sources** (mine only if hypothesis warrants): manifests (`package.json` / `pyproject.toml` / `Cargo.toml` / `go.mod`), routes/handlers, test names, `docs/adr/`, `git log`, tracker MCP (Jira/ADO/GitHub/Linear), analytics MCPs, **framework artifacts** (`.gsd/`, Superpowers `brainstorming/`, gstack `/plan-*-review` outputs), prior `design.md` / `storymap.md` / `backlog.md`. Mine framework artifacts **before** asking the user — they often contain everything the user would say, in cleaner form.
 
-loop until hypothesis is stable (no change for 2 iterations) OR turns_used > 15% of budget:
-    1. Pick the cheapest source that would best refine the current hypothesis
-    2. Mine it (one tool call, narrow scope)
-    3. Update hypothesis based on signal (or absence of signal)
-    4. Surface contradictions immediately
-    5. turns_used += 1
-```
+**Other installed skills are context sources too.** If a skill like `code-explorer`, `db-schema-analyzer`, or a sister-framework command already knows what you'd otherwise discover, invoke it via the `Skill` tool. Budget one such invocation per loop run; tag output `[skill: <name>]`.
 
-#### Starter signals (always try these first, in this order)
+**Exit conditions:** hypothesis stable for 2 iterations · ≥15% of turn budget consumed · user says "proceed" · empty working dir + no interview notes · strong from-scratch signal + no codebase · single signal already gave the outcome.
 
-| Signal | Cost | What it tells you |
-|---|---|---|
-| Working directory listing (`ls`) | free | Codebase exists? Empty dir? What languages? |
-| User's prompt re-read | free | Highest-priority source — re-anchor on what user actually said |
-| `.user-story-mapping/state.json` or memory MCP | free | Prior runs to extend (Mode D signal) |
-| `README.md` (if present) | cheap | One-line product description — often gives the outcome statement directly |
-| Interview notes in the prompt | already in context | Switch to synthesis (`customer-interview-synthesis.md`) |
+**Surface findings in `design.md`** under `## Context loop trace` (numbered observations + final hypothesis) and `## Contradictions flagged` (sources that disagree). The trace is documentation — a reviewer sees what evidence drove which conclusion.
 
-After these 5 cheap signals, you should already know:
-- **From-scratch** vs **existing-project** (working dir empty / no code → from-scratch)
-- **Mode A vs B vs C vs D** (no prior artifact → A; brief in prompt → B; backlog input → C; storymap.md exists → D)
-- **Tech stack hint** (manifest files present → existing codebase)
+**Persistent memory** and **customer interview synthesis** ride inside the loop, not as separate steps — read [`persistent-knowledge.md`](references/persistent-knowledge.md) and [`customer-interview-synthesis.md`](references/customer-interview-synthesis.md) when those signals fire.
 
-#### Branch-conditional sources (only mine if hypothesis warrants)
-
-| Source | Mine when hypothesis includes... |
-|---|---|
-| `package.json` / `pyproject.toml` / `Cargo.toml` / `go.mod` | Existing codebase. Confirms tech stack, app type. |
-| `Dockerfile`, `k8s/`, CI configs | Existing codebase. Reveals deploy topology. |
-| `src/routes/`, `pages/`, `controllers/` (route grep) | Web/API/mobile codebase. Routes = user-activity candidates. |
-| Test names (`grep -r "test(\|describe(\|it(" tests/`) | Test suite present. Test names = golden paths. |
-| `docs/`, `ARCHITECTURE.md`, `docs/adr/` | Docs present. ADRs reveal constraints, decisions log. |
-| `git log --oneline -50` | Git repo present. Reveals what's actually getting built right now. |
-| Tracker MCP (Jira/ADO/GitHub) | User mentioned tracker OR Mode C. |
-| Analytics/runtime MCPs (Sentry/Datadog/Mixpanel) | User mentioned production/runtime concern. |
-| **Framework artifacts** — `.gsd/Brief.md`, `.gsd/Roadmap.md`, `.gsd/Decisions/`, `.gsd/task-summaries/` | If `.gsd/` directory exists — GSD users have rich pre-staged intent here |
-| **Framework artifacts** — Superpowers `brainstorming/` design docs, `plans/` directory | If working in a Superpowers project — `brainstorming` stage output is gold |
-| **Framework artifacts** — gstack `/plan-*-review` outputs, `/office-hours` notes if saved | If gstack is active and prior review outputs are on disk |
-| **Prior `design.md` / `storymap.md` / `backlog.md`** | If they exist anywhere in the working tree — this is Mode D and they're authoritative for backbone criteria + decisions log |
-
-**Mine framework artifacts BEFORE asking the user.** Framework state directories often contain everything the user would tell you, in cleaner form. `.gsd/Brief.md` is literally a Brief — read it before re-asking for the brief. Prior `design.md` from a previous run carries forward the backbone criteria, persona definitions, and decisions log — read it before re-deriving.
-
-**Other installed skills can be context sources too.** If a skill like `code-explorer`, `db-schema-analyzer`, `customer-interview-summarizer`, or a sister-framework command (e.g., gstack's `/office-hours`) has already done — or can quickly do — work that would otherwise be your mining burden, invoke it via the `Skill` tool rather than re-deriving by hand. Budget one invocation per loop run; tag output as `[skill: <name>]`. Detail: `references/context-collection.md`.
-
-The posture is: **know everything that's already written down — including what other skills can quickly tell you — before asking the user a single question.** Then ask only what's genuinely missing.
-
-#### Exit conditions
-
-Stop the loop and proceed to Step 0.4 (gap-filling) when ANY of:
-- Hypothesis has been stable for 2 iterations (you keep confirming what you already knew)
-- Budget ceiling hit (≥15% of total turns)
-- User has explicitly said "we have enough, proceed"
-- Working dir is empty AND no interview notes provided (skip to persona simulation or ask user)
-- Strong "from-scratch" signal AND no codebase → don't mine code/tests/ADRs; pivot to Step 0.4 (persona sim or ask user)
-- Strong "existing-project" signal but a single source (e.g., README) already gave the outcome → don't keep digging for redundant signal
-
-#### What this gets right
-
-- **From-scratch verbal idea**: Loop exits after 2-3 turns (listing + README check + prompt re-read = "no codebase, no prior artifact, just an idea"). Skips code/test/ADR mining entirely. Pivots to Step 0.4.
-- **Mature existing project**: Loop iterates through README → manifests → routes → tests → ADRs → commits → tracker, refining hypothesis at each step. Stops when hypothesis stabilizes (e.g., "this is a B2B SaaS web app on Rails with 4 active feature branches" — no need to mine further).
-- **Mixed signal**: README says "we're a mobile app" but `Cargo.toml` says Rust + Tauri → contradiction surfaced; user asked to clarify; only ONE side gets pursued.
-- **Mode D with tracker MCP**: existing storymap.md + Jira MCP → load both, reconcile, surface deltas. Skips full code mining.
-
-#### Surface findings in design.md
-
-```markdown
-## Context loop trace
-- (1) `ls` → working dir has 47 files including `src/`, `tests/`, `docs/adr/` — existing project
-- (2) `README.md` → product is "TimeSink, a B2B time-tracking SaaS for design agencies"
-- (3) `package.json` → Next.js + Prisma + Postgres, dependency count 84 — mature web stack
-- (4) `src/routes/` → 12 routes; backbone candidates: auth, projects, time-entries, invoices, settings
-- (5) Test names (61 e2e) → golden paths: create-project, log-time, generate-invoice
-- (6) `docs/adr/0017` (most recent) → "Replace Stripe Invoicing API with Paddle" (2026-04, Accepted)
-- (7) Jira MCP → 23 open issues, top label "paddle-migration" (8 issues — confirms ADR-0017 is active work)
-- Hypothesis: STABLE after iteration 7. Proceeding to Step 0.4.
-
-## Contradictions flagged
-- README says "Stripe-powered invoicing" — outdated per ADR-0017 (Paddle migration). Likely safe; ADR is recent. Confirm with user.
-```
-
-The trace itself is documentation — a reviewer can see exactly what evidence drove which conclusion.
-
-#### Cost ceiling and override
-
-Target: 5-15 tool calls for context collection on a typical project. Hard cap: 20 tool calls. If you're approaching the cap and the hypothesis still isn't stable, the project is genuinely complex — write your current best understanding to design.md, flag the residual ambiguity, and proceed.
-
-If the user explicitly says "skip context — just build the map" or "I have a brief, work from this only", honor it. Skip Step 0 entirely; treat the prompt as the complete input. (Tag everything in design.md as `[user-stated]` or `[inferred]` only.)
-
-Detailed source-by-source guidance (what each file/MCP gives you, how to mine cheaply): `references/context-collection.md`.
-
-Two sub-flavors of Step 0 that often happen *inside* the loop above (not as separate sequential steps):
-
-- **Persistent memory** — if `.user-story-mapping/state.json` exists OR the user signals "extend the prior map", read prior state as one of the cheap starter signals. Treat memory as *hints*, not gospel — verify against current state. Off by default. See `references/persistent-knowledge.md`.
-- **Customer interview synthesis** — if the user provides interview transcripts/notes, extract personas (with verbatim quotes), activities, problems, hypotheses (with vote counts), non-goals. Cluster across customers. See `references/customer-interview-synthesis.md`.
+Detail: [`references/context-collection.md`](references/context-collection.md) — full loop algorithm, source-by-source guidance, worked traces, cost ceilings.
 
 ### Step 0.4 — Fill remaining gaps; gate planning on completeness
 
-After Step 0 (context loop + any memory/interview synthesis folded in) you usually still have unanswered questions. **Not every gap needs to block planning** — classify before deciding what to do.
+After Step 0 you usually still have unanswered questions. **Not every gap blocks planning** — classify before deciding.
 
-#### Gap criticality classification
+| Class | Resolve when | Example |
+|---|---|---|
+| **Blocking** — would change the backbone, slicing strategy, or violate user-input-authoritative | **At Step 0.4** (gate planning) | "Two stakeholders want incompatible flows — which wins?"; "Single-persona or multi-persona?" |
+| **Stage-local** — affects one downstream stage only | **At that stage's entry** (mini-resolution) | "Don't know S027's WSJF size" (Step 4 only); "Don't know S015's regex" (Step 4a only) |
+| **Deferrable** — refines but doesn't change output | **In `handoff.md`** as an open question | "Don't know exact pricing tier — assumed $10 for RICE"; "Don't know exact Salesforce field name" |
 
-| Class | Definition | When to resolve | Example |
-|---|---|---|---|
-| **Blocking** | Would change the backbone, the slicing strategy, or violate the user-input-authoritative principle if left unresolved | **At Step 0.4** (gate planning) | "Two stakeholders want incompatible flows — which one wins?"; "Is this single-persona or multi-persona?" |
-| **Stage-local** | Affects one downstream stage's output but not the backbone or other stages | **At the stage's entry** (mini-resolution, just-in-time) | "Don't know the WSJF size of S027" (affects Step 4 only); "Don't know what regex S015 should match" (affects Step 4a only) |
-| **Deferrable** | Would refine output but not change it; the missing info is precision, not direction | **In `handoff.md`** as open questions | "Don't know exact pricing tier — assumed $10 for RICE calc"; "Don't know exact Salesforce field name — referenced as 'opportunity ID'" |
+**The gate at Step 0.4 applies only to blocking gaps.** Stage-local and deferrable gaps move forward; resolve them in place.
 
-The gate at Step 0.4 applies **only to blocking gaps**. Stage-local and deferrable gaps move forward with the workflow.
+Blocking-gap resolution: **ask the user first**, then fall back to persona simulation when asking would mean 20 questions. Do not proceed to Step 1 until blocking conflicts are resolved (user decided or explicitly punted) and any unfillable gaps are documented as open questions. **User always wins over simulation** — log simulated objections as future-slice risks, not as overrides.
 
-#### Resolving each class
+If a NEW gap surfaces mid-stage, classify and act on it the same way (`design.md` records the mini-resolution). Never silently absorb. If a gap emerges at Step 4/4a that *would have changed* Step 1 or Step 3, don't silently rewrite earlier stages — surface in `handoff.md` under `## Late-discovered gaps` for user decision.
 
-For **blocking** gaps:
-1. **Ask the user** — always the first choice. List specific gaps as a checklist; ask in batches.
-2. **Simulate personas** — when asking would mean 20 questions and you have enough background to role-play credibly, spawn one subagent per persona briefed with everything known. Each answers in-character. Aggregate; build a conflict matrix.
+Detail: [`references/persona-simulation-and-gap-filling.md`](references/persona-simulation-and-gap-filling.md) — full classification + resolution + persona-sim protocol + conflict matrix.
 
-**Do not proceed to Step 1 until either:**
-- All blocking conflicts are resolved (user has decided or explicitly punted), AND
-- Blocking gaps simulation couldn't fill are documented as open questions OR the user has said "proceed with these gaps"
+### Step 0.5 — Reconcile prior progress (existing-project / Mode D only)
 
-**The user always wins** over simulation. Log simulated objections as future-slice risks, not as overrides.
+**Skip entirely** for from-scratch runs (no codebase, no tracker, no prior storymap). Only run when ≥1 of:
+- A prior `storymap.md` exists in this working tree
+- A tracker (Jira/ADO/GitHub/Linear) was mined in Step 0 and contains issues that may correspond to backbone activities
+- The codebase has shipped surfaces (deployed routes, merged PRs, passing test names) that map to plausible backbone activities
 
-In single-shot/automated mode: still simulate, still build the conflict matrix, document unresolved items as "blocking decisions" in `handoff.md`, proceed with strongest defensible interpretation, tag conditional commitments with gap-ids. See `references/persona-simulation-and-gap-filling.md`.
+The goal is bidirectional sync — **storymap intent ↔ tracker authority for status ↔ code as evidence** — so the next slice doesn't re-commit work that's already shipped, and the team's tracker reflects the current storymap's view of cuts/deferrals.
 
-For **stage-local** gaps:
-- Note them in `design.md` under a `## Stage-local gaps to resolve` checklist
-- When entering each subsequent stage, do a quick re-scan: do I have what I need for THIS stage?
-- If a stage-local gap blocks the stage, run a mini Step 0.4 *scoped to that stage* — ask only what that stage needs, simulate only the relevant persona, mine only the relevant source
-- Resolve, then continue forward. Don't rewind earlier stages.
-- Tag resolved gaps with their source (`[user-stated]`, `[simulated]`, etc.) the same way blocking gaps are tagged
+Each story gets one of `done | in-progress | blocked | deferred | cut | unchanged` per the taxonomy + detection signals in [`progress-reconciliation.md`](references/progress-reconciliation.md#status-taxonomy). Authority rules in one line: **tracker wins for status, storymap wins for intent and slicing, code is evidence (not authority), user always wins over all three**.
 
-For **deferrable** gaps:
-- Note them in `design.md` under `## Open questions (deferrable)`
-- Apply a reasonable default; tag the field with `[inferred — see open question Q-XX]`
-- Surface in `handoff.md` so the user can validate or correct after the run
-- Never silently apply a default without disclosure
+Status lives as an annotation, not a separate file: in `storymap.md` append `[status: done | 2026-05-12]` to the story line; in `backlog.csv` add `status`, `status_evidence`, `status_date` columns (the bundled `storymap_to_csv.py` parses the tag and emits the first two automatically).
 
-#### Mid-stage discovery
+**Graduation.** When all stories under a backbone activity reach `done`, move the activity into a new `## Shipped foundation` section in `storymap.md` (visible for narrative continuity, excluded from active slicing) and note the graduation date in `design.md` under `## Activity status`. The slice-1 coverage rule applies only to *active* backbone activities.
 
-If a NEW gap surfaces mid-stage (e.g., during Step 2 decomposition you realize persona X has needs you don't know about):
+**Drift surfacing.** Tracker issues with no matching backbone activity, or storymap stories with no tracker mapping, go under `## Detected drift` in `handoff.md` for user decision. Never silently absorb.
 
-1. **Classify it** (blocking / stage-local / deferrable) — re-use the table above
-2. If **blocking** and would invalidate an earlier stage's decision: stop, surface to the user (or in single-shot, to `handoff.md`), and either pause for user input or proceed with a clearly-flagged conditional commitment
-3. If **stage-local** and addressable now: resolve in-place (ask / simulate / mine), continue
-4. If **deferrable**: note it, apply a default, continue
+**Write-back (opt-in, never auto).** Storymap-authoritative status changes (user-confirmed cuts, re-slices, new tracked items) emit a `tracker-status-update.<ext>` script alongside Step 6 routing — the user reviews and runs it. Tracker → storymap status pulls don't need write-back.
 
-Never silently absorb a discovered gap. The cost of disclosure is one line in `design.md`; the cost of a buried assumption is "why did we build that?" three months later.
-
-#### Late-stage escalation
-
-If at Step 4 (prioritization) or Step 4a (ACs) a gap emerges that *would have changed* a Step 1 (backbone) or Step 3 (slicing) decision had it been known upfront:
-
-1. **Don't silently rewrite** Steps 1-3 — that loses the audit trail
-2. Surface in `handoff.md` under a `## Late-discovered gaps` section: what the gap is, what stage's output it would have changed, what the current output assumed
-3. Recommend either (a) accept the current output with the caveat documented, or (b) re-run from the affected stage with the new info
-4. User decides
-
-#### Why classify
-
-Without classification, Step 0.4 becomes a giant gate that either:
-- Blocks too eagerly (every minor missing detail stops the workflow → user frustration, slow output)
-- Is silently bypassed (agents proceed with "I'll figure it out as I go" → buried assumptions surface in retro)
-
-Classification keeps the gate tight on what actually matters (the backbone + slicing + user-authoritative violations) while letting the rest resolve at the right time and cost.
+Detail: [`references/progress-reconciliation.md`](references/progress-reconciliation.md) — full algorithm, conflict-resolution table, per-tracker write-back script templates (Jira/ADO/GitHub/Linear).
 
 ### Step 1 — Establish the backbone
 
-A backbone can be generated under different criteria, and the criteria choice changes the backbone shape. **Pick the criteria explicitly, confirm with the user, and record them in `design.md` so future runs reproduce the same backbone.**
+A backbone can be generated under different criteria; the choice changes its shape. **Pick the criteria explicitly, confirm with the user, and record them in `design.md` under `## Backbone criteria` so future runs reproduce the same backbone.**
 
 #### Six criteria to declare (default in **bold**)
 
-| Criterion | Options | Why it matters |
-|---|---|---|
-| **Frame** | **Activity flow** / Jobs-to-be-done / System interaction / Customer journey | Activity flow = Patton classic; JTBD = "when [situation] I want to [motivation] so I can [outcome]"; system interaction reads like API/touchpoints — pick one and stick with it |
-| **Persona perspective** | **Primary user** (one specified by user) / Multiple parallel personas (admin + end-user) / Aggregate across personas | When personas diverge (admin vs end-user), single-perspective is cleaner; parallel risks doubling the backbone |
-| **Time horizon** | **Single end-to-end session** / Day-in-the-life / Lifecycle (signup → power user → churn) | Affects how many activities. Session: 4-6. Day-in-life: 6-10. Lifecycle: 8-15. |
-| **Granularity** | **5-7 activities** / 3-5 (high-level) / 8-12 (detailed) | Story-mapping convention is 5-7. Fewer is harder to slice; more is hard to read. |
-| **Scope** | **Happy path only** / Happy path + error recovery / Full surface (incl. edge cases) | Happy path is the right default; recovery paths usually become slice-2/3 stories |
-| **Aggregation** | **Single role per activity** / Multiple roles per activity (collaboration arrows) | Single-role is cleaner; multi-role only when handoffs ARE the activity |
+| Criterion | Options |
+|---|---|
+| **Frame** | **Activity flow** / Jobs-to-be-done / System interaction / Customer journey |
+| **Persona perspective** | **Primary user** / Multiple parallel personas / Aggregate across personas |
+| **Time horizon** | **Single end-to-end session** / Day-in-the-life / Lifecycle |
+| **Granularity** | **5-7 activities** / 3-5 (high-level) / 8-12 (detailed) |
+| **Scope** | **Happy path only** / Happy path + error recovery / Full surface |
+| **Aggregation** | **Single role per activity** / Multiple roles per activity |
 
-#### Workflow
+In Mode D and re-runs, read the prior criteria from `design.md` and use the same ones unless the user explicitly says to change them. When the user is silent (single-shot), apply defaults and explicitly state "Applied defaults: [list]. Override by re-running with criteria= …" in `design.md` — never silently choose.
 
-1. **Propose criteria** based on context loop findings and user prompt
-2. **Confirm with the user** in a single message: "Proposing backbone with these criteria: [list]. Confirm or override?"
-3. **Record the confirmed criteria** in `design.md` under a `## Backbone criteria` section
-4. **Generate the backbone** using those criteria
-5. In **Mode D** (refinement) and re-runs: read the prior criteria from `design.md` and use the same ones unless the user explicitly says to change them — this keeps the backbone reproducible
+**Backbone rules** (apply regardless of criteria): user voice, present tense, active. Good: `Sign up`, `Find a property`, `Schedule a viewing`. Bad: `User onboarding flow`, `Search functionality`, `Booking module` — system language leaks implementation into a discovery artifact and breaks slicing.
 
-When the user is silent (single-shot / automated mode), apply defaults and explicitly state "Applied defaults: [list]. Override by re-running with criteria= ..." in `design.md`. Never silently choose without disclosure.
+**CRITICAL: Cross-cutting work doesn't belong in the backbone.** Tech debt, infrastructure, localization, theming, observability, compliance go in a `## Non-backbone / cross-cutting` section *below* the backbone with `### Theme:` headers. They're prioritized in `backlog.csv` (`activity = "Non-backbone: <theme>"`) but excluded from slice-1 coverage. Rule of thumb: if you can't write "As a `<user>`, I want to..." that ties to a single backbone column, it's cross-cutting.
 
-#### Why this matters
+Detail: [`references/backbone-criteria.md`](references/backbone-criteria.md) — what each criterion's options imply, why explicit criteria matter, common anti-patterns.
 
-Without explicit criteria, two runs of the skill on the same prompt may produce different backbones — one agent picks "activity flow", another picks "jobs-to-be-done", another picks "lifecycle". The downstream slicing and prioritization differ. Recording the criteria makes the backbone:
-- **Reproducible** — same prompt + same criteria + same context = same backbone
-- **Reviewable** — a stakeholder can see *why* this backbone shape was chosen
-- **Refinable** — Mode D extension uses the same criteria so additions are consistent
+### Step 2 — Decompose into tasks, then per-persona stories
 
-#### Backbone rules (apply regardless of criteria)
+Tasks = the user's smaller steps within an activity. Stories = deliverable increments under tasks. Standard form: **As a `<persona>`, I want to `<action>`, so that `<outcome>`**. Skip the form when it's noise. If a task has >7 stories, it's probably two tasks — split.
 
-Backbone activities written in user voice, present tense, active.
+**Per-persona coverage is mandatory.** Every persona named in `design.md` must appear as the `<persona>` in **at least one slice-1 story**. Without this, slice 1 silently optimizes for the loudest persona and the others' journeys never ship. A single backbone activity often produces multiple stories with different personas (e.g., "Sign in" → admin SSO setup, end-user sign-in, compliance role-claim verification). Stories with no persona (pure infra/cron) live in the cross-cutting section and don't count toward coverage.
 
-Good: `Sign up`, `Find a property`, `Schedule a viewing`, `Make an offer`
-Bad: `User onboarding flow`, `Search functionality`, `Booking module`, `Offer submission API`
+If a persona has *zero* slice-1 candidates, that's a signal the slicing is wrong (re-run Step 3) or that persona shouldn't be in `design.md` (re-run Step 1) — not a silent drop.
 
-System language (modules, APIs, services) leaks implementation thinking into a discovery artifact and breaks the slicing logic later.
+**Parallelize via the `Agent` tool when persona count ≥3.** Spawn one subagent per persona, each receiving the backbone + that persona's verbatim quotes / pain points / constraints + the story-form template + an "in-character" instruction. Run them in parallel (one message, multiple `Agent` calls — no cross-dependency). Then merge, dedupe overlap (same activity from multiple personas often = same story with different framing — keep the most user-voiced version), and mark conflicts for the user. For ≤2 personas, inline generation is fine.
 
-**CRITICAL: Cross-cutting work doesn't belong in the backbone.** Tech debt, infrastructure, localization, theming, observability, compliance — give them their own `## Non-backbone / cross-cutting` section *below* the activity backbone, with `### Theme:` headers. They still get prioritized in `backlog.csv` (with `activity = "Non-backbone: <theme>"`) but are excluded from the slice-1 coverage check.
+**Stories are a blueprint, not the final spec.** The form intentionally underspecifies — captures *intent*, not *behavior*. Behavior gets pinned down at Step 4a (Gherkin ACs) and Step 4b (E2E test contract). If you find yourself writing implementation detail in a story ("click a React button that calls `/api/v1/refunds` with idempotency key…"), stop. That belongs in ACs.
 
-**❌ Wrong:** 6 backbone columns where #6 is "Tech debt" — breaks the slice-1 coverage rule (no user-facing story to put under it).
-**✅ Right:** 5 user-activity columns + a `## Non-backbone / Tech debt` section below. Backbone stays a narrative.
+### Step 2.5 — Role hints + flow advice
 
-Rule of thumb: if you can't write "As a `<user>`, I want to..." that ties to a single backbone column, the item is cross-cutting.
+After per-persona stories are drafted but before slicing, produce two outputs that make the storymap usable beyond developers:
 
-### Step 2 — Decompose into tasks, then stories
+1. **`role-hints.md`** — UX/UI designer + architect head-start derived from the backbone, cross-cutting section, and persona perspectives. UX section: persona snapshots, per-activity flow inventory, friction hotspots (where personas converge), open UX questions, accessibility/i18n hints. Architect section: cross-cutting work index, boundary candidates, hard constraints, risky integrations, open architecture questions. **Not a replacement for design or architecture work** — a head-start that names what each role should look at.
 
-Tasks = the user's smaller steps within an activity. Stories = deliverable increments under tasks.
+2. **Flow-advice skill chaining** — scan the backbone for well-known-pattern flows (auth, payment, onboarding, search, notifications, audit, accessibility, i18n, multi-tenancy). For each, check whether another installed skill (e.g., `auth-flow-advisor`, `payment-integration-best-practices`, `accessibility-checker`) can advise. If yes, invoke via the `Skill` tool with a tightly scoped question, tag the response in `design.md` as `[skill: <name> @ <date>]`, and fold into the relevant `role-hints.md` section. If no advisor is installed, list the flow under "Flows that would benefit from domain expertise" so the architect knows where to dig.
 
-Standard form: **As a `<persona>`, I want to `<action>`, so that `<outcome>`**. Skip when it's noise ("Display loading spinner" doesn't need persona dressing).
+**Cap:** sister-framework chaining = 1/run (Performance hard rule 8); domain-advisor chaining = **up to 3/run, one per flow**. More than 3 means the backbone is too big — split.
 
-If you find yourself writing >7 stories under one task, the task is probably two tasks. Split.
+Detail: [`references/role-hints-and-flow-advice.md`](references/role-hints-and-flow-advice.md) — `role-hints.md` templates, skill-discovery protocol, advisor invocation patterns, anti-patterns.
 
 ### Step 3 — Slice horizontally
 
@@ -432,7 +333,9 @@ Tell the user what was produced, what's still uncertain, and what the smallest n
 - **From-scratch project** (empty/near-empty repo, no tracker mentioned, no framework state) → generate a tracker import script via `work-item-tracking.md`. Don't auto-run it.
 - **Existing project** → walk the persistence cascade (sister-framework state → plain `TODO.md` → Memory MCP) and write to the first that applies. Optionally also populate Claude Code's `TodoWrite` if the user is about to execute slice 1 in this session — `TodoWrite` is an orthogonal helper, not a persistence destination. Don't push to a populated tracker without explicit user opt-in.
 
-End the handoff with a single line naming the destination(s) you wrote to, e.g. `"Slice 1 (12 stories) → .gsd/Roadmap.md + TODO.md; run /gsd discuss next."`
+**Status write-back (existing project + Step 0.5 ran).** If Step 0.5 produced status changes the user confirmed (cuts, re-slices, new tracked items) and the storymap considers authoritative for the tracker, also generate a *status-update script* alongside the slice-1 routing — separate file, separate user opt-in. Pull-only status changes (tracker → storymap) don't need write-back. See `progress-reconciliation.md` § "Write-back to the tracker".
+
+End the handoff with a single line naming the destination(s) you wrote to, e.g. `"Slice 1 (12 stories) → .gsd/Roadmap.md + TODO.md; status updates for 4 closed-out-of-band stories → tracker-status-update.sh (review before running); run /gsd discuss next."`
 
 If a sister framework is active (Superpowers / gstack / GSD), end with the explicit next command they should run. See `references/framework-integration.md`.
 
@@ -499,13 +402,15 @@ Avoid:
 ```
 <output-dir>/
 ├── design.md                          # personas, activities, opportunities, hypotheses, sources tagged
-├── storymap.md                        # human-readable hierarchical map
+├── storymap.md                        # human-readable hierarchical map (per-persona stories)
 ├── storymap.mmd                       # Mermaid graph (auto-generated)
 ├── storymap.csv                       # flat table for Jira/ADO/Excel import (auto-generated)
+├── role-hints.md                      # UX/UI designer + architect head-start (Step 2.5, optional)
 ├── backlog.md                         # ranked summary with reasoning
 ├── backlog.csv                        # full backlog with WSJF/RICE/MoSCoW scores, depends_on, okr columns
-├── slice-1-acceptance-criteria.md     # Given/When/Then for slice 1 (optional)
-├── e2e-test-contract.md               # Backbone-as-contract E2E scenarios (optional)
+├── slice-1-acceptance-criteria.md     # Given/When/Then for slice 1 (Step 4a, refines per-persona stories)
+├── e2e-test-contract.md               # the test playbook — backbone-as-contract E2E scenarios (Step 4b)
+├── tracker-status-update.sh           # opt-in tracker write-back script (Step 6, only if Step 0.5 ran and user confirmed status changes)
 └── handoff.md                         # what's done, what's open, next decision (optional)
 ```
 
@@ -517,16 +422,19 @@ Templates and column schemas live in `assets/`. Use them.
 |---|---|
 | `discovery-questions.md` | Mode A — driving discovery via batched questions |
 | `customer-interview-synthesis.md` | Mode B with raw interview notes |
-| `context-collection.md` | Step 0.3 — depth on what to mine from each source |
+| `context-collection.md` | Step 0 — depth on what to mine from each source |
 | `persona-simulation-and-gap-filling.md` | Step 0.4 — protocol for persona-sim subagents |
-| `persistent-knowledge.md` | Step 0.1 — memory across sessions |
+| `persistent-knowledge.md` | Step 0 — memory across sessions (Mode D starter signal) |
 | `iterative-refinement-and-snapshots.md` | Mode D — extend existing map, detect limit breach |
+| `progress-reconciliation.md` | Step 0.5 — bidirectional sync between storymap, tracker status, and code reality (existing-project / Mode D) |
+| `backbone-criteria.md` | Step 1 — six-criteria options + anti-patterns |
+| `role-hints-and-flow-advice.md` | Step 2.5 — UX/UI + architect hints, skill-chaining for flow advisors |
 | `slicing-strategies.md` | Step 3 — picking Patton vs PI vs Now/Next/Later |
 | `prioritization-frameworks.md` | Step 4 — WSJF/RICE/MoSCoW scoring rubrics |
 | `dependency-tracking.md` | Step 4 — depends_on column, cycle detection |
 | `okr-alignment.md` | Step 4 — OKR column, coverage matrix |
-| `acceptance-criteria.md` | Step 4a — Given/When/Then generation |
-| `e2e-verification-and-contract.md` | Step 4b — backbone-as-E2E-contract |
-| `framework-integration.md` | Step 6 — Superpowers/gstack/GSD/Jira/ADO/GitHub handoff |
+| `acceptance-criteria.md` | Step 4a — Given/When/Then generation (refines per-persona stories) |
+| `e2e-verification-and-contract.md` | Step 4b — backbone-as-E2E-contract (the test playbook) |
+| `framework-integration.md` | Step 6 — Superpowers/gstack/GSD plan-stage auto-trigger + Jira/ADO/GitHub handoff |
 | `output-routing.md` | Step 6 — the from-scratch vs existing decision; cascade across tracker / framework state / TODO.md / Memory MCP / TodoWrite |
 | `work-item-tracking.md` | Step 6 — per-tool import details (from-scratch branch) |

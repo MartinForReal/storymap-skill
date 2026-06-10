@@ -117,6 +117,38 @@ Stop the loop when ANY:
 - Strong from-scratch signal + no codebase → skip code/test/ADR mining
 - Single strong signal already gave the outcome (e.g., README explicit) → don't keep digging for redundancy
 
+### Surface findings in design.md
+
+Write the loop's trace into `design.md` as documentation — a reviewer can then see exactly what evidence drove which conclusion. Two sections:
+
+```markdown
+## Context loop trace
+- (1) `ls` → working dir has 47 files including `src/`, `tests/`, `docs/adr/` — existing project
+- (2) `README.md` → product is "TimeSink, a B2B time-tracking SaaS for design agencies"
+- (3) `package.json` → Next.js + Prisma + Postgres, dependency count 84 — mature web stack
+- (4) `src/routes/` → 12 routes; backbone candidates: auth, projects, time-entries, invoices, settings
+- (5) Test names (61 e2e) → golden paths: create-project, log-time, generate-invoice
+- (6) `docs/adr/0017` (most recent) → "Replace Stripe Invoicing API with Paddle" (2026-04, Accepted)
+- (7) Jira MCP → 23 open issues, top label "paddle-migration" (8 issues — confirms ADR-0017 is active work)
+- Hypothesis: STABLE after iteration 7. Proceeding to Step 0.4.
+
+## Contradictions flagged
+- README says "Stripe-powered invoicing" — outdated per ADR-0017 (Paddle migration). Likely safe; ADR is recent. Confirm with user.
+```
+
+### Cost ceiling and override
+
+Target: 5–15 tool calls for context collection on a typical project. Hard cap: 20 tool calls. If you're approaching the cap and the hypothesis still isn't stable, the project is genuinely complex — write your current best understanding to `design.md`, flag the residual ambiguity, and proceed.
+
+If the user explicitly says "skip context — just build the map" or "I have a brief, work from this only", honor it. Skip Step 0 entirely; treat the prompt as the complete input. Tag everything in `design.md` as `[user-stated]` or `[inferred]` only.
+
+### What this gets right
+
+- **From-scratch verbal idea**: loop exits in 2–3 turns (listing + README check + prompt re-read = "no codebase, no prior artifact, just an idea"). Skips code/test/ADR mining entirely. Pivots to Step 0.4.
+- **Mature existing project**: loop iterates README → manifests → routes → tests → ADRs → commits → tracker, refining hypothesis at each step. Stops when stable.
+- **Mixed signal**: README says "we're a mobile app" but `Cargo.toml` says Rust + Tauri → contradiction surfaced; user asked to clarify; only ONE side gets pursued.
+- **Mode D with tracker MCP**: existing `storymap.md` + Jira MCP → load both, reconcile, surface deltas. Skips full code mining.
+
 ## When to do this — and when to skip entirely
 
 **Do it when:** any of these is true:

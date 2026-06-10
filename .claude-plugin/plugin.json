@@ -1,7 +1,7 @@
 {
   "name": "storymap-skill",
-  "description": "User story mapping (Jeff Patton style). Turns a goal, brief, or messy backlog into a sliced, prioritized delivery plan. Plays well with Superpowers / gstack / GSD.",
-  "version": "0.0.2",
+  "description": "User story mapping (Jeff Patton style). Lean SKILL.md + on-demand references. Turns a goal, brief, or messy backlog into a sliced, prioritized delivery plan with per-persona stories that act as the blueprint for the team's test playbook. Auto-activates in the Plan stage of Superpowers / gstack / GSD. Generates UX/UI designer + architect role hints and chains to flow-advisor skills when available.",
+  "version": "0.0.3",
   "author": {
     "name": "MartinForReal",
     "url": "https://github.com/MartinForReal"
@@ -21,6 +21,14 @@
     "pi-planning",
     "product-discovery",
     "jeff-patton",
-    "backlog-management"
+    "backlog-management",
+    "personas",
+    "test-playbook",
+    "ux-hints",
+    "architect-hints",
+    "plan-stage",
+    "superpowers",
+    "gstack",
+    "gsd"
   ]
 }
