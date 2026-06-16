@@ -35,7 +35,7 @@ Rules:
 
 ## Enable the tracker burn-down
 
-When an issue tracker is the system of record, the skill does **not** emit `backlog.{md,csv}` / `storymap.csv` ([output-routing.md § What each branch produces](output-routing.md#what-each-branch-produces)) — instead the opt-in write-back sets three native fields per item so the tracker's own burn-down chart renders. Map them from artifacts the skill already produces:
+When an issue tracker is the system of record, the skill does **not** emit `backlog.{md,csv}` or `storymap.mmd` ([output-routing.md § What each branch produces](output-routing.md#what-each-branch-produces)) — the tracker provides the live ranked view + visualization. `storymap.csv` is still produced as a checked-in items+status snapshot. The opt-in write-back sets three native fields per item so the tracker's own burn-down chart renders. Map them from artifacts the skill already produces:
 
 | Burn-down field | Source in the plan | Jira | Azure DevOps | GitHub Projects |
 |---|---|---|---|---|

@@ -1,6 +1,6 @@
 # Test infrastructure
 
-This directory contains the eval grading + benchmarking scripts used to validate the `user-story-mapping` skill across the 20 scenarios in `../user-story-mapping/evals/evals.json`.
+This directory contains the eval grading + benchmarking scripts used to validate the `user-story-mapping` skill across the 25 scenarios in `../user-story-mapping/evals/evals.json`.
 
 ## What's here
 
@@ -44,7 +44,7 @@ With-skill should score ≥90% across all 25 evals. Baseline typically scores 15
 
 - Structural conformance — baseline rarely produces the canonical 6-file output
 - Methodology correctness — baseline rarely uses the canonical CSV header / Mermaid format
-- Capability-specific behaviors — baseline misses persona conflict surfacing, dependency cycle detection, OKR coverage gaps, Mode D breach detection, etc.
+- Capability-specific behaviors — baseline misses persona conflict surfacing, dependency cycle detection, OKR coverage gaps, iteration breach detection, etc.
 
 ## Skill-creator dependency
 

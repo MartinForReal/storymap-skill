@@ -132,12 +132,13 @@ A tracker is the system of record here (your PI 1 tracker), so the skill does **
 
 - `design.md` — personas, OKRs, decisions log, backbone identification, F-SCIM decomposition rationale
 - `storymap.md` — the canonical map with the new "Provision tenant users" backbone activity + F-SCIM-01..04 stories
+- `storymap.csv` — the flat items+status manifest (a deterministic projection of `storymap.md`, always produced as a checked-in snapshot regardless of where the dynamic plan lives)
 - **`breach-decisions.md`** — full breach analysis with 2-4 trade-off options per breach
 - `slice-1-acceptance-criteria.md` — Given/When/Then for the new F-SCIM stories only (existing PI 1 ACs assumed in your tracker)
 - `tracker-status-update.sh` — **opt-in** write-back: creates F-SCIM-01..04 in the tracker with story-points + sprint and applies the approved cuts, setting the **burn-down fields** (points + sprint + status) so the tracker's native burn-down reflects the refined plan. Review before running.
 - `handoff.md` — this file
 
-> **No local `storymap.csv` / `storymap.mmd` / `backlog.{md,csv}`** — a tracker is the system of record, so the ranked plan and the burn-down go into the tracker via `tracker-status-update.sh` rather than into local files (v0.0.4 rule). `design.md` + `storymap.md` are always produced.
+> **No local `storymap.mmd` / `backlog.{md,csv}`** — a tracker is the system of record, so the ranked plan and the burn-down go into the tracker via `tracker-status-update.sh` rather than into local files. `design.md` + `storymap.md` + `storymap.csv` (the items+status manifest) are always produced.
 
 ---
 
@@ -145,5 +146,5 @@ A tracker is the system of record here (your PI 1 tracker), so the skill does **
 
 - This refinement run did **not** re-derive the prior backbone (carried activities 1-8 forward from your PI 1 snapshot, added activity 9 for SCIM).
 - Your existing tracker IDs (S001-S015) are preserved by the write-back; F-SCIM-* are created new in the tracker.
-- No local `storymap.csv` / `backlog.csv` is emitted — the tracker is the system of record, so the refined plan and its burn-down fields (points + sprint + status) go into the tracker via `tracker-status-update.sh` (opt-in).
+- No local `backlog.csv` / `backlog.md` / `storymap.mmd` is emitted — the tracker is the system of record, so the ranked plan and its burn-down fields (points + sprint + status) go into the tracker via `tracker-status-update.sh` (opt-in). `storymap.csv` is still produced as a checked-in items+status manifest.
 - The ~20 SP pre-existing PI 1 shortfall (before SCIM) was uncovered by the snapshot math; it was not in your prompt. If this is news, the original PI 1 commit was likely over-subscribed at planning time — worth a separate retro conversation.

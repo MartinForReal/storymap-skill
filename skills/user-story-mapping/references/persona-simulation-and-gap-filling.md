@@ -215,7 +215,7 @@ Step 0.4  — Interview: present findings; user resolves blocking conflicts/gaps
 Step 1+   — Establish backbone (normal flow)
 ```
 
-## Single-shot mode caveat
+## Single-shot caveat
 
 In automated evals or hands-off invocations where the user can't respond mid-task:
 

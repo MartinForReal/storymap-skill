@@ -5,7 +5,7 @@ license: MIT
 compatibility: Requires Python 3.10+ for bundled scripts (storymap_to_csv.py, storymap_to_mermaid.py). No other system dependencies. Works across Claude Code, Claude.ai, and any Agent Skills v1 host (Cursor, Codex, Copilot, Gemini CLI, OpenCode, Goose, etc.).
 metadata:
   author: MartinForReal
-  version: "0.0.4"
+  version: "0.0.5"
   homepage: https://github.com/MartinForReal/storymap-skill
 allowed-tools: Bash(python:*) Read Write Edit Glob Grep Agent Skill
 ---
@@ -18,7 +18,7 @@ This file is the answer-first spine — the routing-and-contract layer. Read it 
 
 ## The loop
 
-There are **no invocation modes** and no greenfield/brownfield branch. Each run discovers what already exists, diffs it against the desired map, and **materializes the delta** in place. **Starting from scratch is the same loop with empty data sources** — the diff is against nothing, so the delta is the whole map. Only the data differs, never the steps.
+Each run discovers what already exists, diffs it against the desired map, and **materializes the delta** in place. **Starting from scratch is the same loop with empty data sources** — the diff is against nothing, so the delta is the whole map. There is no greenfield/brownfield branch; only the data differs, never the steps.
 
 ```
 ① DISCOVER → ② DIFF → ③ APPLY PREFERENCES → ④ SIMULATE → ⑤ INTERVIEW ──approved?──no──► back to ①
@@ -27,6 +27,8 @@ There are **no invocation modes** and no greenfield/brownfield branch. Each run 
                                           ⑥ BACKBONE → ⑦ GENERATE/UPDATE → ⑧ DERIVE + HAND OFF
 ```
 
+**Loop ↔ Step mapping** for the table further down: ①=Step 0, ②=part of Step 0/0.5, ③=Step 0 (apply saved prefs), ④=Step 0.3, ⑤=Step 0.4, ⑥=Step 1, ⑦=Steps 2–4b, ⑧=Steps 5–6.
+
 1. **Discover** (Step 0) — scan data sources cheapest-first; the issue tracker (issues + taxonomy) and `.user-story-mapping/state.json` are first-class sources. The scan assembles the **existing source**.
 2. **Diff** — **existing** (a *reconciled* snapshot, not a clean merge: tracker = status, code = evidence that can *contradict* → surfaced as drift, storymap = intent, user overrides all) vs **desired** (the prior map *amended/overridden* by the user's new input — add / re-slice / **pivot-remove**). Classifies ADDED / UNCHANGED / MOVED / CUT / DONE **+ surfaced conflicts** — conflicts are decisions in `handoff.md`, never silently resolved. Empty existing ⇒ all new. Coarse here, per-story at handoff. Owner: [`iterative-refinement-and-snapshots.md`](references/iterative-refinement-and-snapshots.md).
 3. **Apply preferences** — method, slicing, terminology, tracker field-mapping from `state.json`; the user's words this conversation always override saved state.
@@ -34,7 +36,7 @@ There are **no invocation modes** and no greenfield/brownfield branch. Each run 
 5. **Interview until approved** (Step 0.4) — present the simulation's findings + the diff, resolve *blocking* gaps/conflicts, loop to ① until the user approves. User wins over simulation; with nothing to resolve it's a fast confirm. No backbone work before approval.
 6. **Backbone** (Step 1) — only after approval; carry a prior backbone forward, never silently re-derive.
 7. **Generate / update** (Steps 2–4b) — **materialize the diff's delta**: per-persona stories, slices, prioritization, ACs, E2E. ∅ existing ⇒ author the whole map; a clean delta ⇒ update only it; **∅ diff ⇒ a snapshot, no regeneration**. Idempotent; reuse the tracker's taxonomy.
-8. **Derive + hand off** (Steps 5–6) — **always** `design.md` + `storymap.md`; the local renderings (`storymap.csv`, `storymap.mmd`, `backlog.{md,csv}`) **only when no tracker is defined**; when a tracker *is* defined the opt-in write-back sets each item's burn-down fields (points + sprint + status) instead. Persist `state.json`; emit a diff-style `handoff.md`.
+8. **Derive + hand off** (Steps 5–6) — **always** `design.md` + `storymap.md` + `storymap.csv` (the flat items+status list, derived from `storymap.md`); the ranked-backlog views (`backlog.md`, `backlog.csv`) and visualization (`storymap.mmd`) **only when no tracker is defined**; when a tracker *is* defined the opt-in write-back sets each item's burn-down fields (points + sprint + status) instead. Persist `state.json`; emit a diff-style `handoff.md`.
 
 **"Tracker defined"** (gates the local renderings, `storymap.mmd`, and the burn-down write-back): a tracker is defined when a tracker MCP is connected for this work, the user points the skill at a specific tracker/project, or `state.json` already holds a `tracker` block. The operational test (and why a passing mention of a tool used elsewhere doesn't count) lives in [`output-routing.md`](references/output-routing.md#detecting-the-empty-baseline-no-tracker-defined).
 
@@ -46,8 +48,8 @@ There are **no invocation modes** and no greenfield/brownfield branch. Each run 
 
 ## What it produces
 
-- **Always:** `design.md` (the rationale) and `storymap.md` (the authored narrative — and the source the parser/import reads).
-- **Only when no tracker is defined:** `storymap.csv`, `storymap.mmd`, `backlog.md`, `backlog.csv` — local renderings/imports of the plan, redundant once a tracker is the system of record. (This is the canonical statement of the rule; the steps table and the derived-file commands just reference it.)
+- **Always:** `design.md` (the rationale), `storymap.md` (the authored narrative — and the source the parser/import reads), and `storymap.csv` (the **flat list of every item with its status** — id / activity / task / story / persona / outcome / slice / status / status_evidence; deterministic projection of `storymap.md` via the bundled parser, useful as a checked-in snapshot regardless of where the dynamic plan lives).
+- **Only when no tracker is defined:** `storymap.mmd`, `backlog.md`, `backlog.csv` — the visualization and the ranked-backlog views, redundant once a tracker is the system of record. (This is the canonical statement of the rule; the steps table and the derived-file commands just reference it.)
 - **When a tracker is defined:** instead of those files, the opt-in tracker write-back sets each item's **burn-down fields** — story-points/estimate + sprint/iteration + status — so the tracker's native burn-down chart works; the ranked "start here" essence moves into `handoff.md`. Mechanics: [`work-item-tracking.md`](references/work-item-tracking.md).
 - **Optional:** `role-hints.md` (Step 2.5), `slice-1-acceptance-criteria.md` (4a), `e2e-test-contract.md` (4b), `tracker-status-update.<ext>` (Step 6 write-back), `handoff.md`.
 - **State:** `.user-story-mapping/state.json` — saved preferences + the `tracker` config block (on by default; cross-session Memory MCP is an opt-in second backend — see [`persistent-knowledge.md`](references/persistent-knowledge.md)).
@@ -96,13 +98,17 @@ Load the reference when you reach the step. Budgets are % of the run; Steps 0.3 
 | **4** Prioritize | WSJF/RICE/MoSCoW + OKR linkage + dependency feasibility; reuse existing tracker score fields | `backlog.csv` + `backlog.md` (no tracker) · tracker points/iteration fields (tracker) | 15-20% | `prioritization-frameworks.md`, `okr-alignment.md`, `dependency-tracking.md` |
 | **4a** ACs | Given/When/Then for slice-1 + INVEST | `slice-1-acceptance-criteria.md` | 10-15% | `acceptance-criteria.md` |
 | **4b** E2E contract | Coverage matrix + E2E-HAPPY + per-activity scenarios — the test playbook | `e2e-test-contract.md` | 5-10% | `e2e-verification-and-contract.md` |
-| **5** Derive | `storymap.csv` + `storymap.mmd` via the bundled scripts — **only when no tracker is defined** | derived files (no-tracker) | <2% | scripts in `scripts/` |
+| **5** Derive | `storymap.csv` (always — the flat items+status list) + `storymap.mmd` (only when no tracker) via the bundled scripts | derived files | <2% | scripts in `scripts/` |
 | **6** Hand off | Answer-first `handoff.md`; route items; persist `state.json`; opt-in write-back — sets tracker **burn-down fields** (points + sprint + status) when a tracker is defined | `handoff.md` (+ tracker write-back) | 5% | `output-routing.md`, `work-item-tracking.md`, `answer-first-writing.md`, `persistent-knowledge.md` |
+
+**Glossary for first-use jargon in the table:** *Walking skeleton* — a slice that demos every backbone activity end-to-end, even if every step is minimal. *PI* — SAFe Program Increment, typically 8–12 weeks. *WSJF* — Weighted Shortest Job First (cost-of-delay ÷ job-size; SAFe default). *RICE* — Reach × Impact × Confidence ÷ Effort. *MoSCoW* — Must / Should / Could / Won't. *INVEST* — Independent / Negotiable / Valuable / Estimable / Small / Testable.
 
 Derived-file commands (Step 5):
 ```bash
-# Only when NO tracker is defined (when a tracker is the system of record, push to it instead — see work-item-tracking.md):
+# Always — the flat items+status list (a deterministic projection of storymap.md):
 python scripts/storymap_to_csv.py storymap.md > storymap.csv
+
+# Only when no tracker is defined (with a tracker, push burn-down fields instead — see work-item-tracking.md):
 python scripts/storymap_to_mermaid.py storymap.md > storymap.mmd
 ```
 

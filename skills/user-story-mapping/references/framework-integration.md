@@ -24,7 +24,7 @@ When activated under a sister framework, skip framework-specific authoring of ar
 
 [gstack](https://github.com/garrytan/gstack) — Garry Tan (Y Combinator) — is a Claude Code slash-command pack that organizes work into a Think → Plan → Build → Review → Test → Ship → Reflect sprint. It exposes 23+ commands like `/office-hours`, `/autoplan`, `/plan-ceo-review`, `/plan-eng-review`, `/design-review`, `/review`, `/qa`, `/ship`, `/retro`.
 
-This skill is the natural artifact-producer for gstack's **Plan** phase:
+This skill is the natural artifact-producer for gstack's **Plan** phase. The diagram below shows the no-tracker case; when an issue tracker is the system of record, `backlog.md` is **not** emitted — `/plan-devex-review` reads the tracker's ranked view, and the opt-in `tracker-status-update.<ext>` script populates burn-down fields ([output-routing.md § What each branch produces](output-routing.md#what-each-branch-produces)).
 
 ```
 gstack /office-hours          ──→ user-story-mapping (the loop)
@@ -71,14 +71,14 @@ The GSD hierarchy is **Milestone → Slice → Task**, which maps to this skill'
 
 **Important terminology collision:** "slice" means different things in the two systems. In this skill, a slice is a horizontal cut across the backbone (e.g., MVP, R2, R3). In GSD, a "slice" is a sub-unit within a milestone — closer to an *activity* in our terms. When writing artifacts for a GSD-using team, use GSD's vocabulary in the final deliverable and add a one-line note in `design.md` explaining the mapping. Translate, never equate.
 
-GSD workflow handoff:
+GSD workflow handoff (no-tracker case shown; with an issue tracker, `backlog.md` is replaced by burn-down field writes via the opt-in tracker write-back):
 
 ```
 This skill (the loop)
    ├── design.md             →   .gsd/Brief.md
    ├── storymap.md slice 1   →   .gsd/Milestones/M1/...
    ├── individual stories    →   GSD Tasks for /gsd execute-task
-   └── backlog.md            →   .gsd/Roadmap.md
+   └── backlog.md            →   .gsd/Roadmap.md   (when no issue tracker)
                                  ↓
                              GSD /gsd discuss → /gsd plan-milestone → /gsd auto
 ```

@@ -14,9 +14,9 @@ iteration-11 baseline (v0.0.2): with_skill = 98.2%. v0.0.3 = **+1.4 pp** despite
 
 | Eval | Pass rate | Notes |
 |---|---|---|
-| 1 from-scratch-internal-tool | 10/10 | Mode A, SAFe PI, WSJF |
-| 2 from-problem-brief-mobile-onboarding | 10/10 | Mode B, RICE |
-| 3 from-existing-backlog-messy-csv | 10/10 | Mode C, MoSCoW, Jira-key preservation |
+| 1 from-scratch-internal-tool | 10/10 | from scratch, SAFe PI, WSJF |
+| 2 from-problem-brief-mobile-onboarding | 10/10 | from a brief, RICE |
+| 3 from-existing-backlog-messy-csv | 10/10 | from existing backlog, MoSCoW, Jira-key preservation |
 | 4 gstack-handoff-developer-portal | 10/10 | framework integration |
 | 5 gsd-handoff-solo-builder-saas | 11/11 | framework integration |
 | 6 pure-api-sdk-python | 9/9 | API/SDK, Now-Next-Later |
@@ -29,7 +29,7 @@ iteration-11 baseline (v0.0.2): with_skill = 98.2%. v0.0.3 = **+1.4 pp** despite
 | 13 okr-aligned-roadmap | 10/10 | OKR coverage matrix + orphans |
 | 14 thin-brief-gap-discovery | 10/10 | persona simulation, conflict matrix |
 | 15 multi-stakeholder-conflict | 10/10 | user-input-authoritative |
-| 16 snapshot-and-breaks-limits | 8/8 | Mode D + breach detection |
+| 16 snapshot-and-breaks-limits | 8/8 | iteration + breach detection |
 | 17 empty-dir-loop-shortcircuit | 9/9 | Step 0 fast-exit for greenfield |
 | 18 framework-artifacts-and-criteria | 10/10 | `.gsd/` reads + backbone criteria |
 | 19 output-routing-from-scratch | 13/13 | tracker-seeding script (not auto-run) |
@@ -49,7 +49,7 @@ iteration-11 baseline (v0.0.2): with_skill = 98.2%. v0.0.3 = **+1.4 pp** despite
 
 ## The one real miss
 
-`eval-12-dependency-aware-backlog`: the user prompt provides 14 explicit story IDs (`F-AUTH`, `F-RBAC`, etc.) that the agent should preserve through the storymap and backlog. The agent kept 5/14, renaming the rest. All 9 other assertions (dependency-cycle detection, depends_on column, slice-1 feasibility check, WSJF columns, etc.) passed. Recommend a small adjustment to Step 2 / Mode C reference text to emphasize ID preservation when the user provides existing IDs.
+`eval-12-dependency-aware-backlog`: the user prompt provides 14 explicit story IDs (`F-AUTH`, `F-RBAC`, etc.) that the agent should preserve through the storymap and backlog. The agent kept 5/14, renaming the rest. All 9 other assertions (dependency-cycle detection, depends_on column, slice-1 feasibility check, WSJF columns, etc.) passed. Recommend a small adjustment to Step 2 / from-existing-backlog reference text to emphasize ID preservation when the user provides existing IDs.
 
 ## Reproducing
 

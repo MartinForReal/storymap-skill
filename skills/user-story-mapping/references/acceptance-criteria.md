@@ -12,7 +12,7 @@ Generate ACs at Step 4a, after slicing (Step 3) has fixed which stories are in s
 - **Optional** — for slice 2+. Wait until they get pulled into slice 1, since requirements often shift before then.
 - **Skip** — for trivial stories ("rename button label", "fix typo"). Overhead exceeds value.
 
-If the user explicitly asks for ACs across the full backlog, oblige; otherwise default to slice 1 only. Output lands in `slice-1-acceptance-criteria.md` (an optional artifact alongside the always-produced design.md / storymap.md / storymap.csv / backlog.md / backlog.csv set).
+If the user explicitly asks for ACs across the full backlog, oblige; otherwise default to slice 1 only. Output lands in `slice-1-acceptance-criteria.md` (an optional artifact alongside the always-produced design.md / storymap.md / storymap.csv set; backlog.md / backlog.csv ride along too when no issue tracker is defined).
 
 ## The Given/When/Then template
 

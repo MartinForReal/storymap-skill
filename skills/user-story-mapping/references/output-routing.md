@@ -37,9 +37,9 @@ When signals conflict, **ask once**: "treat as new (seed tracker) or existing (k
 
 The output **set** keys off one thing: **is an issue tracker (Jira / ADO / GitHub Issues / Linear) the system of record?** — the "tracker defined" predicate above. (Sister-framework state like `.gsd/` is a non-empty baseline but *not* an issue tracker.) Canonical tier list: [../SKILL.md § What it produces](../SKILL.md#what-it-produces).
 
-- **Always, every run:** `design.md` (rationale) + `storymap.md` (the authored narrative the parser/import reads).
-- **No issue tracker** (empty baseline *or* an existing project whose system of record is framework state / `TODO.md`): also emit the local renderings — `storymap.csv`, `storymap.mmd`, `backlog.md`, `backlog.csv` — because the plan needs somewhere to live. Persist or seed them per the branches below.
-- **Issue tracker defined:** do **not** emit those local data files; the tracker is the system of record. The plan goes into the tracker via the opt-in write-back, which also sets each item's **burn-down fields** (points + sprint + status) — see [work-item-tracking.md § Enable the tracker burn-down](work-item-tracking.md#enable-the-tracker-burn-down). The ranked "start here" summary moves into `handoff.md`.
+- **Always, every run:** `design.md` (rationale) + `storymap.md` (the authored narrative the parser/import reads) + `storymap.csv` (the flat items+status manifest — a deterministic projection of `storymap.md`, useful as a checked-in snapshot regardless of where the dynamic plan lives).
+- **No issue tracker** (empty baseline *or* an existing project whose system of record is framework state / `TODO.md`): also emit the visualization + ranked-backlog views — `storymap.mmd`, `backlog.md`, `backlog.csv` — because the plan needs somewhere live to be navigated and ranked. Persist or seed them per the branches below.
+- **Issue tracker defined:** do **not** emit `storymap.mmd` / `backlog.{md,csv}` — the tracker provides the live navigation + ranked view. The plan goes into the tracker via the opt-in write-back, which sets each item's **burn-down fields** (points + sprint + status) — see [work-item-tracking.md § Enable the tracker burn-down](work-item-tracking.md#enable-the-tracker-burn-down). The ranked "start here" summary moves into `handoff.md`. `storymap.csv` is still produced (it's a checked-in manifest, not a dynamic ranking).
 
 ## The seed branch (empty baseline)
 

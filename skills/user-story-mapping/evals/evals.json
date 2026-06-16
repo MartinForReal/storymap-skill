@@ -1,16 +1,16 @@
 {
   "skill_name": "user-story-mapping",
   "version": "1.0",
-  "description": "25 eval scenarios spanning the loop across empty and populated data sources, app types (web/mobile/desktop/API/CLI/enterprise), framework integrations (Superpowers/gstack/GSD), iter-5+ capabilities (interview synthesis, dependency tracking, OKR alignment, persona simulation, iteration + breach detection, context loop short-circuit, framework artifacts + backbone criteria), and v0.0.3 additions (Step 0.5 progress reconciliation, Step 2.5 role hints, per-persona slice-1 enforcement, plan-stage auto-trigger, tracker write-back). Eval category labels and prompts retain legacy 'Mode A/B/C/D' phrasing on purpose — they test that the loop still handles a user who types the old terms.",
+  "description": "25 eval scenarios spanning the loop across empty and populated data sources, app types (web/mobile/desktop/API/CLI/enterprise), framework integrations (Superpowers/gstack/GSD), iter-5+ capabilities (interview synthesis, dependency tracking, OKR alignment, persona simulation, iteration + breach detection, context loop short-circuit, framework artifacts + backbone criteria), and v0.0.3 additions (Step 0.5 progress reconciliation, Step 2.5 role hints, per-persona slice-1 enforcement, plan-stage auto-trigger, tracker write-back).",
   "evals": [
     {
       "id": 1,
       "name": "from-scratch-internal-tool",
-      "category": "Mode A — from scratch",
+      "category": "From scratch",
       "prompt": "Hey so my team (we're 4 engineers + 1 PM at a mid-size fintech) is kicking off a new internal tool — basically a self-service portal where our customer-success folks can refund individual transactions without filing a Jira to engineering every time. Right now they file ~30 of those a week and it's eating my team's bandwidth. We have a 12-week PI starting in 3 weeks and PI planning is next Thursday. I have nothing written down yet — just the verbal ask from CS leadership. Help me figure out what we should actually build, what the MVP slice is, and what the priorities should be. We use SAFe loosely (PI cadence yes, full ART no). Use WSJF since the org is used to it.",
       "files": [],
       "assertions": [
-        "Produces all six canonical files: design.md, storymap.md, storymap.csv, storymap.mmd, backlog.md, backlog.csv",
+        "Produces the always-files (design.md, storymap.md, storymap.csv) plus the no-tracker conditional set (storymap.mmd, backlog.md, backlog.csv) since this scenario has no issue tracker",
         "storymap.csv has canonical header: id,activity,task,story,persona,outcome,slice",
         "storymap.mmd starts with 'graph TD' (valid Mermaid)",
         "Design doc contains a personas section",
@@ -25,11 +25,11 @@
     {
       "id": 2,
       "name": "from-problem-brief-mobile-onboarding",
-      "category": "Mode B — from a brief",
+      "category": "From a brief",
       "prompt": "Here's the brief from our head of product — can you turn this into a story map and backlog? We need the MVP defined by end of week.\n\nFROM: Sarah Kim (VP Product) / TO: Mobile pod / RE: Onboarding redesign — Q2 priority\n\nProblem: 47% of new app installs never complete first-time setup. Of those who do, 22% don't return after day 1. Top SaaS competitors hit 70%+ activation on equivalent funnels.\n\nWho: First-time users on the mobile app (iOS + Android), primarily 25-45, mix of solo professionals and small-business owners. Sub-segment: users invited by a teammate (currently treated identical to organic).\n\nGoal: Lift 7-day activation from 41% to 60% by end of Q2. Activation = first meaningful action (creating a project OR accepting an invite OR completing the import flow).\n\nWhat we know: Drop-off cliff on screen 3 (integrations connect step). Users who skip integrations and import a file activate at 73%. Invited users at 82%.\n\nConstraints: iOS+Android parity. Cannot break connect-flow API (Salesforce paying customer). App Store review 7-10 days.\n\nNon-goals: web onboarding (different team), enterprise SSO (separate roadmap), gamification.\n\nUse RICE since we have the activation metric to ground impact estimates.",
       "files": [],
       "assertions": [
-        "All six canonical files produced",
+        "All canonical files produced (design.md / storymap.md / storymap.csv always; storymap.mmd / backlog.{md,csv} when no tracker is defined)",
         "storymap.csv has canonical header",
         "storymap.mmd valid Mermaid",
         "Design doc contains personas + outcome",
@@ -42,11 +42,11 @@
     {
       "id": 3,
       "name": "from-existing-backlog-messy-csv",
-      "category": "Mode C — from existing backlog",
+      "category": "From existing backlog",
       "prompt": "We have a backlog in the property-search vertical that's gotten unwieldy. Reorganize it into a proper story map for the next PI. Use MoSCoW.\n\n```csv\nkey,title,type,labels\nPROP-101,User can search listings by city,Story,search\nPROP-102,Add price filter to search results,Story,search;filter\nPROP-103,Refactor search index to OpenSearch,Task,tech-debt\nPROP-104,Show map view of search results,Story,search;map\nPROP-105,User can save a listing to favorites,Story,favorites\nPROP-106,Email digest of saved listings weekly,Story,favorites;email\nPROP-107,User schedules viewing via in-app calendar,Story,scheduling\nPROP-108,Confirm viewing via SMS,Story,scheduling;sms\nPROP-109,Agent sees viewing requests in dashboard,Story,scheduling;agent\nPROP-110,User submits offer through app,Story,offers\nPROP-111,Offer status updates in real-time,Story,offers;realtime\nPROP-112,Push notification on offer accepted,Story,offers;push\nPROP-113,Mortgage pre-approval upload (PDF),Story,financing\nPROP-114,Connect to Plaid for income verification,Story,financing;integration\nPROP-115,Compliance log for every offer event,Task,compliance\nPROP-116,Migrate legacy DB schema for offers v2,Task,tech-debt\nPROP-117,Dark mode toggle,Story,ui\nPROP-118,Localize app for French (Quebec market),Task,localization\n```",
       "files": [],
       "assertions": [
-        "All six canonical files produced",
+        "All canonical files produced (design.md / storymap.md / storymap.csv always; storymap.mmd / backlog.{md,csv} when no tracker is defined)",
         "Backbone reverse-engineered into 4-6 user activities",
         "First slice covers every backbone activity",
         "backlog.csv has MoSCoW column",
@@ -61,7 +61,7 @@
       "prompt": "We're a 3-person team at a Series-A SaaS, currently using **gstack** (Garry Tan's slash-command pack) as our day-to-day Claude Code workflow. I want to build a developer portal for our public API — docs, key management, usage dashboard, sandbox. We don't have a backlog yet, just exec interest. We use loose SAFe and prefer WSJF.\n\nProduce the story map and backlog. Since we live in gstack, make sure your handoff tells me exactly which gstack slash commands to run next and what each one will read from your outputs. We will literally copy-paste from your handoff message.",
       "files": [],
       "assertions": [
-        "All six canonical files produced",
+        "All canonical files produced (design.md / storymap.md / storymap.csv always; storymap.mmd / backlog.{md,csv} when no tracker is defined)",
         "Backbone in user voice with slice-1 coverage",
         "backlog.csv has WSJF columns",
         "Handoff names ≥2 specific gstack commands (/plan-ceo-review, /plan-eng-review, /office-hours, /autoplan, etc.)",
@@ -76,7 +76,7 @@
       "prompt": "Solo founder here. I've been using **GSD (Get Shit Done, getshitdone.help)** for a few weeks — `/gsd discuss`, `/gsd plan-milestone`, `/gsd auto`, the whole context-engineering pipeline. I'm starting a new project: a small SaaS that helps freelance contractors track billable hours per client with a Stripe-integrated invoicing flow at month-end.\n\nProduce the story map and backlog. Since I'm in the GSD flow, make sure your handoff tells me how each output file maps to GSD's Milestone / Slice / Task hierarchy and which `/gsd` command I should run next. Watch the terminology — GSD's 'Slice' is not the same as your 'slice'. Use Now/Next/Later for prioritization since I'm in solo-discovery mode.",
       "files": [],
       "assertions": [
-        "All six canonical files produced",
+        "All canonical files produced (design.md / storymap.md / storymap.csv always; storymap.mmd / backlog.{md,csv} when no tracker is defined)",
         "Uses Now/Next/Later slicing as requested",
         "Handoff names GSD terminology collision explicitly (this skill's 'slice' = GSD 'Milestone')",
         "Handoff maps design.md to GSD's Brief",
@@ -91,7 +91,7 @@
       "prompt": "We're shipping a Python SDK (v1) for our existing REST payments API — think Stripe-like surface but smaller scope. The current API has 18 endpoints (charges, refunds, customers, webhooks, balance). Our customers right now build their own thin HTTP wrappers; we want a first-class idiomatic SDK they can pip install. Two engineers, 8 weeks. The user here is a developer at a customer org integrating our API — there is no UI for them, just import + call. No backlog yet, just the API surface. Use Now/Next/Later — we're in discovery for the SDK shape. Tell me what v1 needs and what waits.",
       "files": [],
       "assertions": [
-        "All six canonical files produced",
+        "All canonical files produced (design.md / storymap.md / storymap.csv always; storymap.mmd / backlog.{md,csv} when no tracker is defined)",
         "Backbone in developer voice (Discover SDK / Install / Make first call / Handle errors / Go to production)",
         "Persona = developer (not generic 'user')",
         "Uses Now/Next/Later slicing",
@@ -105,7 +105,7 @@
       "prompt": "We're building a cross-platform desktop password manager (Mac, Windows, Linux). Native app, not Electron — using Tauri. Local-first encrypted vault with optional encrypted sync to user-controlled S3/Backblaze/iCloud Drive. 5 engineers, looking at a 12-week PI to first beta. We use SAFe loosely and WSJF. Concerns specific to this being a desktop app: code-signed installers per OS, auto-update with delta patches, OS keychain integration, offline-first with conflict resolution, accessibility (screen-readers), and bus-factor for the encryption design. No backlog yet. Give me a sliced plan with what goes in PI 1.",
       "files": [],
       "assertions": [
-        "All six canonical files produced",
+        "All canonical files produced (design.md / storymap.md / storymap.csv always; storymap.mmd / backlog.{md,csv} when no tracker is defined)",
         "Backbone covers desktop-app lifecycle (install → set up vault → use → sync → update)",
         "Install/auto-update/code-signing handled as cross-cutting non-backbone items",
         "backlog.csv has WSJF columns",
@@ -119,7 +119,7 @@
       "prompt": "Enterprise multi-tenant analytics platform — SaaS, sold to mid-market and enterprise. Two distinct user types: (a) Tenant Admins (one per customer org) who provision the workspace, manage SSO, configure RBAC roles, set data-retention policies, view audit logs; (b) End Users who build dashboards, run queries, share reports with their team. Customers are demanding SOC 2 Type II within Q3, SAML SSO, scoped API keys, and per-row RBAC. Sales is pushing on-prem for two whales. We use SAFe properly (full ART), 4-team ART, PI planning in 5 weeks. Use WSJF. Give me the story map, especially be careful with how admin vs end-user personas interleave in the backbone — that's where most enterprise products go wrong.",
       "files": [],
       "assertions": [
-        "All six canonical files produced",
+        "All canonical files produced (design.md / storymap.md / storymap.csv always; storymap.mmd / backlog.{md,csv} when no tracker is defined)",
         "Two distinct personas surfaced (Tenant Admin AND End User) with explicit interleaving in backbone",
         "Per-story persona annotation in backlog.csv",
         "Compliance work (SOC 2, SAML, RBAC) addressed as either backbone activities or cross-cutting depending on user-facing-ness",
@@ -134,7 +134,7 @@
       "prompt": "Two of us (me + one other engineer, plus a designer who doesn't help much with CLI ergonomics) are building an open-source CLI tool — think rg/jq-flavored — for fast structured-log parsing. Reads JSONL or k8s-style structured logs from stdin or files, lets the user filter/project/aggregate with a query language similar to PromQL. Single binary, written in Rust, no daemon. Target audience: SREs, devops, backend devs debugging prod incidents. Distribution: brew / scoop / apt / cargo install / GitHub releases. We have 6 weeks until KubeCon where we want a demo. Use MoSCoW — early enough that we don't have data for WSJF.",
       "files": [],
       "assertions": [
-        "All six canonical files produced",
+        "All canonical files produced (design.md / storymap.md / storymap.csv always; storymap.mmd / backlog.{md,csv} when no tracker is defined)",
         "Backbone in CLI-user voice (Install / Invoke / Filter / Aggregate / Pipe out / Share)",
         "Persona = developer/SRE in terminal",
         "Cross-cutting addresses distribution (brew/scoop/apt/cargo)",
@@ -148,7 +148,7 @@
       "prompt": "Consumer mobile app (B2C, freemium). Strength-training app for intermediate-to-advanced lifters who hate the bloat of MyFitnessPal/Strong. Currently sub-1k MAU after 4 months of organic launch. Need to drive engagement (D30 retention is 12%, target 25%) and word-of-mouth (we have no paid acquisition budget). 3 engineers + 1 designer. We use RICE since we have funnel metrics. Concerns specific to consumer mobile: TestFlight cadence vs App Store review windows, Apple's discovery-not-marketing rule on push notifications, ASO. We DO want to consider gamification (streaks, PRs, badges) — it's well-aligned with the lifter persona, not generic mobile bloat. iOS + Android parity (Flutter codebase). Give me the v1 reshape — what's MVP, what's R2 to drive retention, what's R3 to drive growth.",
       "files": [],
       "assertions": [
-        "All six canonical files produced",
+        "All canonical files produced (design.md / storymap.md / storymap.csv always; storymap.mmd / backlog.{md,csv} when no tracker is defined)",
         "Slicing MVP / R2 (retention) / R3 (growth) as user framed",
         "backlog.csv has RICE columns anchored to 12% → 25% D30 retention",
         "Apple guideline 4.5.4 (push) and TestFlight cadence handled as cross-cutting",
@@ -212,7 +212,7 @@
         "design.md surfaces persona conflict matrix or perspective table",
         "handoff.md documents blocking decisions / smallest-next-decision",
         "Conditional commitments tagged with gap-ids",
-        "All six canonical files + slice-1-acceptance-criteria.md produced"
+        "All canonical files (design.md / storymap.md / storymap.csv always; storymap.mmd / backlog.{md,csv} when no tracker) + slice-1-acceptance-criteria.md produced"
       ]
     },
     {
@@ -233,7 +233,7 @@
     {
       "id": 16,
       "name": "snapshot-and-breaks-limits",
-      "category": "Mode D — limit-breach detection",
+      "category": "Iteration — limit-breach detection",
       "prompt": "We finished PI planning 6 weeks ago for our refund-portal product. Current PI 1 is mid-flight (4 engineers, 12-week PI, ~100 SP capacity, ~50 SP remaining). Sales just sold a $400K ARR deal that needs SCIM provisioning before EOQ — they assumed we'd build it in. [15 stories S001-S015 with SP and KR tags, SOC 2 audit window in 5 weeks for KR-1.1, KR-2.1 committed at all-hands, decisions log says no AI auto-approve.] New: F-SCIM ~25 SP, ladders to KR-1.2, introduces new backbone activity 'Provision tenant users'. Give me a snapshot, change-impact analysis, trade-off options. Don't silently say 'yes we'll add it'. Surface what gives.",
       "files": [],
       "assertions": [
@@ -257,7 +257,7 @@
         "Context loop short-circuits (≤5 context-mining tool calls when working dir is empty)",
         "design.md has 'Context loop trace' section showing the loop exited early",
         "Saved budget spent on Step 0.4 persona simulation (ADHD user persona)",
-        "All six canonical files + slice-1-acceptance-criteria.md produced",
+        "All canonical files (design.md / storymap.md / storymap.csv always; storymap.mmd / backlog.{md,csv} when no tracker) + slice-1-acceptance-criteria.md produced",
         "Story count manageable (~15-25) — discovery, not detailed PI planning",
         "Uses Now/Next/Later slicing"
       ]
@@ -266,16 +266,16 @@
       "id": 18,
       "name": "framework-artifacts-and-criteria",
       "category": "Framework artifacts + backbone criteria",
-      "prompt": "I'm starting Mode D against my existing TimeBoard project. There's a .gsd/ directory with my Brief, Roadmap, and 2 Decision records. I want a story map. Two perspectives matter for the backbone: the consultant doing weekly admin AND the client-side view (receiving invoices, paying). I'm not sure which perspective should drive the backbone — both? Just consultant? Please confirm the backbone criteria with me before generating. Use WSJF, M1/M2/M3 slicing per the existing Roadmap.\n\n[Project has .gsd/Brief.md, .gsd/Roadmap.md with M1/M2/M3 milestones, .gsd/Decisions/0001-single-user-only-v1.md, .gsd/Decisions/0002-auto-categorization-threshold.md]",
+      "prompt": "I'm refreshing the storymap for my existing TimeBoard project. There's a .gsd/ directory with my Brief, Roadmap, and 2 Decision records. I want a story map. Two perspectives matter for the backbone: the consultant doing weekly admin AND the client-side view (receiving invoices, paying). I'm not sure which perspective should drive the backbone — both? Just consultant? Please confirm the backbone criteria with me before generating. Use WSJF, M1/M2/M3 slicing per the existing Roadmap.\n\n[Project has .gsd/Brief.md, .gsd/Roadmap.md with M1/M2/M3 milestones, .gsd/Decisions/0001-single-user-only-v1.md, .gsd/Decisions/0002-auto-categorization-threshold.md]",
       "files": [],
       "assertions": [
         "Reads .gsd/ artifacts FIRST, before asking anything",
         "design.md has explicit 'Backbone criteria' table with 6 rows (Frame / Persona / Time horizon / Granularity / Scope / Aggregation)",
         "User's perspective question addressed with explicit default + rationale (consultant-only per Decision 0001)",
-        "Backbone criteria recorded for reproducibility (note in design.md about future Mode D runs)",
+        "Backbone criteria recorded for reproducibility (note in design.md about future iteration runs)",
         "Does NOT re-ask what .gsd/ has (outcome, milestones, decisions all sourced from .gsd/)",
         "Honors both Decisions (single-user constrains backbone; ≥85% threshold appears in ACs)",
-        "handoff.md has Mode D diff (what's NEW vs what was already in .gsd/)"
+        "handoff.md has iteration diff (what's NEW vs what was already in .gsd/)"
       ]
     },
     {
@@ -285,12 +285,12 @@
       "prompt": "I'm starting a fresh side project — a CLI that wraps `git log` into a weekly standup digest. Solo dev, nothing built yet, empty repo (no package.json, no .git history beyond `git init`). I want a story map, plus help getting the work into a tracker so I can actually execute. No `.gsd/` or `.superpowers/` here. Use MoSCoW slicing — this is small enough that prioritized must/should/could is the right shape. I'll pick the tracker; just generate the import script for whichever one fits a solo dev (GitHub Projects is fine if you don't have a strong opinion).",
       "files": [],
       "assertions": [
-        "All six canonical files produced",
+        "All canonical files produced (design.md / storymap.md / storymap.csv always; storymap.mmd / backlog.{md,csv} when no tracker is defined)",
         "storymap.csv has canonical header",
         "Method columns reflect MoSCoW (must/should/could)",
         "Detects from-scratch (empty repo, no tracker mentioned, no framework state) and routes to tracker-seeding branch",
         "Generates a tracker import script or command (gh issue create / az boards / Jira CSV / Linear) — does NOT auto-run it",
-        "Writes or references .user-story-mapping/state.json so a future Mode D run can find the tracker",
+        "Writes or references .user-story-mapping/state.json so a future iteration run can find the tracker",
         "Does NOT also write items into a TODO.md as the primary destination (from-scratch → tracker is system of record)",
         "Handoff line names the tracker destination + the import script path"
       ]
@@ -302,7 +302,7 @@
       "prompt": "We have a mature ML inference service — 2 years old, 800+ commits, ~30 open issues in our populated GitHub backlog (refactor work, perf bugs, two open feature requests). PM just handed me a 1-pager: add a per-tenant rate-limit feature. Help me story-map that feature for the next two-week sprint. WSJF for prioritization. IMPORTANT: do not push anything into our existing GitHub Issues tracker — the backlog is already curated and the team would hate seeing 12 new auto-created issues. Keep the plan in-place. We're not using any sister framework (no `.gsd/`, no `.superpowers/`).",
       "files": [],
       "assertions": [
-        "All six canonical files produced",
+        "All canonical files produced (design.md / storymap.md / storymap.csv always; storymap.mmd / backlog.{md,csv} when no tracker is defined)",
         "storymap.csv has canonical header",
         "Method columns reflect WSJF",
         "Detects existing-project (populated tracker mentioned + 800 commits) and routes to keep-in-place cascade",
@@ -316,7 +316,7 @@
       "id": 21,
       "name": "step-0-5-progress-reconciliation",
       "category": "Step 0.5 — progress reconciliation",
-      "prompt": "Mode D refresh on our refund-portal. Last storymap was generated 8 weeks ago — since then engineering has shipped a bunch and the tracker has shifted. Current state:\n\nPrior storymap had these slice-1 stories (S001-S012):\n- S001 [Sign in]: SSO setup (admin)\n- S002 [Sign in]: SSO sign-in (end-user)\n- S003 [Sign in]: role-claim verification (compliance)\n- S004 [Sign in]: SSO error states (end-user)\n- S005 [Find transaction]: search by ID (CS rep)\n- S006 [Find transaction]: search by customer email (CS rep)\n- S007 [Submit refund]: refund within auto-approve limit (CS rep)\n- S008 [Submit refund]: refund above limit → approval queue (CS rep)\n- S009 [Approver]: approver dashboard list view (approver)\n- S010 [Approver]: approve/deny action (approver)\n- S011 [Audit]: audit log emitted (compliance)\n- S012 [Audit]: audit search by date range (compliance)\n\nTracker state (Jira, project PROJ):\n- PROJ-101 (=S001): Closed 2026-04-18\n- PROJ-102 (=S002): Closed 2026-04-22\n- PROJ-103 (=S003): Closed 2026-05-02\n- PROJ-104 (=S004): Closed 2026-05-10\n- PROJ-105 (=S005): In Progress, branch feat/find-by-id (active commits this week)\n- PROJ-106 (=S006): In Progress, branch feat/find-by-email (active commits this week)\n- PROJ-107 (=S007): To Do\n- PROJ-108 (=S008): To Do\n- PROJ-109 (=S009): To Do, Fix Version pushed to PI-2 (deferred)\n- PROJ-110 (=S010): To Do, Fix Version pushed to PI-2 (deferred)\n- PROJ-111 (=S011): To Do\n- PROJ-112 (=S012): To Do, Fix Version pushed to PI-3 (deferred further)\n- PROJ-113 (NEW, no storymap mapping): 'Add Slack notifications for failed refunds'\n- PROJ-114 (NEW, no storymap mapping): 'Rate-limit refund submission endpoint'\n- PROJ-115 (NEW, no storymap mapping): 'Multi-region failover for audit log writes'\n\nCode state: src/auth/* and src/routes/auth/* exist with tests; src/routes/transactions/find_by_*.ts exist (partial); src/routes/refunds/, src/approver/, src/audit/ do not exist yet.\n\nRefresh the storymap. Reconcile against tracker + code. Surface drift. Tell me what's graduated and what new work fell outside the backbone.",
+      "prompt": "Refresh the storymap for our refund-portal. Last storymap was generated 8 weeks ago — since then engineering has shipped a bunch and the tracker has shifted. Current state:\n\nPrior storymap had these slice-1 stories (S001-S012):\n- S001 [Sign in]: SSO setup (admin)\n- S002 [Sign in]: SSO sign-in (end-user)\n- S003 [Sign in]: role-claim verification (compliance)\n- S004 [Sign in]: SSO error states (end-user)\n- S005 [Find transaction]: search by ID (CS rep)\n- S006 [Find transaction]: search by customer email (CS rep)\n- S007 [Submit refund]: refund within auto-approve limit (CS rep)\n- S008 [Submit refund]: refund above limit → approval queue (CS rep)\n- S009 [Approver]: approver dashboard list view (approver)\n- S010 [Approver]: approve/deny action (approver)\n- S011 [Audit]: audit log emitted (compliance)\n- S012 [Audit]: audit search by date range (compliance)\n\nTracker state (Jira, project PROJ):\n- PROJ-101 (=S001): Closed 2026-04-18\n- PROJ-102 (=S002): Closed 2026-04-22\n- PROJ-103 (=S003): Closed 2026-05-02\n- PROJ-104 (=S004): Closed 2026-05-10\n- PROJ-105 (=S005): In Progress, branch feat/find-by-id (active commits this week)\n- PROJ-106 (=S006): In Progress, branch feat/find-by-email (active commits this week)\n- PROJ-107 (=S007): To Do\n- PROJ-108 (=S008): To Do\n- PROJ-109 (=S009): To Do, Fix Version pushed to PI-2 (deferred)\n- PROJ-110 (=S010): To Do, Fix Version pushed to PI-2 (deferred)\n- PROJ-111 (=S011): To Do\n- PROJ-112 (=S012): To Do, Fix Version pushed to PI-3 (deferred further)\n- PROJ-113 (NEW, no storymap mapping): 'Add Slack notifications for failed refunds'\n- PROJ-114 (NEW, no storymap mapping): 'Rate-limit refund submission endpoint'\n- PROJ-115 (NEW, no storymap mapping): 'Multi-region failover for audit log writes'\n\nCode state: src/auth/* and src/routes/auth/* exist with tests; src/routes/transactions/find_by_*.ts exist (partial); src/routes/refunds/, src/approver/, src/audit/ do not exist yet.\n\nRefresh the storymap. Reconcile against tracker + code. Surface drift. Tell me what's graduated and what new work fell outside the backbone.",
       "files": [],
       "assertions": [
         "Step 0.5 ran (design.md has '## Implementation status' or '## Activity status' section)",
@@ -369,7 +369,7 @@
       "files": [],
       "assertions": [
         "Detects gstack /office-hours as a Plan-stage cue and auto-activates this skill (storymap.md is produced, not just a free-form discussion)",
-        "All six canonical files produced",
+        "All canonical files produced (design.md / storymap.md / storymap.csv always; storymap.mmd / backlog.{md,csv} when no tracker is defined)",
         "Handoff line references gstack /plan-*-review commands explicitly (at minimum /plan-ceo-review on design.md and /plan-eng-review on slice 1)",
         "Method columns reflect WSJF",
         "Backbone in user voice (search, save, get notified, etc.) — not in system voice",
@@ -380,7 +380,7 @@
       "id": 25,
       "name": "tracker-write-back-script-emitted",
       "category": "Tracker write-back",
-      "prompt": "Mode D refresh on our content-management product. Last storymap was 6 weeks ago, here's what's changed and what I want done:\n\nPrior slice-1 had S001-S010. Status as of today (Jira project CMS):\n- S001-S005: shipped, all closed in tracker — fine\n- S006 'inline drag-and-drop reorder' (CMS-106): I want to CUT this. Editors said it's confusing, we'll do a 'move to position N' modal instead in slice-2. Close the ticket as wontfix.\n- S007 'bulk delete with undo' (CMS-107): I want to DEFER to PI-2 — not critical for launch.\n- S008 'version history sidebar' (CMS-108): stays in slice-1, no change.\n- S009, S010: stay in slice-1.\n\nTwo NEW stories I want tracked: 'permission boundary check on publish action' and 'rate-limit on rapid edits API'.\n\nGive me a tracker-update script I can review before running. Don't auto-execute anything.",
+      "prompt": "Refresh the storymap for our content-management product. Last storymap was 6 weeks ago, here's what's changed and what I want done:\n\nPrior slice-1 had S001-S010. Status as of today (Jira project CMS):\n- S001-S005: shipped, all closed in tracker — fine\n- S006 'inline drag-and-drop reorder' (CMS-106): I want to CUT this. Editors said it's confusing, we'll do a 'move to position N' modal instead in slice-2. Close the ticket as wontfix.\n- S007 'bulk delete with undo' (CMS-107): I want to DEFER to PI-2 — not critical for launch.\n- S008 'version history sidebar' (CMS-108): stays in slice-1, no change.\n- S009, S010: stay in slice-1.\n\nTwo NEW stories I want tracked: 'permission boundary check on publish action' and 'rate-limit on rapid edits API'.\n\nGive me a tracker-update script I can review before running. Don't auto-execute anything.",
       "files": [],
       "assertions": [
         "Step 0.5 ran (status reconciliation against prior storymap + tracker)",

@@ -5,15 +5,15 @@
     "url": "https://github.com/MartinForReal"
   },
   "metadata": {
-    "version": "0.0.4",
+    "version": "0.0.5",
     "description": "Self-contained marketplace for storymap-skill — a single Agent Skill for user story mapping (Jeff Patton style)."
   },
   "plugins": [
     {
       "name": "storymap-skill",
       "source": "./",
-      "description": "User story mapping (Jeff Patton style). Lean SKILL.md + on-demand references. Turns a goal, brief, or messy backlog into a sliced, prioritized delivery plan with per-persona stories that act as the blueprint for the team's test playbook. Auto-activates in the Plan stage of Superpowers / gstack / GSD. Generates UX/UI designer + architect role hints and chains to flow-advisor skills when available. Step 0.5 reconciles prior progress against tracker + code state (with opt-in tracker-status-update.sh write-back). Runs as one re-entrant loop that diffs against existing artifacts/tracker/code and updates in place; re-runs detect capacity/dependency/OKR/scope limit breaches. When a tracker is defined it reuses the tracker's existing taxonomy (epics/components/fix-versions/labels/fields) and persists the mapping; the local files (storymap.csv/.mmd, backlog.md/.csv) are generated only when no issue tracker is defined, and when a tracker is the system of record the opt-in write-back sets each item's burn-down fields (story-points/sprint/status) so the tracker's native burn-down works. Before the interview, it simulates each persona to surface cross-persona handoffs, interactions, and conflicts. Mines existing context (README, code, tests, ADRs, Jira/ADO/GitHub/Linear via MCP, .gsd/, prior design.md) before asking the user.",
-      "version": "0.0.4",
+      "description": "User story mapping (Jeff Patton style). Lean SKILL.md + on-demand references. Turns a goal, brief, or messy backlog into a sliced, prioritized delivery plan with per-persona stories that act as the blueprint for the team's test playbook. Auto-activates in the Plan stage of Superpowers / gstack / GSD. Generates UX/UI designer + architect role hints and chains to flow-advisor skills when available. Step 0.5 reconciles prior progress against tracker + code state (with opt-in tracker-status-update.sh write-back). Runs as one re-entrant loop that diffs against existing artifacts/tracker/code and updates in place; re-runs detect capacity/dependency/OKR/scope limit breaches. Always produces design.md + storymap.md + storymap.csv (the flat items+status manifest); generates storymap.mmd + backlog.md + backlog.csv only when no issue tracker is defined. When a tracker is defined it reuses the tracker's existing taxonomy (epics/components/fix-versions/labels/fields), persists the mapping, and the opt-in write-back sets each item's burn-down fields (story-points/sprint/status) so the tracker's native burn-down works. Before the interview, it simulates each persona to surface cross-persona handoffs, interactions, and conflicts. Mines existing context (README, code, tests, ADRs, Jira/ADO/GitHub/Linear via MCP, .gsd/, prior design.md) before asking the user.",
+      "version": "0.0.5",
       "homepage": "https://github.com/MartinForReal/storymap-skill",
       "license": "MIT",
       "keywords": [

@@ -109,20 +109,21 @@ storymap-skill/                                   # repo root = Claude Code plug
 
 | Step | Purpose | Budget |
 |---|---|---|
-| **0** Context loop | Hypothesis-driven mining of cheap-then-conditional sources (works for both from-scratch and existing project) | <15% |
-| **0.4** Fill gaps | List blocking gaps; ask user; if can't ask, spawn persona-sim subagents; gate planning on completeness | 15-20% |
+| **0** Discover | Hypothesis-driven mining of cheap-then-conditional sources; the scan IS the diff-baseline + tracker-defined determination | <15% |
+| **0.3** Simulate | One in-character subagent per persona (full roster); surface cross-persona interactions + conflicts + gaps; conditional (≥2 personas) | 10-15% |
+| **0.4** Interview→approval | Present simulation findings + the diff; classify gaps (blocking/stage-local/deferrable); gate on blocking; loop until approved | 5-10% |
 | **0.5** Reconcile progress | Existing baseline only (a no-op when empty): build status map from tracker + code + prior storymap; detect graduated activities; surface drift | 5-10% |
-| **1** Backbone | Left-to-right user activities; criteria user-confirmed + recorded | 5-10% |
-| **2** Decompose (per-persona) | Tasks under activities; ≥1 slice-1 story per persona; parallel `Agent` subagents when persona count ≥3 | 15-20% |
-| **2.5** Role hints + flow advice | Generate `role-hints.md` for UX/UI + architect; chain to installed flow-advisor skills when available | 10-15% |
-| **3** Slice | Walking-skeleton/PI/Now-Next-Later; first slice covers every backbone activity | 5% |
-| **4** Prioritize | WSJF/RICE/MoSCoW + OKR linkage + dependency feasibility check | 15-20% |
-| **4a** ACs | Given/When/Then for slice-1 stories + INVEST check | 10-15% |
-| **4b** E2E contract | Backbone-as-contract: coverage matrix, E2E-HAPPY happy path, per-activity scenarios | 5-10% |
-| **5** Generate derived | Run bundled scripts for `storymap.csv` (always) + `storymap.mmd` (only when no tracker is defined) | <2% |
-| **6** Hand off | What was produced; what's still uncertain; smallest next decision (+ opt-in `tracker-status-update.<ext>` if Step 0.5 ran) | 5% |
+| **1** Backbone | Left-to-right user activities; six declared criteria; cross-cutting separate | 5-10% |
+| **2** Decompose | Tasks → per-persona stories; mandatory per-persona coverage; parallel `Agent` sweep when ≥3 personas; refines the interaction map | 15-20% |
+| **2.5** Role hints | `role-hints.md` (UX + architect) + flow-advisor skill chaining | 10-15% |
+| **3** Slice | Patton (walking-skeleton/MVP/R2/R3) / SAFe PI / Now-Next-Later; first slice covers every backbone activity | 5% |
+| **4** Prioritize | WSJF / RICE / MoSCoW + OKR linkage + dependency feasibility; reuse existing tracker score fields | 15-20% |
+| **4a** ACs | Given/When/Then for slice-1 + INVEST check | 10-15% |
+| **4b** E2E contract | Coverage matrix + E2E-HAPPY + per-activity scenarios | 5-10% |
+| **5** Derive | `storymap.csv` (always) + `storymap.mmd` (only when no tracker) via the bundled scripts | <2% |
+| **6** Hand off | Answer-first `handoff.md`; route items; persist `state.json`; opt-in tracker-status-update write-back when a tracker is defined | 5% |
 
-Target total token budget: ~200K. Story count cap: ~50 total; slice-1 ≤ 15.
+Target total token budget: ~200K. Story count cap: ~50 total; slice-1 ≤ 15. The authoritative table lives in [`SKILL.md`](skills/user-story-mapping/SKILL.md#the-steps).
 
 ## The user-input-authoritative principle
 
@@ -135,12 +136,12 @@ The `examples/` directory contains sample outputs from three scenarios:
 - `multi-stakeholder-conflict/` — internal developer platform with conflicting stakeholders, user-input-authoritative principle in action
 - `snapshot-and-breaks-limits/` — the loop on a non-empty baseline (iteration): snapshot of a mid-flight PI, new feature requested, 6 limit breaches detected with trade-off options
 
-Each contains the canonical output (design.md, storymap.md, storymap.csv, backlog.md, backlog.csv — plus storymap.mmd when no tracker is defined) plus any optional artifacts the run produced — role-hints.md, slice-1-acceptance-criteria.md, e2e-test-contract.md, tracker-status-update.sh, handoff.md, breach-decisions.md — where applicable.
+Each bundle contains the always-files (`design.md`, `storymap.md`, `storymap.csv`) — and, when no issue tracker is defined, also `storymap.mmd`, `backlog.md`, `backlog.csv`. Optional artifacts `role-hints.md`, `slice-1-acceptance-criteria.md`, `e2e-test-contract.md`, `tracker-status-update.sh`, `handoff.md`, `breach-decisions.md` appear when applicable.
 
 ## Tests
 
 `evals/evals.json` contains 25 consolidated test scenarios spanning:
-- The re-entrant loop across empty and populated data sources (eval labels retain legacy A/B/C/D phrasing on purpose — they test that the loop still handles a user who types the old terms)
+- The re-entrant loop across empty and populated data sources
 - App types: web, mobile (consumer + B2B), desktop, API/SDK, CLI, enterprise multi-tenant
 - Framework integrations: Superpowers, gstack, GSD
 - Capabilities: customer interview synthesis, dependency tracking, OKR alignment, persona simulation + conflict resolution, iteration limit-breach detection, context loop short-circuit, framework-artifact mining + backbone criteria

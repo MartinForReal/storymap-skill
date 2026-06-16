@@ -28,10 +28,12 @@ def get_iteration() -> Path:
 
 ITERATION = get_iteration()
 
-# Only design.md + storymap.md are always produced. storymap.csv / storymap.mmd / backlog.{md,csv} are
-# conditional — emitted only when no issue tracker is defined (when a tracker is the system of record the
-# plan lives there instead). The per-file graders below validate each when present and tolerate its absence.
-REQUIRED_FILES_CANONICAL = ["design.md", "storymap.md"]
+# design.md + storymap.md + storymap.csv are always produced (storymap.csv is the flat items+status
+# manifest — a deterministic projection of storymap.md, useful even when a tracker is the system of
+# record). storymap.mmd / backlog.{md,csv} are conditional — emitted only when no issue tracker is
+# defined (the tracker provides the live visualization + ranked view). The per-file graders below
+# validate each conditional artifact when present and tolerate its absence.
+REQUIRED_FILES_CANONICAL = ["design.md", "storymap.md", "storymap.csv"]
 
 SYSTEM_WORDS = re.compile(r"\b(api|service|module|database|backend|frontend|microservice|endpoint|schema|sdk|orm)\b", re.IGNORECASE)
 USER_VERBS = re.compile(r"\b(find|search|browse|submit|review|approve|sign|book|schedule|view|save|select|enter|see|get|make|create|edit|share|invite|import|connect|install|launch|reject|accept|choose|complete|start|finish|navigate|tap|click|set|configure|send|read|return|arrive|bring|reach|land|onboard|setup|set-up|track|monitor|cancel|delete|update|upload|download|export|publish|deploy|test|verify|confirm|notify|message|chat|comment|like|follow|join|leave|filter|sort|order|pay|buy|purchase|check|sign-in|sign-up|log-in|log-out|discover|evaluate|try|integrate|organize|plan|decide|learn|explore|manage|handle|process|prepare|request|ship|deliver|store|retrieve|generate|draft|invoice|bill|capture|log|recover|reconcile|approve|deny|escalate|assign|tag|mark|hide|show|toggle|measure|mint|provision|grant|revoke|enable|disable|switch|fetch|push|pull|run|build|debug|profile|inspect|sync|reset|rotate)\b", re.IGNORECASE)
@@ -66,7 +68,7 @@ def grade_canonical_files(out_dir: Path) -> dict:
     files = list_files(out_dir)
     missing = [f for f in REQUIRED_FILES_CANONICAL if f.lower() not in files]
     return {
-        "text": "Produces the always-files: design.md + storymap.md (storymap.csv / storymap.mmd / backlog.{md,csv} are no-tracker-only)",
+        "text": "Produces the always-files: design.md + storymap.md + storymap.csv (the flat items+status list); storymap.mmd / backlog.{md,csv} are no-tracker-only",
         "passed": not missing,
         "evidence": f"files present: {sorted(files)[:30]}; missing: {missing}",
     }
@@ -78,8 +80,8 @@ def grade_csv_header(out_dir: Path) -> dict:
     legacy_header = "id,activity,task,story,persona,outcome,slice"
     current_header = "id,activity,task,story,persona,outcome,slice,status,status_evidence"
     if text is None:
-        # Absent storymap.csv is acceptable — conditional (only when no tracker is defined).
-        return {"text": "storymap.csv has the canonical header when present (conditional artifact)", "passed": True, "evidence": "storymap.csv not present — acceptable"}
+        # storymap.csv is now always required (since v0.0.5 — the flat items+status manifest).
+        return {"text": "storymap.csv has canonical header", "passed": False, "evidence": "storymap.csv not found"}
     first = text.splitlines()[0].strip() if text.strip() else ""
     passed = first.lower() in (legacy_header, current_header)
     return {
@@ -206,12 +208,9 @@ def _read_storymap_rows(out_dir: Path) -> tuple[list[str], list[dict]]:
 
 
 def grade_first_slice_coverage(out_dir: Path) -> dict:
-    if read_file(out_dir, "storymap.csv") is None:
-        # Conditional artifact — absent when a tracker is the system of record.
-        return {"text": "First slice covers every backbone activity (checked in storymap.csv when present)", "passed": True, "evidence": "storymap.csv not present — acceptable"}
     header, rows = _read_storymap_rows(out_dir)
     if not rows:
-        return {"text": "First slice includes story from every backbone activity", "passed": False, "evidence": "storymap.csv present but empty"}
+        return {"text": "First slice includes story from every backbone activity", "passed": False, "evidence": "storymap.csv missing or empty"}
     if "slice" not in header or "activity" not in header:
         return {"text": "First slice includes story from every backbone activity", "passed": False, "evidence": f"unexpected header: {header}"}
     slice_first_choices = ["walking-skeleton", "pi-1", "pi1", "now", "mvp", "must"]
@@ -604,7 +603,7 @@ def grade_thin_brief_gap_discovery(out_dir: Path) -> list[dict]:
     files = list_files(out_dir)
     has_all = all(f in files for f in [f.lower() for f in REQUIRED_FILES_CANONICAL]) and ("slice-1-acceptance-criteria.md" in files)
     a6 = {
-        "text": "All six canonical files + slice-1-acceptance-criteria.md produced",
+        "text": "Always-files (design.md / storymap.md / storymap.csv) + slice-1-acceptance-criteria.md produced",
         "passed": has_all,
         "evidence": f"files: {sorted(files)[:20]}",
     }
@@ -767,7 +766,7 @@ def grade_okr_alignment(out_dir: Path) -> list[dict]:
 
 
 def grade_snapshot_breaks_limits(out_dir: Path) -> list[dict]:
-    """Eight assertions for eval-16 (Mode D snapshot + breach detection)."""
+    """Eight assertions for eval-16 (iteration snapshot + breach detection)."""
     text = read_all_text(out_dir)
     text_lower = text.lower()
     handoff = read_file(out_dir, "handoff.md") or ""
@@ -876,7 +875,7 @@ def grade_run(eval_id: int, out_dir: Path) -> list[dict]:
     elif eval_id == 15:
         results.extend(grade_multi_stakeholder_conflict(out_dir))
     elif eval_id == 16:
-        # Mode D eval skips canonical/header checks; only snapshot-specific
+        # Iteration eval skips canonical/header checks; only snapshot-specific
         results = []
         results.extend(grade_snapshot_breaks_limits(out_dir))
     elif eval_id == 6:
@@ -1007,9 +1006,9 @@ def grade_run(eval_id: int, out_dir: Path) -> list[dict]:
             "evidence": "M-slice naming present",
         })
         results.append({
-            "text": "handoff.md has Mode D diff (NEW vs ALREADY-IN-GSD)",
+            "text": "handoff.md has iteration diff (NEW vs ALREADY-IN-GSD)",
             "passed": ("new" in handoff.lower() and ("already" in handoff.lower() or "diff" in handoff.lower() or "from .gsd" in handoff.lower())),
-            "evidence": "Mode D diff format found",
+            "evidence": "Iteration diff format found",
         })
     elif eval_id == 19:
         # Output routing — from-scratch branch
@@ -1035,7 +1034,7 @@ def grade_run(eval_id: int, out_dir: Path) -> list[dict]:
             "evidence": "explicit non-execution signal",
         })
         results.append({
-            "text": "References .user-story-mapping/state.json for Mode-D continuity",
+            "text": "References .user-story-mapping/state.json for iteration continuity",
             "passed": ".user-story-mapping" in text or "state.json" in text,
             "evidence": ".user-story-mapping reference found",
         })
