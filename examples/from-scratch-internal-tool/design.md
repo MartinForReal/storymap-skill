@@ -1,5 +1,9 @@
 # Refund Self-Service Portal — Design Doc
 
+## Bottom line
+
+Give Customer Success a self-service path for routine single-transaction refunds so engineering stops being the bottleneck — without losing the audit trail the current Jira-to-engineering flow provides. Target: CS resolves >90% of refunds in under 5 minutes and engineering refund tickets drop from ~30/week to <3/week. No live user was available, so seven assumptions (A1–A7) gate commitment — confirm them before PI 1 locks.
+
 ## The question this work answers
 
 Can we eliminate engineering as the bottleneck for routine single-transaction

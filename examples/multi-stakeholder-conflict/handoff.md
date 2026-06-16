@@ -1,5 +1,9 @@
 # Handoff — IDP Story Map and Backlog
 
+## Bottom line
+
+The user-input-authoritative principle held: every developer-velocity-vs-governance conflict resolved to the VP-Engineering stance, and the platform team's objections were logged as deferred, evidence-gated PI-2/PI-3 risks rather than silenced. Start with the conflict matrix in `design.md` and the deferred-risks table below to see each contested call and its trigger to revisit.
+
 ## Was the user-input-authoritative principle honored?
 
 **Yes — explicitly and verifiably.**

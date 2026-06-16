@@ -1,6 +1,6 @@
 # Slice-1 Acceptance Criteria — F-SCIM additions
 
-> Only the **new** F-SCIM stories have ACs here. PI 1 stories S001-S015 have ACs in the team's existing PI 1 tracker (carried forward; not re-derived per Mode D protocol).
+> Only the **new** F-SCIM stories have ACs here. PI 1 stories S001-S015 have ACs in the team's existing PI 1 tracker (carried forward; not re-derived per the refinement protocol).
 
 ---
 

@@ -2,7 +2,7 @@
 
 > **Outcome:** Ship the refund portal MVP to cut CS time-per-ticket 22min→5min (KR-2.1), pass SOC 2 Type II (KR-1.1), and now possibly land SCIM provisioning (KR-1.2) for the $400K enterprise deal.
 > **Personas:** CS agent, CS lead (Marcus), Approver, Enterprise IT admin (NEW), SOC 2 auditor (external)
-> **Slicing strategy:** PI (Program Increment) — preserving prior PI 1 commitments; F-SCIM added provisionally per Mode D protocol
+> **Slicing strategy:** PI (Program Increment) — preserving prior PI 1 commitments; F-SCIM added provisionally per the refinement protocol
 
 ## Activity: Sign in
 
@@ -103,7 +103,7 @@
 <!--
 Slice tags:
 - pi-1            = original PI 1 commitment (shipped, in-progress, or not-started)
-- pi-1-scim       = F-SCIM additions, provisionally in PI 1 per Mode D defaults
+- pi-1-scim       = F-SCIM additions, provisionally in PI 1 per the refinement defaults
 - deferred-or-pi-1-scim = F-SCIM-04 — keep in PI 1 only if "before EOQ" means full GA; else defer to PI 2
 
 Status tags ([shipped], [in-progress], [started], [not-started]) are informational

@@ -1,12 +1,13 @@
 # Customer interview synthesis
 
-Take raw customer-interview notes, call transcripts, survey verbatims, or sales-call recordings and extract the inputs a story map needs: personas, user activities, problems, hypotheses, non-goals.
+Raw customer-interview notes, call transcripts, survey verbatims, or sales-call recordings are the richest discovery input you can get — mine them into the five things a story map needs (personas, activities, problems, hypotheses, non-goals) before you derive anything else, because real-user evidence outranks anything you would simulate. This is the companion to [context-collection.md](context-collection.md): that one mines existing **artifacts** (code/tests/docs/tracker); this one mines **unstructured conversation data** from real users.
 
-This is a companion to `context-collection.md` — that one mines existing **artifacts** (code/tests/docs/tracker); this one mines **unstructured conversation data** from real users.
+Verbatim user evidence sits near the top of the source hierarchy and beats simulated personas — see [the source-priority order in SKILL.md](../SKILL.md#rules-that-govern-every-run). So when you have real transcripts, run this synthesis first and let its output be the discovery input to Step 1.
 
 ## When to use this
 
-The user provides one of:
+Reach for this reference whenever the user hands you one of:
+
 - Notes from a customer discovery call ("here's what Aisha at Northwind said about their refund flow")
 - A transcript export from Gong/Fireflies/Otter/Read.ai
 - Survey verbatims (open-text responses from a Typeform/SurveyMonkey)
@@ -14,11 +15,11 @@ The user provides one of:
 - A batch of support tickets categorized by theme
 - User-research debrief notes
 
-If the input is dense (>3 pages or >20 quotes), do this in two passes: first extract atomic statements, then cluster.
+If the input is dense (>3 pages or >20 quotes), work in two passes: first extract atomic statements, then cluster.
 
 ## Extraction taxonomy
 
-Pull these five categories from the raw text:
+Pull these five categories from the raw text.
 
 ### 1. Roles / personas
 Direct evidence: who is the speaker? Their job title, team, day-to-day responsibility, tools they use.
@@ -37,6 +38,8 @@ Direct evidence: explicit user actions. Listen for verbs + objects.
 | "First I open the dashboard, then I find the customer..." | Activity: Find customer |
 | "After I issue the refund, I have to log it in a separate spreadsheet" | Activity: Issue refund, Activity: Log to ledger |
 | "I never use the bulk-action feature because it's confusing" | Activity: (current backbone) Bulk actions — note: low adoption signal |
+
+These activities become candidate backbone columns. The backbone-voice and six-criteria rules for promoting an activity onto the backbone live in [backbone-criteria.md](backbone-criteria.md).
 
 ### 3. Problems (the "what's broken")
 Direct evidence: explicit pain, friction, workarounds, complaints.
@@ -89,7 +92,9 @@ Record cluster strength explicitly:
 
 The vote count IS the strength signal. Don't drop low-vote items — they may be enterprise-only or persona-specific.
 
-## Avoiding common mistakes
+When two personas want opposite things, that's a conflict to surface, not average away — handle it with the conflict matrix in [persona-simulation-and-gap-filling.md](persona-simulation-and-gap-filling.md).
+
+## What NOT to do
 
 - **Don't translate customer language into team jargon.** If they said "refund button" don't write "refund action handler". Keep verbatim phrases in the design doc; translate only when writing acceptance criteria.
 - **Don't promote a feature request straight into a story.** "I'd love a slack integration" is a hypothesis to validate, not a commitment to build. Put it in the Hypotheses table with the customer attribution.

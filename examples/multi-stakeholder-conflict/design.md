@@ -1,5 +1,9 @@
 # Internal Developer Platform (IDP) — Design Doc
 
+## Bottom line
+
+Ship a self-service IDP that restores developer velocity (permit-by-default non-prod environments, no approval queue) while adding *just enough* governance — mandatory tags, a spend dashboard, per-env budget alerts — to prevent another uncontrolled-spend incident. That is the VP-Engineering bet. Every developer-velocity-vs-governance conflict was resolved to the user's stated stance; the platform team's approval-gate objections are logged as deferred PI-2/PI-3 risks, not dropped.
+
 ## The question this work answers
 
 Can we ship a self-service IDP that closes the velocity gap for application developers while introducing *enough* governance to prevent another uncontrolled spend incident — without reintroducing the IT-bottleneck pattern developers are currently escaping into personal AWS accounts? [user-stated]
@@ -58,7 +62,7 @@ See `storymap.md` for tasks and stories under each.
 
 ## Context sources mined
 
-- The user's prompt is the sole source of context for this invocation. No repository / README / commit log was provided; this is a pure Mode A from-scratch scoping. [user-stated context only]
+- The user's prompt is the sole source of context for this invocation. No repository / README / commit log was provided; this is a from-scratch run (the loop against empty data sources — no repo/README/commit log). [user-stated context only]
 - No interview notes, no persistent memory, no MCP integrations applied.
 
 ## Contradictions flagged
@@ -92,6 +96,20 @@ In single-shot mode, I role-played each persona in parallel using the rich conte
 | Q8 | Secrets management | "Admin-mediated for prod secrets; tightly scoped for non-prod." [simulated: platform team] | "Self-service for non-prod, please. Prod via a request flow is fine." [simulated: developer] | NO — both align on the non-prod/prod split | Self-service secrets vault for non-prod; request flow for prod. PI 1 ships the non-prod self-service path; prod request flow lands in PI 2. |
 
 **Arbitration summary:** Of 8 questions, 3 were direct conflicts. In all 3, the user-input-authoritative principle applied: the user's stated preference for developer velocity in PI 1 won. The platform team's objections are not discarded — they are logged in `handoff.md` as PI 2 candidates and risks to monitor.
+
+## Persona interactions
+
+The conflict matrix above captures where the two personas *disagree*; this section captures where they *connect* — the handoffs, dependencies, and shared touchpoints along the backbone where one persona's work feeds another's.
+
+| From → To | At which activity | Interaction | Becomes |
+|---|---|---|---|
+| Application Developer → Platform Team | Spin up an environment | A dev requests a sandbox; the env can only be provisioned because the platform team has stood up the permit-by-default blueprint templates (pre-applied private VPC, encrypted EBS, scoped IAM from Q4). The dev consumes what the platform team built. | A cross-persona `depends_on` (`H:`) edge: the dev's "spin up a sandbox in <5 min" story **hard-depends** on the platform team's blueprint-provisioning story landing first in slice 1. |
+| Platform Team → Application Developer | Spin up an environment | Mandatory-but-pre-filled tagging (Q2): the platform team owns the tag schema and the cost-center/team prefill source; the dev consumes it transparently at creation. Shared touchpoint — neither persona can omit it. | A shared-touchpoint sequencing note: the tag-schema + profile-prefill story is sequenced **before** the dev-facing env-creation form, since the form renders the platform team's pre-filled defaults. |
+| Platform Team → Application Developer | Operate and observe | Cost telemetry (per-env budget alerts + spend dashboard, Q3) is emitted by platform-team-owned instrumentation and consumed by the dev to self-monitor spend. The platform team also reads the same data for the org-wide governance view. | A shared-touchpoint sequencing note: the cost-instrumentation story is a slice-1 precondition for *both* the dev-facing dashboard and the platform team's audit view — one source, two consumers. |
+| Application Developer → Platform Team | Connect services and secrets | Dev self-serves non-prod secrets from the vault (Q8); the platform team owns vault provisioning and the non-prod scoping policy that makes self-service safe. | A handoff annotation: vault-provisioning (platform team) → secrets-self-service (dev). The upstream platform-team story must ship in the same slice as the dev-facing self-service path. |
+| Platform Team → Application Developer | Spin up an environment | The platform team *wants* a hard cost cap / approval guardrail at the provisioning gate, but the VP explicitly deferred it (Q1, Q3). The interaction exists but is intentionally loosened for PI 1. | A **soft / deferred** `depends_on` (`H:`, deferred): the guardrail-enforcement story is annotated as a downstream PI 2 dependency the platform team consumes later — *not* a hard PI-1 blocker on the dev's provisioning path. Consistent with "developer velocity wins, governance deferred." |
+
+A handoff that crosses a slice boundary is a slice-1 feasibility risk: the downstream persona's story cannot ship without the upstream one, so any `H:` edge whose two ends fall in different slices must be re-checked before committing slice 1.
 
 ## Hypotheses
 

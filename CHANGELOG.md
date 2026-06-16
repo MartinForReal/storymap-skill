@@ -2,6 +2,46 @@
 
 All notable changes to **storymap-skill** are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning is [SemVer](https://semver.org/).
 
+## [0.0.4] — 2026-06-15 — one re-entrant loop, tracker-aware (conditional local artifacts + native burn-down), pre-interview persona simulation, answer-first rewrite
+
+Collapses the four invocation modes into a single re-entrant loop, makes the brownfield path genuinely tracker-aware, gates the Mermaid artifact on tracker presence, teaches role simulation to model interactions between personas, and re-authors the whole skill answer-first (Pyramid Principle) with single-ownership de-duplication. No skill capability was removed — the old Mode-D behaviors are now loop defaults.
+
+### Changed — invocation model: four modes → one loop
+
+- **A/B/C/D modes are gone.** `SKILL.md`'s `## Invocation modes` section is replaced by `## The loop`: **discover → diff (vs. existing artifacts/tracker/code) → apply saved preferences → simulate personas → interview until the user approves → backbone → generate/update idempotently → derive + hand off.** The **diff** subsumes the old from-scratch / existing split, and is now defined explicitly: existing = a *reconciled* snapshot (code-vs-tracker conflicts surface as drift, never silently merged), desired = the prior map *amended/overridden* by the user's new input (it can pivot/remove, not just add), and generation **materializes the delta** (∅ diff ⇒ a snapshot, no regeneration).
+- **"From scratch" is not a separate flow** — it's the same loop running when the data sources happen to be empty (the diff is against nothing). Step 0.5 reconciliation is reframed as a **no-op** when there's no prior state, not a "skip branch."
+- **Mode detection is now a data-source check, decided once.** The "detecting from-scratch" rule in [`output-routing.md`](skills/user-story-mapping/references/output-routing.md) becomes the canonical empty-baseline / "tracker defined" test, reused by the loop, Step 5, and routing — no more guessing a mode from the first message.
+
+### Changed — answer-first structural rewrite (Pyramid Principle + single ownership)
+
+- **The whole skill was re-authored from scratch answer-first.** `SKILL.md` is now a pure routing-and-contract spine (~130 lines): the loop is stated as the answer up top, detail lives only in references. Every reference opens with its conclusion before any procedure.
+- **Single-ownership de-duplication.** Each shared rule now lives in exactly one owner and is cross-linked elsewhere (the repo's recurring SKILL.md↔reference drift): the user-input-authoritative priority order + source-tag vocabulary (SKILL.md Rule 1), the "tracker defined" operational test (`output-routing.md`), the cross-cutting/non-backbone rule (`backbone-criteria.md`), the slice-1 mechanics (`slicing-strategies.md`), the decisions-log append-only rule + `state.json` schema (`persistent-knowledge.md`), the persona-interaction protocol (`persona-simulation-and-gap-filling.md`), the tracker-taxonomy reuse (`work-item-tracking.md`), and the auto-trigger cues (`framework-integration.md`).
+- All 18 prior references re-authored off `Mode A/B/C/D` terminology; `iterative-refinement-and-snapshots.md` reframed as "the loop on a non-empty baseline."
+
+### Added — tracker-aware brownfield + cross-persona interactions
+
+- **Tracker-taxonomy reuse.** When a tracker is defined, Step 0 pulls its existing taxonomy (epics, components, fix-versions/iterations/cycles, labels, custom fields) and Steps 2–4 reuse it instead of inventing categories; missing categories are *proposed, never auto-created*. New section in [`work-item-tracking.md`](skills/user-story-mapping/references/work-item-tracking.md) ("Align to the existing tracker taxonomy"); the pull is wired into `context-collection.md` §6.
+- **Persisted tracker config.** A `tracker` block (type, project key, field `mapping`, taxonomy snapshot) is saved to `.user-story-mapping/state.json` by default and reloaded next run for consistency. New schema in [`persistent-knowledge.md`](skills/user-story-mapping/references/persistent-knowledge.md) §A.
+- **Pre-interview persona simulation (cross-persona interactions first).** The loop now runs an explicit **SIMULATE stage (Step 0.3) before the interview** — one in-character subagent per persona surfaces cross-persona handoffs / dependencies / conflicts first, so the interview resolves what surfaced instead of interrogating. Subagents receive the **full persona roster**; aggregation produces a `## Persona interactions` map (in `design-doc-template.md`) that seeds cross-persona `H:` `depends_on` edges and slice-1 feasibility risks. Owned by `persona-simulation-and-gap-filling.md`; the map is refined against the real backbone at Step 2 (`decomposition-and-stories.md`) and lands as edges in `dependency-tracking.md`.
+- **Two new references.** [`answer-first-writing.md`](skills/user-story-mapping/references/answer-first-writing.md) (Pyramid Principle for `design.md`/`backlog.md`/`handoff.md` — the `## Bottom line` opener) and [`decomposition-and-stories.md`](skills/user-story-mapping/references/decomposition-and-stories.md) (Step 2 — tasks → per-persona stories, parallel `Agent` sweep, interaction map). Reference count: **20**.
+- **Answer-first artifacts.** `design.md`, `backlog.md`, and `handoff.md` now open with a `## Bottom line`; templates in `assets/` carry the opener (plus the `## Persona interactions` table in `design-doc-template.md`).
+- **Agent instruction file** for repo contributors: `AGENTS.md` (the canonical guide for all coding agents — Claude Code, Codex, Gemini CLI, Copilot — per the AGENTS.md convention).
+
+### Behavior changes
+
+- **The local data artifacts are now tracker-conditional.** Only `design.md` + `storymap.md` are always produced; `storymap.csv`, `storymap.mmd`, `backlog.md`, and `backlog.csv` are generated **only when no issue tracker is defined**. When an issue tracker is the system of record, the opt-in write-back instead sets each item's native **burn-down fields** — story-points/estimate + sprint/iteration + status — so the tracker's own burn-down chart renders, and the ranked summary moves into `handoff.md`. Rationale: duplicating the plan locally goes stale when the team works in the tracker, and the burn-down belongs where the work is tracked. Owner: `work-item-tracking.md` § Enable the tracker burn-down.
+- **Persistence of the tracker config is on by default** (it's project config/pointer, low-risk); Memory MCP write-back remains opt-in.
+
+### Test infrastructure
+
+- `tests/grade_runs.py`: `REQUIRED_FILES_CANONICAL` is now just `design.md` + `storymap.md`; the conditional-artifact graders (`grade_csv_header`, `grade_mermaid`, `grade_method_columns`, `grade_first_slice_coverage`) **pass when their file is absent** (acceptable when an issue tracker is the system of record) and validate when present. Most evals are no-tracker, so the files are present and still validated; coverage is unchanged.
+
+### Migration notes
+
+- **Consumers of the local files:** treat `storymap.csv`, `storymap.mmd`, `backlog.md`, `backlog.csv` as optional — all four are absent whenever an issue tracker is defined (the plan + burn-down live in the tracker). When present, `storymap.csv` is unchanged (still 9 columns since 0.0.3). `design.md` + `storymap.md` are always present.
+- **Eval prompts/categories keep `Mode A/B/C/D` phrasing on purpose** — they now test that the loop still handles a user who types the old terms. Only `evals.json`'s top-level `description` was reworded.
+- **`examples/*`** were aligned to the loop terminology and the answer-first openers; the tracker-defined snapshot example drops its local data files (`storymap.csv`, `storymap.mmd`, `backlog.md`, `backlog.csv`) and shows the burn-down write-back instead (a tracker is the system of record there).
+
 ## [0.0.3] — 2026-06-10 — plan-stage auto-trigger, per-persona stories, role hints, progress reconciliation, lean SKILL.md
 
 A combined release covering four bodies of work that landed together: (1) **new workflow capabilities** — Step 0.5 progress reconciliation, Step 2.5 role hints, per-persona slice-1 enforcement, plan-stage auto-trigger, tracker write-back; (2) **structural refactor** — SKILL.md trimmed 655 → ~440 lines (-33%) with all duplicated content moved to references; (3) **5 new eval scenarios** covering the above behaviors (now 25 total); (4) **benchmark validation** at 99.6% with-skill pass rate on iteration-12 (255/256 assertions across 25 evals).

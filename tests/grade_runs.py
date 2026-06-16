@@ -28,7 +28,10 @@ def get_iteration() -> Path:
 
 ITERATION = get_iteration()
 
-REQUIRED_FILES_CANONICAL = ["design.md", "storymap.md", "storymap.csv", "storymap.mmd", "backlog.md", "backlog.csv"]
+# Only design.md + storymap.md are always produced. storymap.csv / storymap.mmd / backlog.{md,csv} are
+# conditional — emitted only when no issue tracker is defined (when a tracker is the system of record the
+# plan lives there instead). The per-file graders below validate each when present and tolerate its absence.
+REQUIRED_FILES_CANONICAL = ["design.md", "storymap.md"]
 
 SYSTEM_WORDS = re.compile(r"\b(api|service|module|database|backend|frontend|microservice|endpoint|schema|sdk|orm)\b", re.IGNORECASE)
 USER_VERBS = re.compile(r"\b(find|search|browse|submit|review|approve|sign|book|schedule|view|save|select|enter|see|get|make|create|edit|share|invite|import|connect|install|launch|reject|accept|choose|complete|start|finish|navigate|tap|click|set|configure|send|read|return|arrive|bring|reach|land|onboard|setup|set-up|track|monitor|cancel|delete|update|upload|download|export|publish|deploy|test|verify|confirm|notify|message|chat|comment|like|follow|join|leave|filter|sort|order|pay|buy|purchase|check|sign-in|sign-up|log-in|log-out|discover|evaluate|try|integrate|organize|plan|decide|learn|explore|manage|handle|process|prepare|request|ship|deliver|store|retrieve|generate|draft|invoice|bill|capture|log|recover|reconcile|approve|deny|escalate|assign|tag|mark|hide|show|toggle|measure|mint|provision|grant|revoke|enable|disable|switch|fetch|push|pull|run|build|debug|profile|inspect|sync|reset|rotate)\b", re.IGNORECASE)
@@ -63,7 +66,7 @@ def grade_canonical_files(out_dir: Path) -> dict:
     files = list_files(out_dir)
     missing = [f for f in REQUIRED_FILES_CANONICAL if f.lower() not in files]
     return {
-        "text": "Produces all six canonical files: design.md, storymap.md, storymap.csv, storymap.mmd, backlog.md, backlog.csv",
+        "text": "Produces the always-files: design.md + storymap.md (storymap.csv / storymap.mmd / backlog.{md,csv} are no-tracker-only)",
         "passed": not missing,
         "evidence": f"files present: {sorted(files)[:30]}; missing: {missing}",
     }
@@ -75,7 +78,8 @@ def grade_csv_header(out_dir: Path) -> dict:
     legacy_header = "id,activity,task,story,persona,outcome,slice"
     current_header = "id,activity,task,story,persona,outcome,slice,status,status_evidence"
     if text is None:
-        return {"text": "storymap.csv has canonical header", "passed": False, "evidence": "storymap.csv not found"}
+        # Absent storymap.csv is acceptable — conditional (only when no tracker is defined).
+        return {"text": "storymap.csv has the canonical header when present (conditional artifact)", "passed": True, "evidence": "storymap.csv not present — acceptable"}
     first = text.splitlines()[0].strip() if text.strip() else ""
     passed = first.lower() in (legacy_header, current_header)
     return {
@@ -88,7 +92,12 @@ def grade_csv_header(out_dir: Path) -> dict:
 def grade_mermaid(out_dir: Path) -> dict:
     text = read_file(out_dir, "storymap.mmd")
     if text is None:
-        return {"text": "storymap.mmd valid Mermaid", "passed": False, "evidence": "storymap.mmd not found"}
+        # Absent .mmd is acceptable — it's conditional (only emitted when no tracker is defined).
+        return {
+            "text": "storymap.mmd is valid Mermaid when present (conditional artifact)",
+            "passed": True,
+            "evidence": "storymap.mmd not present — acceptable",
+        }
     first = text.strip().splitlines()[0] if text.strip() else ""
     return {
         "text": "storymap.mmd starts with 'graph TD' (valid Mermaid)",
@@ -197,9 +206,12 @@ def _read_storymap_rows(out_dir: Path) -> tuple[list[str], list[dict]]:
 
 
 def grade_first_slice_coverage(out_dir: Path) -> dict:
+    if read_file(out_dir, "storymap.csv") is None:
+        # Conditional artifact — absent when a tracker is the system of record.
+        return {"text": "First slice covers every backbone activity (checked in storymap.csv when present)", "passed": True, "evidence": "storymap.csv not present — acceptable"}
     header, rows = _read_storymap_rows(out_dir)
     if not rows:
-        return {"text": "First slice includes story from every backbone activity", "passed": False, "evidence": "storymap.csv missing or empty"}
+        return {"text": "First slice includes story from every backbone activity", "passed": False, "evidence": "storymap.csv present but empty"}
     if "slice" not in header or "activity" not in header:
         return {"text": "First slice includes story from every backbone activity", "passed": False, "evidence": f"unexpected header: {header}"}
     slice_first_choices = ["walking-skeleton", "pi-1", "pi1", "now", "mvp", "must"]
@@ -235,7 +247,11 @@ def grade_method_columns(out_dir: Path, method: str) -> dict:
     column names that the skill's prioritization-frameworks.md teaches. The agent
     will produce one or the other; both are valid.
     """
-    text = read_file(out_dir, "backlog.csv") or ""
+    raw = read_file(out_dir, "backlog.csv")
+    if raw is None:
+        # Conditional artifact — absent when a tracker is the system of record (scores go to tracker fields).
+        return {"text": f"backlog.csv has {method.upper()} columns when present (conditional artifact)", "passed": True, "evidence": "backlog.csv not present — acceptable"}
+    text = raw or ""
     # For each method, list ONE acceptable column-set; if the prefixed form isn't
     # found, fall back to the canonical form. Pass if either is fully present.
     columns_map = {
@@ -253,7 +269,7 @@ def grade_method_columns(out_dir: Path, method: str) -> dict:
     }
     prefixed, canonical = columns_map[method]
     if not text.strip():
-        return {"text": f"backlog.csv has {method.upper()} columns", "passed": False, "evidence": "backlog.csv missing or empty"}
+        return {"text": f"backlog.csv has {method.upper()} columns", "passed": False, "evidence": "backlog.csv present but empty"}
     header = text.splitlines()[0].lower()
     prefixed_missing = [c for c in prefixed if c not in header]
     if method == "wsjf":

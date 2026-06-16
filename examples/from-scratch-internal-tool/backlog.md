@@ -3,6 +3,10 @@
 > **Method:** WSJF (Cost of Delay / Job Size; modified Fibonacci 1, 2, 3, 5, 8, 13, 20)
 > **Slicing:** SAFe PI — pi-1 (32 stories) / pi-2 (17 stories) / pi-3 (3 stories)
 
+## Bottom line
+
+**Start here:** the load-bearing PI-1 trio is S021 (single-click refund) + S008 (lookup) + S036 (audit logging) — they define whether PI 1 ships a usable product. WSJF also floats two tiny enablement items (S049 runbook, S050 training) to the very top; ship them, they lift adoption for near-zero cost.
+
 See `backlog.csv` for the full table with `wsjf_value`, `wsjf_time`, `wsjf_risk`, `wsjf_size` columns and the per-row reasoning. The score column = `(value + time_criticality + risk_reduction) / job_size`. Scores are relative within this backlog only.
 
 ## Reading the rankings

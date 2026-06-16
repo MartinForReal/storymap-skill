@@ -1,6 +1,19 @@
 # Prioritization frameworks
 
-Three methods supported. Pick one per invocation and stick to it for the whole backlog — mixing methods within one ranking is meaningless.
+Pick exactly one method and use it for the whole backlog: **WSJF** when the org runs SAFe / multi-team PI planning, **RICE** when you have reach-and-impact metrics, **MoSCoW** when data is thin and you need to triage fast. Mixing methods within one ranking is meaningless — the numbers stop being comparable. Whatever you choose, the `reasoning` column matters more than the score.
+
+## When to use
+
+Reach for this reference at Step 4 (slice + prioritize), once the backbone and per-persona stories exist and you need to order them. The default picker:
+
+- **SAFe / multi-team / PI-driven** → WSJF
+- **Product team with a metrics dashboard** → RICE
+- **Discovery / new product / no data** → MoSCoW
+- **Mixed signals** → MoSCoW first (cheap), then upgrade to WSJF or RICE next iteration once data exists
+
+Ask the user which method they want; fall back to the rules above only if they have no preference. Two related concerns live in their own files: when an item's rank is constrained by what must ship before it, see [dependency-tracking.md](dependency-tracking.md) for feasibility ordering; when you want the score to reflect strategic alignment rather than raw effort math, link the item to an objective via [okr-alignment.md](okr-alignment.md).
+
+**Where the scores land:** with no issue tracker, the method's columns go in `backlog.csv`; when an issue tracker is the system of record the **sizing** feeds the tracker's story-points/estimate field (the burn-down's work axis) instead of `backlog.csv` — see [work-item-tracking.md § Enable the tracker burn-down](work-item-tracking.md#enable-the-tracker-burn-down).
 
 ## WSJF — Weighted Shortest Job First
 
@@ -83,15 +96,6 @@ The "Won't" column is the one teams skip and shouldn't. Recording what's *out* p
 | AI-suggested similar listings | Won't (Slice 1) | Validate basic flow first |
 | Crypto payment | Won't (ever, probably) | Out of scope until evidence demands it |
 
-## Choosing between them
-
-Ask the user. If they don't know, default rules:
-
-- **SAFe / multi-team / PI-driven** → WSJF
-- **Product team with metrics dashboard** → RICE
-- **Discovery / new product / no data** → MoSCoW
-- **Mixed signals** → MoSCoW first (cheap), upgrade to WSJF or RICE next iteration once data exists
-
 ## What to record in `backlog.csv`
 
 For all methods, include columns:
@@ -103,3 +107,11 @@ Method-specific columns:
 - MoSCoW: `moscow` (one of: must, should, could, wont)
 
 The `reasoning` column is the most important. A score with no reasoning is unauditable in 3 months. Force one sentence per row even if it's "comparable to similar [other-story]".
+
+## Anti-patterns
+
+- **Mixing methods in one ranking.** A WSJF of 3.25 and a RICE of 3200 are not comparable. Pick one per invocation and stick to it for the whole backlog.
+- **Scoring on an absolute scale.** WSJF and RICE only mean anything relative to the rest of *this* backlog. Re-anchor when items are added.
+- **Confidence inflation.** A backlog where every RICE item is 100% confident is self-deception; 80% is the honest default.
+- **Skipping the "Won't" column.** Recording what's explicitly out of scope is the cheapest way to stop re-litigating it later.
+- **A score with no reasoning.** Unauditable in three months. Every row gets one sentence, even if it's just "comparable to [other-story]".

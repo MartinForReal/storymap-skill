@@ -1,6 +1,6 @@
 # Breach Decisions — F-SCIM proposal vs PI 1 mid-flight state
 
-> **Mode D Step D.3 + D.4 output.** Every breach below is a decision the user must make.
+> **Step D.3 + D.4 output (the refinement's breach analysis).** Every breach below is a decision the user must make.
 > Single-shot defaults are recommended **but conditional** — every commitment depends on the user accepting (or overriding) the default.
 
 ---
@@ -42,7 +42,7 @@ Cuts the lowest-WSJF items (S015), the audit-gate-non-blocker (S012), and the mo
 
 ## BREACH 2 — New backbone activity ("Provision tenant users") with conditional slice-1 coverage
 
-**The breach:** F-SCIM introduces a 9th backbone activity that did not exist in the prior PI plan. Mode D rule: any new backbone activity needs slice-1 coverage that demos end-to-end.
+**The breach:** F-SCIM introduces a 9th backbone activity that did not exist in the prior PI plan. The refinement rule: any new backbone activity needs slice-1 coverage that demos end-to-end.
 
 **Coverage check:**
 - F-SCIM-01 (endpoint scaffold) + F-SCIM-02 (create/update users) together give **end-to-end "IT admin creates a user via SCIM"** — that satisfies the rule.

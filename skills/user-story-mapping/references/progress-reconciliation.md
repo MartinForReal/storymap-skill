@@ -1,20 +1,22 @@
-# Progress reconciliation — bidirectional sync between storymap, tracker, and code
+# Progress reconciliation (Step 0.5)
 
-This reference covers Step 0.5 — the step that runs whenever the project isn't truly from-scratch and one or more of {prior storymap, tracker with issues, shipped code surfaces} disagree about what's done, in-progress, or in scope.
+When the loop runs on a non-empty baseline, reconcile the three things that disagree about what's done — the prior storymap, the tracker, and the shipped code — into one status view that slicing and prioritization can trust. **Tracker is authority for status; storymap is authority for intent; code is evidence.** Drift is surfaced to the user in `handoff.md`, never silently absorbed. This reference owns Step 0.5: the status taxonomy, the drift detectors, activity graduation, and the opt-in tracker write-back scripts.
 
-The skill already mines all three sources in Step 0. Step 0.5 is what *reconciles* them into a single status view that downstream stages (Step 3 slicing, Step 4 prioritization) can trust.
+Reconciliation is always part of the loop. It simply has nothing to do when the data sources hold no prior state — the loop running on empty data sources skips it entirely.
 
-## When to run Step 0.5
+## When Step 0.5 has work to do
 
-**Run** when ≥1 is true:
-- A prior `storymap.md` / `backlog.csv` exists in this working tree (Mode D)
+**Has work** when ≥1 is true:
+- A prior `storymap.md` / `backlog.csv` exists in this working tree (a non-empty baseline)
 - Step 0 mined an active tracker (Jira / ADO / GitHub / Linear) with issues plausibly tied to the backbone
 - The codebase has shipped surfaces (deployed routes, merged feature PRs, named integration tests) that map to plausible backbone activities
 
-**Skip** when:
-- True from-scratch — empty/near-empty repo, no tracker, no prior storymap (the user-input-authoritative principle covers all the state you have)
+**No-op (nothing to reconcile)** when:
+- Data sources are truly empty — empty/near-empty repo, no tracker, no prior storymap (whatever state you do have is governed by the source hierarchy in [../SKILL.md#rules-that-govern-every-run](../SKILL.md#rules-that-govern-every-run))
 - The user has explicitly said "ignore the tracker, treat this as fresh" — honor it; tag every status as `[user-stated]` or `[inferred]`
-- Solo founder mid-build, no tracker, prior storymap is from yesterday — diff is trivially empty; skip
+- Solo founder mid-build, no tracker, prior storymap is from yesterday — the diff is trivially empty; skip
+
+For the operational "tracker defined" test that decides whether a tracker even counts as a source, see [output-routing.md § Detecting the empty baseline (no tracker defined)](output-routing.md#detecting-the-empty-baseline-no-tracker-defined).
 
 ## The three inputs
 
@@ -28,7 +30,7 @@ The reconciliation algorithm uses all three, weighted by these authority columns
 
 ## Status taxonomy
 
-Every story (current and prior) gets exactly one status:
+Every story (current and prior) gets exactly one of six statuses:
 
 | Status | Definition | Detection signals (need ≥1 strong + tracker confirmation for `done`) |
 |---|---|---|
@@ -39,7 +41,7 @@ Every story (current and prior) gets exactly one status:
 | `cut` | No longer in scope at all | Tracker closed-as-wontfix OR explicit user statement |
 | `unchanged` | None of the above — story is in the storymap, not actively being worked, no shipped evidence | Default for stories that have neither moved in tracker nor have matching code surfaces |
 
-Annotation format in `storymap.md`:
+Annotation format in `storymap.md` — the `[status:<state> | <evidence>]` tag rides alongside `[slice:…]` and `[persona:…]`:
 
 ```markdown
 - [slice:1] [persona:CSRep] [status: done | 2026-05-12 | tracker: PROJ-142]
@@ -73,7 +75,7 @@ for each story in (prior_storymap ∪ tracker_state ∪ inferred-from-code):
   3. Record evidence sources for the status (date, tracker id, file path, commit sha)
 ```
 
-Then run three drift detectors:
+Then run three drift detectors.
 
 ### Drift detector 1 — Orphan tracker issues
 
@@ -94,7 +96,7 @@ Stories in the prior storymap with no matching tracker issue.
 Action: list under `## Detected drift — untracked storymap items`. For each:
 - "Was this never tracked because it was deferred / cut?" → propose `deferred` or `cut` status
 - "Does this still belong to slice 1?" → if yes, queue for tracker write-back at Step 6
-- "Is this still relevant?" → may need re-confirmation under the user-input-authoritative principle
+- "Is this still relevant?" → may need re-confirmation against the user-stated source of truth ([../SKILL.md#rules-that-govern-every-run](../SKILL.md#rules-that-govern-every-run))
 
 ### Drift detector 3 — Backbone activity graduation
 
@@ -102,8 +104,8 @@ For each backbone activity, count `done` vs total. If 100% done:
 
 - Move the activity to a new `## Shipped foundation` section in `storymap.md` (heading after the active backbone, before the cross-cutting section)
 - Note in `design.md` under `## Activity status`: `<Activity name>` graduated on `<date>`; total `<N>` stories shipped; current backbone now has `<M>` active activities
-- The slice-1 coverage rule (every backbone activity gets ≥1 slice-1 story) applies only to **active** backbone activities. Graduated ones don't need re-coverage.
-- If a graduated activity later acquires new stories (Mode D extension), it returns to active status — graduation is reversible.
+- Graduated activities drop out of slice-1 coverage. The slice-1 rule applies only to **active** backbone activities; see [slicing-strategies.md § The slice-1 rule](slicing-strategies.md#the-slice-1-rule--mechanics-why-and-violations) for the coverage mechanics.
+- If a graduated activity later acquires new stories on a later loop pass, it returns to active status — graduation is reversible.
 
 Symmetrically: if status reconciliation reveals an activity has 0 done stories despite being targeted in slice 1 from a prior run, that's a *stale* slice — flag in `handoff.md` under `## Slice realism check`.
 
@@ -114,6 +116,7 @@ When the three sources disagree on a single story:
 | Storymap says | Tracker says | Code says | Resolution |
 |---|---|---|---|
 | slice-1 (planned) | closed/done | matching surface exists | `done` — already shipped; remove from slice-1, add to graduated set if activity now 100% done |
+| slice-1 (planned) | closed/done | **no** surface, **no** commit ref | **claimed-but-unverified** — the tracker asserts done but nothing backs it; surface for confirmation, do **not** auto-mark `done` (mirror of "don't infer `done` from code alone") |
 | slice-1 (planned) | open/in-progress | partial surface | `in-progress` — keep in slice-1, flag for completion |
 | slice-1 (planned) | open | no matching surface | `unchanged` — proceed as planned |
 | slice-1 (planned) | not in tracker | no surface | `unchanged` — but flag as untracked under "orphan storymap items" |
@@ -122,7 +125,7 @@ When the three sources disagree on a single story:
 | done (in prior storymap) | re-opened in tracker | new commits | `in-progress` (work resumed) — flag as a regression candidate; ask if AC has changed |
 | cut (user stated previously) | open in tracker | no surface | **stale tracker** — propose closing the tracker issue; queue for write-back |
 
-Whenever a conflict involves a user-stated preference (Person A said "we don't need RBAC in slice 1"), the user wins. Tag the resolution `[user-stated]` and update both storymap intent and the proposed tracker write-back.
+Whenever a conflict involves a user-stated preference (Person A said "we don't need RBAC in slice 1"), the user wins — per the source hierarchy in [../SKILL.md#rules-that-govern-every-run](../SKILL.md#rules-that-govern-every-run). Tag the resolution `[user-stated]` and update both storymap intent and the proposed tracker write-back.
 
 ## Outputs of Step 0.5
 
@@ -158,7 +161,7 @@ Step 0.5 doesn't produce a new top-level file — it appends to existing artifac
 
 ## Write-back to the tracker
 
-Reconciliation produces two kinds of status changes:
+Reconciliation produces two kinds of status changes. The `status` it resolves is also one of the three native **burn-down fields** the tracker write-back sets (alongside story-points and sprint/iteration) when a tracker is the system of record — that field-mapping is owned by [work-item-tracking.md § Enable the tracker burn-down](work-item-tracking.md#enable-the-tracker-burn-down).
 
 ### Pull-only (tracker → storymap)
 
@@ -168,7 +171,7 @@ Tracker says PROJ-142 is closed; storymap pulls in `status: done`. **No write-ba
 
 User confirms a story is `cut`; tracker still has it open as a pending issue. **Write-back required** — generate an update script.
 
-Same opt-in protocol as `output-routing.md`: don't auto-execute. Generate `tracker-status-update.<ext>` and tell the user what running it would do.
+Same opt-in protocol as [output-routing.md](output-routing.md): don't auto-execute. Generate `tracker-status-update.<ext>` and tell the user what running it would do.
 
 #### Per-tracker script templates
 
@@ -209,7 +212,7 @@ For each script, include a header comment summarizing what it would do:
 2. **One direction at a time.** Don't try to push storymap → tracker AND pull tracker → storymap in a single script. Pull is automatic; push is opt-in.
 3. **No silent state changes.** Every write-back action is logged in `handoff.md` under `## Tracker write-back actions`. Includes ticket id, before-state, after-state, reason.
 4. **Reversibility note.** End the script with a comment saying how to undo each kind of action in the target tracker (e.g., "To revert a Jira transition, use `jira issue transition <ID> <prior-state>` or the tracker's audit-log restore").
-5. **Tracker is one of many destinations.** If the user is using a sister-framework state directory (`.gsd/`, prior `TODO.md`) instead of a populated tracker, write-back targets *that* destination per `output-routing.md`'s persistence cascade — not the tracker. Don't push to a populated tracker without explicit user opt-in.
+5. **Tracker is one of many destinations.** If the user is using a sister-framework state directory (`.gsd/`, prior `TODO.md`) instead of a populated tracker, write-back targets *that* destination per [output-routing.md](output-routing.md)'s persistence cascade — not the tracker. Don't push to a populated tracker without explicit user opt-in.
 
 ## Anti-patterns
 
@@ -217,7 +220,7 @@ For each script, include a header comment summarizing what it would do:
 - **Don't silently absorb orphan tracker issues.** If the tracker has 12 issues you can't map to backbone activities, that's a 12-line section in `handoff.md`, not a 12-issue invisible append to slice 1.
 - **Don't push status to the tracker without opt-in.** Even when the user said "yes, sync the tracker" once, every write-back batch needs review — same governance as outbound slice-1 routing.
 - **Don't graduate a backbone activity from `done` count alone.** Confirm with the user that the activity is genuinely retired (e.g., "Sign in is shipped and stable, no further work expected for ≥1 PI"). Activities that are 100% done but actively being maintained (auth tweaks, security patches) should *stay* active with a note.
-- **Don't re-litigate prior status decisions.** If `backlog.csv` had `status: cut` for S027 and tracker confirms closed, don't re-derive whether to cut. Use the existing decision; only re-evaluate if user re-opens it.
+- **Don't re-litigate prior status decisions.** If `backlog.csv` had `status: cut` for S027 and tracker confirms closed, don't re-derive whether to cut. Use the existing decision (recorded in the append-only decisions log — see [persistent-knowledge.md](persistent-knowledge.md)); only re-evaluate if the user re-opens it.
 - **Don't conflate intent and status.** A re-sliced story (intent: now slice-2) is different from a deferred story (status: deferred). Intent is storymap authority; status is tracker authority. Annotate both, don't merge.
 
 ## Cost ceiling
@@ -228,9 +231,9 @@ If 0.5 exceeds 15%, you're either re-mining sources (don't — use what Step 0 a
 
 For trackers with >500 issues, pre-filter to the project's active labels / area paths / repos before reconciling — full sweeps are too slow and rarely reveal new drift past the first 100.
 
-## Mode D and reconciliation
+## Reconciliation across loop passes
 
-Mode D (extension of an existing storymap) **always runs Step 0.5**. The Mode D protocol is:
+A loop pass over a non-empty baseline (iteration / refinement — extending an existing storymap) **always runs Step 0.5**. The pass is:
 
 ```
 Step 0   — context loop, including prior storymap as input
@@ -241,7 +244,7 @@ Step 2   — decompose new stories (Step 2 per-persona sweep applies)
 ... etc.
 ```
 
-The Mode D diff in `handoff.md` (per `iterative-refinement-and-snapshots.md`) now includes a `## Status changes since prior run` section sourced from Step 0.5 reconciliation:
+The iteration diff in `handoff.md` (per [iterative-refinement-and-snapshots.md](iterative-refinement-and-snapshots.md)) now includes a `## Status changes since prior run` section sourced from Step 0.5 reconciliation:
 
 ```markdown
 ## Status changes since prior run (2026-04-15 → 2026-06-10)
@@ -266,7 +269,9 @@ WRITE-BACK QUEUED:
 
 ## Where this fits with sister frameworks
 
-- **GSD** — `.gsd/task-summaries/` is essentially a status log; reconciliation reads it as authoritative for tasks already executed via `/gsd execute-task`. When GSD is the active framework, write-back targets `.gsd/` (per `output-routing.md`'s persistence cascade), not a populated tracker.
+Reconciliation reads sister-framework state directories as status sources, and write-back targets whichever destination the framework owns. The per-framework state conventions and the GSD slice/Milestone terminology collision are governed in [framework-integration.md](framework-integration.md).
+
+- **GSD** — `.gsd/task-summaries/` is essentially a status log; reconciliation reads it as authoritative for tasks already executed via `/gsd execute-task`. When GSD is the active framework, write-back targets `.gsd/` (per [output-routing.md](output-routing.md)'s persistence cascade), not a populated tracker.
 - **Superpowers** — `plans/` directory has step status; reconciliation reads completed plan steps as `done` evidence. Don't push to a Superpowers-managed tracker; let `writing-plans` handle re-decomposition for the next slice.
 - **gstack** — gstack's `/retro` reads the storymap's Hypotheses table; reconciliation's `## Implementation status` table is also useful input. After Step 0.5, mention "the status table is ready for `/retro` if you want to evaluate which hypotheses played out".
 
@@ -277,4 +282,4 @@ WRITE-BACK QUEUED:
 - Drift gets surfaced to the user in `handoff.md`, not silently absorbed.
 - Activities with all stories `done` graduate out of active slicing but stay visible.
 - Write-back to tracker is opt-in, scripted, never auto-executed.
-- Mode D always runs reconciliation; from-scratch always skips it.
+- Reconciliation always runs as part of the loop; it's a no-op when the data sources hold no prior state.

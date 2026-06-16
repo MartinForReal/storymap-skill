@@ -1,6 +1,12 @@
 # Discovery questions
 
-For Mode A (from-scratch) invocations. Ask in batches of 3–5, not one at a time. Skip questions whose answer is already obvious from context.
+When the data sources came back empty or sparse, ask these four batched rounds — outcome/users, the end-to-end activity, constraints, scope edges — in that order, in batches of 3–5 questions, and stop the moment the user confirms a one-paragraph project description. Outcomes before features; concrete draft before more abstract questions.
+
+## When to use
+
+Reach for these question banks in the loop's interview stage, but only for the gaps the data sources couldn't fill — a verbal idea with no codebase, tracker, or backlog to mine, or a brief so thin that Step 0's context mining returned nothing usable. If the README, code, tests, or tracker already answered a question, skip it. User-stated answers and interview answers outrank anything inferred; see the priority order in [../SKILL.md#rules-that-govern-every-run](../SKILL.md#rules-that-govern-every-run).
+
+Ask in batches, not one question at a time. Skip any question whose answer is already obvious from context. The goal is enough signal to draft a backbone, not an exhaustive intake form.
 
 ## Round 1 — Outcome and users
 
@@ -49,7 +55,7 @@ The answers to round 4 become the **Won't** column in MoSCoW or the **(Not on ro
 
 Stop when you can write a one-paragraph project description that the user reads and says "yes, that's it" without corrections. That's enough signal to draft a backbone. Further questions are better answered against a draft than in the abstract.
 
-## Common pitfalls in this phase
+## Anti-patterns
 
 - **Asking too many questions before showing anything** — propose a draft backbone after Round 2 if possible. Concrete-vs-abstract feedback is better.
 - **Letting the user list features instead of activities** — if they say "we need search, filtering, and sorting" gently redirect: "Walk me through the moment a user wants to find something. What do they do?"

@@ -1,5 +1,9 @@
 # Handoff — Refund Self-Service Portal story map
 
+## Bottom line
+
+The loop ran against empty data sources and produced a full PI-1 plan: 52 stories (32 in PI 1), all 5 backbone activities covered, WSJF-ranked. Because there was no live user, seven assumptions (A1–A7) are doing load-bearing work — **start in `design.md` § Assumptions and confirm those before committing PI 1**.
+
 ## What's in the box
 
 Six canonical files in this output directory, all consistent with each other:
@@ -15,7 +19,7 @@ Six canonical files in this output directory, all consistent with each other:
 
 ## Key facts (no live user — I made assumptions; please verify)
 
-- **Mode:** Mode A (from scratch — no PRD, no brief, no backlog existed)
+- **Invocation:** From scratch — the loop ran against empty data sources (no PRD, brief, backlog, tracker, or prior storymap existed)
 - **Slicing strategy:** SAFe PI (pi-1 / pi-2 / pi-3), driven by user's "12-week PI in 3 weeks" signal
 - **Prioritization:** WSJF (modified Fibonacci 1, 2, 3, 5, 8, 13, 20), per user's explicit request
 - **Story counts:** 32 pi-1 / 17 pi-2 / 3 pi-3 (52 total)
@@ -70,7 +74,7 @@ CSV import is the path — don't recreate stories by hand inside the tool.
 
 ## If you want to iterate on this
 
-Use Mode D (iterative refinement) — re-invoke the skill with the existing `storymap.md` in scope and ask for the specific extension (e.g., "re-slice for PI 2 now that we have payments-API contract"). Don't sync the tracker back to the markdown; treat the story map as a discovery artifact and re-derive it when needed.
+Re-run the loop on the existing map — re-invoke the skill with the existing `storymap.md` in scope and ask for the specific extension (e.g., "re-slice for PI 2 now that we have payments-API contract"). Don't sync the tracker back to the markdown; treat the story map as a discovery artifact and re-derive it when needed.
 
 ## Framework integration notes
 

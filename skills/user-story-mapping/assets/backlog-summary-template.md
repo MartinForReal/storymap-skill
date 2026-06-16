@@ -3,6 +3,10 @@
 > **Method:** <WSJF | RICE | MoSCoW>
 > **Slicing:** <slicing strategy>
 
+## Bottom line
+
+**Start here:** <one line — what to build first and why (the slice-1 headline). A reader who stops here knows what to do next.>
+
 See `backlog.csv` for the full table with all scoring columns.
 
 ## Top 10 (this slice)

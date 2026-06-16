@@ -9,16 +9,17 @@ An [Agent Skill](https://agentskills.io) that runs user story mapping (Jeff Patt
 
 Built primarily for [Claude Code](https://code.claude.com/docs/en/skills), but works across any agent that supports the [Agent Skills open standard](https://agentskills.io) — including Cursor, OpenAI Codex, GitHub Copilot, Gemini CLI, OpenCode, Goose, Letta, Roo, Kiro, and ~30 others.
 
-It produces a project design doc, a three-format story map (markdown + Mermaid + CSV), a prioritized backlog (WSJF / RICE / MoSCoW), and optionally Given/When/Then acceptance criteria + an E2E test contract for slice 1.
+It produces a project design doc, a story map (markdown + CSV, plus a Mermaid graph when no tracker is defined), a prioritized backlog (WSJF / RICE / MoSCoW), and optionally Given/When/Then acceptance criteria + an E2E test contract for slice 1.
 
 **Plays well inside** [Superpowers](https://github.com/obra/superpowers), [gstack](https://github.com/garrytan/gstack), and [GSD](https://getshitdone.help/solo-guide/why-gsd/). Works fine standalone.
 
 ## What it does
 
-- **Four invocation modes** — from scratch (verbal idea), from a brief/PRD, from an existing messy backlog, iterative refinement of a prior map
+- **One re-entrant loop** — discover → diff (vs. existing artifacts/tracker/code) → apply saved preferences → interview until approved → backbone → generate/update idempotently → derive + hand off. "From scratch" is just the loop running when the data sources are empty (the diff is against nothing) — no separate mode to detect.
+- **Tracker-aware** — when an issue tracker is defined, reuses its existing taxonomy (epics/components/fix-versions/labels/custom fields) instead of inventing categories, and persists the field-mapping to `.user-story-mapping/state.json`
 - **Adaptive context loop** — mines README, code, tests, ADRs, commit log, Jira/ADO/GitHub via MCP, sister-framework state (`.gsd/`, `.superpowers/`), and prior `design.md` BEFORE asking the user
 - **Customer-interview synthesis** — extracts personas/activities/problems from raw transcripts with verbatim-quote preservation
-- **Persona simulation** — spawns role-play subagents to fill gaps + surface stakeholder conflicts (user-input-authoritative — sim never overrides user)
+- **Persona simulation + interactions** — spawns role-play subagents to fill gaps, surface stakeholder conflicts (user-input-authoritative — sim never overrides user), and map cross-persona handoffs/dependencies
 - **Six backbone-generation criteria** — frame, persona perspective, time horizon, granularity, scope, aggregation (user-confirmed + recorded for reproducibility)
 - **Three slicing strategies** — Patton classic, SAFe PI, Now/Next/Later
 - **Three prioritization methods** — WSJF, RICE, MoSCoW
@@ -26,7 +27,7 @@ It produces a project design doc, a three-format story map (markdown + Mermaid +
 - **OKR alignment** — coverage matrix, orphan stories + orphan KRs
 - **Acceptance criteria** — Given/When/Then for slice 1 + INVEST check
 - **E2E test contract** — backbone activities as E2E swimlanes
-- **Mode D limit-breach detection** — capacity / dependencies / OKR coverage / scope; surfaces trade-offs rather than silently absorbing
+- **Iteration limit-breach detection** — re-running the loop on a non-empty baseline detects capacity / dependencies / OKR coverage / scope breaches; surfaces trade-offs rather than silently absorbing
 - **Output routing** — from-scratch projects → seed an issue tracker (Jira/ADO/GitHub Projects/Linear/Trello); existing projects → keep-in-place cascade (sister-framework state → `TODO.md` → Memory MCP), with optional Claude Code `TodoWrite` pairing when the user is about to execute
 - **Persistent memory** — opt-in `.user-story-mapping/state.json` or MCP memory server
 - **Skill chaining** — invokes other installed skills (code-explorer, db-analyzer, etc.) for context gathering
@@ -80,15 +81,15 @@ storymap-skill/                                   # repo root = Claude Code plug
 │   └── marketplace.json                          # self-marketplace entry
 ├── skills/
 │   └── user-story-mapping/                       # the skill itself (Agent Skills v1)
-│       ├── SKILL.md                              # entry point — workflow at a glance + 8 steps
+│       ├── SKILL.md                              # entry point — answer-first spine: the loop + steps table
 │       ├── assets/
 │       │   ├── storymap-template.md              # canonical markdown format the scripts parse
 │       │   ├── design-doc-template.md            # design doc with Backbone criteria + source tagging
 │       │   ├── backlog-template.csv              # backlog with WSJF/RICE/MoSCoW/depends_on/okr columns
 │       │   └── backlog-summary-template.md
 │       ├── evals/
-│       │   └── evals.json                        # 20 consolidated test scenarios across 9 categories
-│       ├── references/                           # 17 reference files loaded on demand (see SKILL.md References table)
+│       │   └── evals.json                        # 25 consolidated test scenarios across the loop + capabilities
+│       ├── references/                           # 20 reference files loaded on demand (see SKILL.md References table)
 │       └── scripts/
 │           ├── storymap_to_csv.py                # storymap.md → storymap.csv (parses [slice:] [persona:] [status:] tags)
 │           └── storymap_to_mermaid.py            # storymap.md → storymap.mmd
@@ -110,7 +111,7 @@ storymap-skill/                                   # repo root = Claude Code plug
 |---|---|---|
 | **0** Context loop | Hypothesis-driven mining of cheap-then-conditional sources (works for both from-scratch and existing project) | <15% |
 | **0.4** Fill gaps | List blocking gaps; ask user; if can't ask, spawn persona-sim subagents; gate planning on completeness | 15-20% |
-| **0.5** Reconcile progress | Existing-project / Mode D only: build status map from tracker + code + prior storymap; detect graduated activities; surface drift | 5-10% |
+| **0.5** Reconcile progress | Existing baseline only (a no-op when empty): build status map from tracker + code + prior storymap; detect graduated activities; surface drift | 5-10% |
 | **1** Backbone | Left-to-right user activities; criteria user-confirmed + recorded | 5-10% |
 | **2** Decompose (per-persona) | Tasks under activities; ≥1 slice-1 story per persona; parallel `Agent` subagents when persona count ≥3 | 15-20% |
 | **2.5** Role hints + flow advice | Generate `role-hints.md` for UX/UI + architect; chain to installed flow-advisor skills when available | 10-15% |
@@ -118,31 +119,31 @@ storymap-skill/                                   # repo root = Claude Code plug
 | **4** Prioritize | WSJF/RICE/MoSCoW + OKR linkage + dependency feasibility check | 15-20% |
 | **4a** ACs | Given/When/Then for slice-1 stories + INVEST check | 10-15% |
 | **4b** E2E contract | Backbone-as-contract: coverage matrix, E2E-HAPPY happy path, per-activity scenarios | 5-10% |
-| **5** Generate derived | Run bundled scripts for `storymap.csv` + `storymap.mmd` | <2% |
+| **5** Generate derived | Run bundled scripts for `storymap.csv` (always) + `storymap.mmd` (only when no tracker is defined) | <2% |
 | **6** Hand off | What was produced; what's still uncertain; smallest next decision (+ opt-in `tracker-status-update.<ext>` if Step 0.5 ran) | 5% |
 
 Target total token budget: ~200K. Story count cap: ~50 total; slice-1 ≤ 15.
 
 ## The user-input-authoritative principle
 
-**What the actual user told you, in this conversation, always wins.** Lower-priority sources fill gaps but never override. Full 6-level source priority order and tagging conventions live in [`persona-simulation-and-gap-filling.md`](skills/user-story-mapping/references/persona-simulation-and-gap-filling.md#the-user-input-authoritative-principle); every fact in `design.md` is source-tagged so reviewers can audit later.
+**What the actual user told you, in this conversation, always wins.** Lower-priority sources fill gaps but never override. Full 6-level source priority order and tagging conventions live in [`SKILL.md`](skills/user-story-mapping/SKILL.md#rules-that-govern-every-run) (Rule 1); every fact in `design.md` is source-tagged so reviewers can audit later.
 
 ## Examples
 
 The `examples/` directory contains sample outputs from three scenarios:
-- `from-scratch-internal-tool/` — Mode A, verbal-only fintech-refund-portal brief, WSJF, SAFe PI
+- `from-scratch-internal-tool/` — the loop on empty data sources (no tracker), verbal-only fintech-refund-portal brief, WSJF, SAFe PI
 - `multi-stakeholder-conflict/` — internal developer platform with conflicting stakeholders, user-input-authoritative principle in action
-- `snapshot-and-breaks-limits/` — Mode D snapshot of a mid-flight PI, new feature requested, 6 limit breaches detected with trade-off options
+- `snapshot-and-breaks-limits/` — the loop on a non-empty baseline (iteration): snapshot of a mid-flight PI, new feature requested, 6 limit breaches detected with trade-off options
 
-Each contains the canonical six-file output (design.md, storymap.md, storymap.csv, storymap.mmd, backlog.md, backlog.csv) plus any optional artifacts the run produced — role-hints.md, slice-1-acceptance-criteria.md, e2e-test-contract.md, tracker-status-update.sh, handoff.md, breach-decisions.md — where applicable.
+Each contains the canonical output (design.md, storymap.md, storymap.csv, backlog.md, backlog.csv — plus storymap.mmd when no tracker is defined) plus any optional artifacts the run produced — role-hints.md, slice-1-acceptance-criteria.md, e2e-test-contract.md, tracker-status-update.sh, handoff.md, breach-decisions.md — where applicable.
 
 ## Tests
 
 `evals/evals.json` contains 25 consolidated test scenarios spanning:
-- Invocation modes A/B/C/D
+- The re-entrant loop across empty and populated data sources (eval labels retain legacy A/B/C/D phrasing on purpose — they test that the loop still handles a user who types the old terms)
 - App types: web, mobile (consumer + B2B), desktop, API/SDK, CLI, enterprise multi-tenant
 - Framework integrations: Superpowers, gstack, GSD
-- Capabilities: customer interview synthesis, dependency tracking, OKR alignment, persona simulation + conflict resolution, Mode D limit-breach detection, context loop short-circuit, framework-artifact mining + backbone criteria
+- Capabilities: customer interview synthesis, dependency tracking, OKR alignment, persona simulation + conflict resolution, iteration limit-breach detection, context loop short-circuit, framework-artifact mining + backbone criteria
 
 Test infrastructure (`grade_runs.py`, `build_benchmark.py`, `build_viewer.py`, `run-benchmark.sh`) lives in `tests/`. See `tests/README.md`.
 
@@ -159,12 +160,12 @@ Latest benchmark (iteration-12, v0.0.3, all 25 evals with-skill):
 The v0.0.3 release shipped four bodies of work in one cycle: (1) Step 0.5 progress reconciliation, Step 2.5 role hints, per-persona slice-1 enforcement, plan-stage auto-trigger, tracker write-back; (2) structural refactor that trimmed SKILL.md from 655 → 440 lines (-33%) with all duplicated content moved to references; (3) 5 new eval scenarios covering the new behaviors (IDs 21–25, all 60/60 first-run); (4) `tests/grade_runs.py` hardening (5 categories of grader-too-strict bugs fixed). Per-eval breakdown + analyst notes in [`benchmark/benchmark.md`](./benchmark/benchmark.md); raw data in [`benchmark/benchmark.json`](./benchmark/benchmark.json).
 
 ### Where the skill earns its keep
-- **Structural conformance** — all 6 canonical files in the canonical CSV/Mermaid format, every time. Baseline produces ad-hoc structures that don't import into Jira/ADO cleanly.
+- **Structural conformance** — all canonical files in the canonical CSV format (plus Mermaid when no tracker), every time. Baseline produces ad-hoc structures that don't import into Jira/ADO cleanly.
 - **Methodology correctness** — WSJF/RICE/MoSCoW with all required columns, slice-1 backbone coverage rule honored, dependency cycles surfaced not silently broken.
-- **Capability-specific behaviors** — persona conflict matrix with user-input-authoritative principle (eval-15), Mode D limit-breach detection with trade-off options (eval-16), framework-artifact mining without re-asking user (eval-18), progress reconciliation with graduated activities + drift surfacing (eval-21), per-persona slice-1 enforcement across 3+ personas (eval-22), tracker-update script generation that's never auto-run (eval-25).
+- **Capability-specific behaviors** — persona conflict matrix with user-input-authoritative principle (eval-15), iteration limit-breach detection with trade-off options (eval-16), framework-artifact mining without re-asking user (eval-18), progress reconciliation with graduated activities + drift surfacing (eval-21), per-persona slice-1 enforcement across 3+ personas (eval-22), tracker-update script generation that's never auto-run (eval-25).
 
 ### The one remaining miss
-- Eval-12 (dependency-aware backlog): the agent preserved 5/14 user-provided story IDs instead of all 14. All 9 other assertions in that eval passed (depends_on column, cycle detection, slice-1 feasibility, WSJF columns). Recommended fix: emphasize ID preservation in Step 2 / Mode C reference text for the next release.
+- Eval-12 (dependency-aware backlog): the agent preserved 5/14 user-provided story IDs instead of all 14. All 9 other assertions in that eval passed (depends_on column, cycle detection, slice-1 feasibility, WSJF columns). Recommended fix: emphasize ID preservation in Step 2 / `decomposition-and-stories.md` reference text for the next release.
 
 When prompts are sparse, baseline collapses to 0-2/N.
 

@@ -1,7 +1,7 @@
 {
   "skill_name": "user-story-mapping",
   "version": "1.0",
-  "description": "25 eval scenarios spanning invocation modes (A/B/C/D), app types (web/mobile/desktop/API/CLI/enterprise), framework integrations (Superpowers/gstack/GSD), iter-5+ capabilities (interview synthesis, dependency tracking, OKR alignment, persona simulation, Mode D + breach detection, context loop short-circuit, framework artifacts + backbone criteria), and v0.0.3 additions (Step 0.5 progress reconciliation, Step 2.5 role hints, per-persona slice-1 enforcement, plan-stage auto-trigger, tracker write-back).",
+  "description": "25 eval scenarios spanning the loop across empty and populated data sources, app types (web/mobile/desktop/API/CLI/enterprise), framework integrations (Superpowers/gstack/GSD), iter-5+ capabilities (interview synthesis, dependency tracking, OKR alignment, persona simulation, iteration + breach detection, context loop short-circuit, framework artifacts + backbone criteria), and v0.0.3 additions (Step 0.5 progress reconciliation, Step 2.5 role hints, per-persona slice-1 enforcement, plan-stage auto-trigger, tracker write-back). Eval category labels and prompts retain legacy 'Mode A/B/C/D' phrasing on purpose — they test that the loop still handles a user who types the old terms.",
   "evals": [
     {
       "id": 1,

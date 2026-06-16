@@ -1,15 +1,14 @@
 # OKR / strategic alignment
 
-Connect each story (or at minimum, each slice) to a strategic outcome — typically an OKR or KR (Key Result). This surfaces two common misalignments:
+Tie every story (or at minimum every slice) to a Key Result, then run the coverage matrix in both directions: it surfaces **orphan stories** (work that ladders to no KR — either the KR is missing or the work is out of scope) and **orphan KRs** (committed Key Results with zero story coverage — either the KR is unrealistic or the team forgot to plan for it). Both are red-flag findings worth surfacing in `design.md`.
 
-1. **Orphan stories** — stories that don't ladder to any OKR. Either the OKR is missing or the story shouldn't be in scope.
-2. **Orphan OKRs** — OKRs the company committed to that have no story coverage. Either the OKR is unrealistic or the team forgot to plan for it.
+## When to use
 
-Both are red-flag findings worth surfacing.
+Apply this when the user provides OKRs/KRs, or talks about strategic goals informally enough that candidate KRs can be drafted. **Skip it entirely** when the user explicitly has no OKR framework — bolting OKR structure onto a team that doesn't use OKRs is bureaucratic noise. This reference governs the `okr` ladder column in `backlog.csv`, the coverage matrix, and the two orphan checks; it does not own the source-tagging or priority rules it touches — those are linked below.
 
-## How to record alignment
+## How to record the ladder
 
-If the user provides OKRs (or KRs), add an `okr` column to `backlog.csv`:
+When OKRs (or KRs) are provided, add two columns to `backlog.csv`: `okr` (the KR id this story ladders to) and `okr_contribution` (a one-line explanation of *how* the story moves that KR). Force the contribution — "ladders to KR-1.2" with no reason is decoration, not alignment.
 
 ```csv
 id,activity,task,story,slice,okr,okr_contribution
@@ -18,9 +17,11 @@ S005,Issue refund,Submit,User submits a refund,pi-1,KR-2.1,reduces CS toil per t
 S017,Dark mode toggle,UI,Dark mode toggle,r3,,does not ladder
 ```
 
-The `okr_contribution` column is a one-line explanation of *how* the story moves the KR. Force this — "ladders to KR-1.2" with no reason is just decoration.
+A blank `okr` cell is a legitimate signal, not an omission — it flags a candidate orphan story for the matrix below. Story ids stay `S001`-style in document order, exactly as the canonical `storymap.csv`/`backlog.csv` produce them; OKR work never renumbers them.
 
-In `design.md`, add an **OKR alignment** section:
+## The OKR alignment section in design.md
+
+Record the stated OKRs, then the coverage matrix, then the two orphan lists. This is the payload that makes the alignment auditable:
 
 ```markdown
 ## OKR alignment
@@ -49,21 +50,29 @@ In `design.md`, add an **OKR alignment** section:
 - KR-1.1 "Land 3 enterprise contracts" has only enabling stories (SSO/SCIM/SOC 2) but no GTM-side stories — clarify with Sales whether their work is in scope here or separate
 ```
 
+The matrix's per-slice columns (`Slice 1`, `Slice 2`, …) are how you catch a KR that is "covered" on paper but deferred entirely past the first release — story count alone hides that.
+
+## Running the two orphan checks
+
+- **Orphan stories** — walk the backlog; any row with a blank `okr` is a candidate. Decide per row: the KR is genuinely missing (add or propose it), or the story is out of scope (recommend cutting). Don't silently leave a blank cell unexplained.
+- **Orphan KRs** — walk the stated KRs; any KR with zero rows pointing at it, or covered only by *enabling* stories with no user-facing path, is a planning gap. Surface it with a concrete "clarify with <owner>" note rather than fabricating coverage.
+
 ## When you don't have OKRs
 
-If the user hasn't provided OKRs but talks about strategic goals informally ("we need to grow enterprise revenue"), draft 1-2 candidate OKRs and surface them as **proposed OKRs** in `design.md` with a "Confirm with leadership" note. Don't fabricate OKRs and treat them as gospel.
+If the user talks about strategic goals informally ("we need to grow enterprise revenue") but states no OKRs, draft 1-2 candidate OKRs and surface them as **proposed OKRs** in `design.md` with a "Confirm with leadership" note. Tag any drafted KR `[inferred]` per the source-tag vocabulary so its provenance is visible (see [`../SKILL.md#rules-that-govern-every-run`](../SKILL.md#rules-that-govern-every-run)). Don't fabricate OKRs and present them as gospel.
 
-If the user explicitly has no OKR framework, skip this section entirely. Adding OKR-style structure to a team that doesn't use OKRs is bureaucratic noise.
+If the user explicitly has no OKR framework, skip this reference.
 
 ## How OKRs change prioritization
 
-When OKRs are present, two things happen to the prioritization step:
+When OKRs are present, two things happen during prioritization (the scoring math itself lives in [prioritization-frameworks.md](prioritization-frameworks.md)):
 
-1. **WSJF/RICE scores get an OKR multiplier.** Stories that ladder to a committed KR get a +30% (or whatever the team decides) bonus to their Value/Impact score. Make this explicit in the reasoning column.
-2. **The "ranked backlog" view gets a per-KR grouping** alongside the per-slice grouping. Both views are useful: per-slice tells you what ships; per-KR tells you how the KR is supported.
+1. **WSJF/RICE scores get an OKR multiplier.** Stories that ladder to a committed KR get a +30% (or whatever the team decides) bonus to their Value/Impact score. Make the bonus explicit in the reasoning column.
+2. **The ranked-backlog view gains a per-KR grouping** alongside the per-slice grouping. Both are useful: per-slice tells you what ships; per-KR tells you how each KR is supported. The slice-1 governing rule still binds the per-slice view — see [`../SKILL.md#rules-that-govern-every-run`](../SKILL.md#rules-that-govern-every-run) (Rule 2) and the mechanics in [slicing-strategies.md](slicing-strategies.md).
 
 ## Anti-patterns
 
-- **Force-fitting every story to an OKR.** Some stories (security fixes, legal compliance, infra hygiene) legitimately don't ladder to a feature OKR. Tag them with a generic `OKR:HYGIENE` or leave blank — don't invent a ladder.
-- **Per-story OKR theatrics.** If you find yourself writing "ladders to KR-X" with vague justification on every row, the OKRs are too broad. Push back to the user to sharpen the KRs.
-- **OKR cascade overload.** Don't require story → KR → Objective → Theme → North Star chains. Story → KR is enough. The rest is overhead.
+- **Force-fitting every story to an OKR.** Some stories (security fixes, legal compliance, infra hygiene) legitimately don't ladder to a feature OKR. Tag them `OKR:HYGIENE` or leave the cell blank — don't invent a ladder.
+- **Per-story OKR theatrics.** If you're writing "ladders to KR-X" with vague justification on every row, the OKRs are too broad. Push back to the user to sharpen the KRs.
+- **OKR cascade overload.** Don't require story → KR → Objective → Theme → North Star chains. Story → KR is enough; the rest is overhead.
+- **Mapping the OKR id onto a tracker field unilaterally.** If the work item tracker already carries fix-versions, epics, or custom fields for strategy, align to that taxonomy read-only rather than minting a parallel one — see [`work-item-tracking.md`](work-item-tracking.md#align-to-the-existing-tracker-taxonomy).

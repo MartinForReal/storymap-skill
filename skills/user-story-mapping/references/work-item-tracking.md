@@ -1,12 +1,58 @@
 # Work item tracking integration
 
-> **When to use this reference.** This file covers the *from-scratch* branch — seeding a fresh tracker with the backlog. For existing projects, check `output-routing.md` first; pushing to a populated tracker is usually the wrong destination.
->
-> **Status pull-back and write-back** (existing projects, after Step 0.5 has reconciled storymap ↔ tracker ↔ code) are governed by [`progress-reconciliation.md`](progress-reconciliation.md), not this file. The per-tracker mappings below are the same; what differs is *who's authoritative for what* — when you're seeding a tracker, the storymap is. When you're reconciling, the tracker is authoritative for *status*, the storymap for *intent*. Read `progress-reconciliation.md` before generating any tracker write-back script.
+**The CSV is the import source — never re-enter stories by hand into a tracker, and never invent a structure that already exists there.** When no tracker is defined, seed a fresh one from `storymap.csv` / `backlog.csv` using the per-tool import tables below. When a tracker *is* defined, do the reverse: read its existing taxonomy read-only and map the storymap onto the team's own epics, fix-versions, labels, and custom fields. Writes are always opt-in scripts the user reviews — this skill proposes, it never auto-creates.
 
-After this skill produces `storymap.md`, `storymap.csv`, `backlog.md`, and `backlog.csv`, most teams will want to push the result into their existing tracker. This file is the reference for doing that cleanly across the popular tools.
+## When to use
 
-The pattern is the same everywhere: **the CSV is the import source, you do not need to re-enter stories by hand.** Don't reinvent the structure inside each tool — keep this skill's artifacts as the source of truth and use the tool's import.
+Two directions, both rooted here:
+
+- **Seeding (empty baseline, no tracker defined).** The team wants the backlog pushed into Jira / ADO / GitHub / Linear / a spreadsheet. Use the per-tool import sections. The storymap is authoritative — you are populating an empty system.
+- **Aligning (a tracker is defined).** A tracker is already the system of record. Read its taxonomy in Step 0 and map onto it (the next section). Here the tracker owns *structure*; the storymap owns *intent*.
+
+Check [output-routing.md](output-routing.md#detecting-the-empty-baseline-no-tracker-defined) first — it owns the operational "tracker defined" test and the routing decision. Pushing fresh stories into a populated tracker without opt-in is usually the wrong destination.
+
+Status pull-back and write-back (existing projects, after Step 0.5 has reconciled storymap ↔ tracker ↔ code) are governed by [progress-reconciliation.md](progress-reconciliation.md), not this file. The per-tracker mappings are the same; what differs is *who's authoritative for what* — when seeding, the storymap is; when reconciling, the tracker is authoritative for *status*, the storymap for *intent*. Read `progress-reconciliation.md` before generating any tracker write-back script.
+
+## Align to the existing tracker taxonomy
+
+When a tracker is already the system of record, do **not** invent a parallel structure. Read its existing taxonomy in Step 0 — read-only, via the tracker MCP — and map the storymap onto it. This is the reverse of the per-tool import tables below (which assume a fresh, empty tracker).
+
+**Pull, read-only:** the **process template** (agile/scrum/CMMI/basic), issue types, **labels/tags**, **components**, **epics**, **fix-versions / iteration-paths / cycles / milestones**, the priority scheme, and relevant **custom fields** (story points, WSJF/RICE). Then map, reusing existing names:
+
+| Storymap | Reuse from the tracker |
+|---|---|
+| Activity | an existing **epic** or **component** (match by meaning) |
+| Slice | an existing **fix-version / iteration / cycle / milestone** |
+| Persona | an existing **label** (e.g. `persona:cs-rep`) or user-picker field |
+| Score / method | the existing **custom field** (don't add a parallel one) |
+| Priority | the tracker's existing scheme |
+
+Rules:
+
+- **Propose, never auto-create.** If the storymap needs a category the tracker lacks — a new epic, a new fix-version — list it as a *proposed* addition for the user. Don't create it. Writes are opt-in scripts only.
+- **Keep the user-narrative name in the description, the tool name in the title.** When the storymap's discovery name ("Find a property") and the team's tracker convention ("Epic-style: Improve search") differ, keep **both** — put the user-narrative version in the description and the tool-convention name in the title. The user-narrative is the discovery signal; overwriting it loses the map's value. (See also "what NOT to do" below.)
+- **Persist the mapping.** Save the chosen field-mapping + taxonomy snapshot to the `tracker` block of `.user-story-mapping/state.json` ([persistent-knowledge.md §A](persistent-knowledge.md#a-project-scoped--user-story-mapping-directory-in-the-repo)) so the next run stays consistent. Treat the saved taxonomy as a *hint* — reload and re-verify it against the live tracker before reusing, and refresh on drift.
+
+## Enable the tracker burn-down
+
+When an issue tracker is the system of record, the skill does **not** emit `backlog.{md,csv}` / `storymap.csv` ([output-routing.md § What each branch produces](output-routing.md#what-each-branch-produces)) — instead the opt-in write-back sets three native fields per item so the tracker's own burn-down chart renders. Map them from artifacts the skill already produces:
+
+| Burn-down field | Source in the plan | Jira | Azure DevOps | GitHub Projects |
+|---|---|---|---|---|
+| **Estimate / story points** | the Step 4 sizing (WSJF job-size or RICE effort) | `Story Points` custom field | `Microsoft.VSTS.Scheduling.StoryPoints` | a `Points` number field |
+| **Sprint / iteration** | the slice → the tracker's existing iteration (per [§ Align to the existing tracker taxonomy](#align-to-the-existing-tracker-taxonomy)) | Sprint / `fixVersion` | `IterationPath` | an `Iteration` field |
+| **Status** | the Step 0.5 reconciled status (owned by [progress-reconciliation.md](progress-reconciliation.md)) | workflow state | `State` | a `Status` field |
+
+(Linear maps the same way: the estimate property, a Cycle, and issue status.)
+
+Rules:
+
+- **Estimate ≠ raw WSJF size if the team already calibrates points.** Propose the size as the points value; if the tracker already carries team-calibrated points (pulled in the taxonomy read), don't overwrite — flag the delta for the user.
+- **Reuse existing iterations/sprints; never invent.** The slice maps onto the team's existing fix-version/iteration; a new one is a *proposed* addition, not an auto-create.
+- **Opt-in, never auto-run.** These field writes ride the same `tracker-status-update.<ext>` script governed by [progress-reconciliation.md § Write-back to the tracker](progress-reconciliation.md#write-back-to-the-tracker) — one direction, every action logged, reversibility noted. The skill generates it; the user runs it.
+- Once points + iteration + status are set on every item, the tracker's native burn-down (Jira Sprint Report, ADO Sprint Burndown, GitHub Projects insights) works with no extra artifact.
+
+Everything below assumes the **seeding** direction.
 
 ## Jira
 
@@ -42,9 +88,9 @@ Many enterprise Jira tenants disable CSV import for non-admins. In that case, ou
 
 ### Custom field gotchas
 
-- **Story Points ≠ Job Size.** WSJF uses relative size, story points may already be calibrated differently. Don't auto-fill.
-- **Epic Link vs. Parent**: Jira changed this in NextGen / company-managed projects. Confirm with the user which project type before mapping.
-- **Workflow states**: backlog rows should land in the project's "Backlog" state, not "To Do" — those mean different things.
+- **Story Points ≠ Job Size.** WSJF uses relative size; story points may already be calibrated differently. Don't auto-fill.
+- **Epic Link vs. Parent.** Jira changed this in NextGen / company-managed projects. Confirm with the user which project type before mapping.
+- **Workflow states.** Backlog rows should land in the project's "Backlog" state, not "To Do" — those mean different things.
 
 ## Azure DevOps (ADO)
 
@@ -67,8 +113,8 @@ ADO's process template (Agile / Scrum / CMMI / Basic) determines the work item t
 
 Two options:
 
-1. **Excel import** (most reliable): Open the CSV in Excel, install the Azure DevOps Excel plugin, paste with proper column mapping, publish. The plugin enforces field validity.
-2. **`az boards` CLI**: Generate a shell script with one `az boards work-item create` per row. More reliable in CI pipelines.
+1. **Excel import** (most reliable): open the CSV in Excel, install the Azure DevOps Excel plugin, paste with proper column mapping, publish. The plugin enforces field validity.
+2. **`az boards` CLI**: generate a shell script with one `az boards work-item create` per row. More reliable in CI pipelines.
 
 ```bash
 # Example az boards command this skill can generate
@@ -105,10 +151,10 @@ GitHub Issues is flatter than Jira/ADO. Use labels and Projects to encode hierar
 
 ### Recommended setup
 
-1. Create a Project (v2) for the work
-2. Add custom fields: Score (number), Method (single-select), Slice (single-select), Activity (single-select)
-3. Use the GitHub CLI or the bulk-import API to create issues from the CSV
-4. Attach issues to the Project — fields populate from labels via Project automation
+1. Create a Project (v2) for the work.
+2. Add custom fields: Score (number), Method (single-select), Slice (single-select), Activity (single-select).
+3. Use the GitHub CLI or the bulk-import API to create issues from the CSV.
+4. Attach issues to the Project — fields populate from labels via Project automation.
 
 ```bash
 # Bulk-create from CSV using gh CLI
@@ -143,10 +189,10 @@ Linear has a great CSV importer — point it at `storymap.csv` and map columns i
 
 For lightweight setups, the CSV files this skill produces are usable as-is. No special handling needed:
 
-- Trello: import CSV per list (one list per slice)
-- Notion: import CSV as a database, group by `slice`, sort by `score`
-- Airtable: import CSV as a base, build views per slice
-- Spreadsheet: open `backlog.csv` directly
+- **Trello**: import CSV per list (one list per slice).
+- **Notion**: import CSV as a database, group by `slice`, sort by `score`.
+- **Airtable**: import CSV as a base, build views per slice.
+- **Spreadsheet**: open `backlog.csv` directly.
 
 ## ART tools (Jira Align, Targetprocess, Tempo)
 
@@ -169,8 +215,9 @@ Does the user want a one-shot import or ongoing sync?
                   not a live database.
 ```
 
-## Important — what NOT to do
+## What NOT to do
 
-- **Don't auto-create issues without asking.** Generating a script is helpful; running it in the user's tracker without confirmation is not.
+- **Don't auto-create issues without asking.** Generating a script is helpful; running it in the user's tracker without confirmation is not. Tracker write-back is opt-in only.
 - **Don't lose the reasoning column.** When importing, ensure the WSJF/RICE/MoSCoW *reasoning* lands somewhere readable. A score with no reasoning rots within a quarter.
-- **Don't rename the activities to fit the tool.** If the team's Jira convention is "Epic-style: Improve X", and this skill produced "Find a property", keep both — put the user-narrative version in the Description and the tool-style version in the Title. The user-narrative is the discovery signal; losing it loses the map's value.
+- **Don't rename the activities to fit the tool.** If the team's Jira convention is "Epic-style: Improve X" and this skill produced "Find a property", keep both — put the user-narrative version in the Description and the tool-style version in the Title. The user-narrative is the discovery signal; losing it loses the map's value.
+- **Don't create taxonomy the tracker is missing.** Propose new epics / fix-versions / labels for the user to approve; never add them silently.

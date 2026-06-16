@@ -1,23 +1,33 @@
-# Iterative refinement and snapshots (Mode D)
+# Iterative refinement and snapshots (the loop on a non-empty baseline)
 
-User stories change over time. A story map written 3 months ago has stale priorities, outdated personas, finished work, and new constraints. Mode D is how this skill handles "extend / re-slice / add a feature" requests against an existing map — and crucially, how it **detects when a new request breaks the team's limits** rather than silently absorbing it.
+When the loop runs against an existing map — an extend / re-slice / reprioritize / "where are we?" request — it does **not** rebuild from zero and it does **not** silently absorb new work: it snapshots current state, computes the change provisionally, and surfaces any limit it would breach as a decision for the user. The same loop that runs from scratch runs here; the only difference is that the data sources hold a prior backbone, design doc, statuses, and decisions to carry forward instead of being empty.
 
-> **Mode D always runs Step 0.5 first.** Before producing the snapshot below, reconcile prior storymap ↔ tracker ↔ code state per [`progress-reconciliation.md`](progress-reconciliation.md). Status changes since the prior run (stories shipped, activities graduated, tracker drift) populate the snapshot — they're not re-derived inside Mode D.
+> **A non-empty baseline always runs Step 0.5 first.** Before producing the snapshot below, reconcile prior storymap ↔ tracker ↔ code state per [`progress-reconciliation.md`](progress-reconciliation.md). Status changes since the prior run (stories shipped, activities graduated, tracker drift) populate the snapshot — they are not re-derived inside this refinement step.
 
 ## When this applies
 
-- The user has an existing `storymap.md`, `backlog.csv`, or equivalent — produced by this skill, by another tool, or hand-written
-- They want to:
-  - Add a new feature
-  - Re-slice (move work between PI/release boundaries)
-  - Reprioritize after new data
-  - Get a snapshot of current state ("where are we?")
-  - Validate the plan against new constraints (team change, deadline change, OKR change)
-  - Sync the storymap with reality after a sprint or two of execution (status pull from tracker; cuts pushed back)
+The baseline is non-empty: the user already has a `storymap.md`, `backlog.csv`, or equivalent — produced by this skill, by another tool, or hand-written — and they want to:
 
-If they have nothing prior, you're in Mode A/B/C, not D.
+- Add a new feature
+- Re-slice (move work between PI/release boundaries)
+- Reprioritize after new data
+- Get a snapshot of current state ("where are we?")
+- Validate the plan against new constraints (team change, deadline change, OKR change)
+- Sync the storymap with reality after a sprint or two of execution (status pull from tracker; cuts pushed back)
 
-## The four-step Mode D process
+If they have nothing prior, the baseline is empty — this refinement step doesn't apply; the loop runs on empty data sources instead (the "from scratch" case).
+
+## What "existing" and "desired" are (the diff)
+
+The loop's ② DIFF compares two things, and neither is a naive snapshot:
+
+- **Existing** = a *reconciled* view of current reality. The sources carry **different authority** — tracker = status, storymap = intent, code = evidence (a route with no test is evidence, not proof) — and where they **disagree** the conflict is surfaced in `handoff.md` `## Detected drift`, never silently merged. Step 0.5 builds it; the reconciliation, conflict table, and drift detectors are owned by [`progress-reconciliation.md`](progress-reconciliation.md). Empty sources ⇒ existing is ∅ (from-scratch). The user overrides all sources.
+- **Desired** = the prior map **amended/overridden by the user's new input** — *not* "prior + new." User input is top authority, so a new prompt can add, re-slice, reprioritize, or **pivot/remove**; where it contradicts the prior, the user wins and the prior position is **archived**, not retained (see [§ When prior artifacts contradict the user](#when-prior-artifacts-contradict-the-user)). Desired is a hypothesis at ②, confirmed at the interview, concretized when stories are generated.
+- **Diff = `desired − existing`** → ADDED / UNCHANGED / MOVED / CUT / DONE **+ the surfaced conflicts** (decisions for the user, not auto-resolved). **Coarse at ②** (feature/activity level — scopes work, frames the interview, triggers the breach checks below), **per-story by `handoff.md`**.
+
+**Nothing to resolve ≠ nothing to generate.** When the diff surfaces no conflicts/gaps the interview is a fast confirm and the generative steps still run on the delta: ∅ existing ⇒ author the whole map; a clean delta ⇒ update only it; **∅ diff ⇒ a snapshot, no regeneration** (see [§ Snapshot without changes](#snapshot-without-changes)).
+
+## The four-step refinement process
 
 ### Step D.1 — Produce a snapshot
 
@@ -187,23 +197,23 @@ If the user just asks "give me a snapshot" (no change request), produce only Ste
 
 ## When prior artifacts conflict with current memory
 
-If the user provides a `storymap.md` that contradicts `.user-story-mapping/state.json` (or MCP memory), the artifact wins — it's higher in the priority order than memory. Update memory to match the artifact after the run; don't silently apply memory hints that contradict the visible map.
+If the user provides a `storymap.md` that contradicts `.user-story-mapping/state.json` (or MCP memory), the artifact wins — it's higher in the priority order than memory (see [`../SKILL.md#rules-that-govern-every-run`](../SKILL.md#rules-that-govern-every-run)). Update memory to match the artifact after the run; don't silently apply memory hints that contradict the visible map.
 
 ## When prior artifacts contradict the user
 
 If the prior `storymap.md` has Activity X but the user says "we removed X two weeks ago", the user wins. Mark X as REMOVED in the diff; archive the prior position. Don't keep X around because "the artifact says so".
 
-## What NOT to do in Mode D
+## What NOT to do when refining
 
-- **Don't quietly re-derive the backbone.** Mode D preserves the prior backbone unless explicitly told to re-derive. Silently changing the backbone destroys cross-PI traceability.
+- **Don't quietly re-derive the backbone.** Refinement preserves the prior backbone unless explicitly told to re-derive. Silently changing the backbone destroys cross-PI traceability.
 - **Don't absorb new work without checking limits.** "Sure, I added the 8 new stories to PI 1" is wrong if PI 1 is already at capacity. Always check; always surface.
-- **Don't silently break the slice-1 rule.** If the new feature introduces a backbone activity with no slice-1 coverage, that's a decision the user must make. The default of "just add it as a 6th column" is wrong twice — it breaks the rule AND pollutes the backbone with cross-cutting drift.
-- **Don't lose the decisions log.** The prior `design.md` decisions log carries forward. Append new decisions; never remove old ones (mark as superseded with date).
+- **Don't silently break the slice-1 rule.** If the new feature introduces a backbone activity with no slice-1 coverage, that's a decision the user must make. The default of "just add it as a 6th column" is wrong twice — it breaks the rule AND pollutes the backbone with cross-cutting drift. The mechanics and violations of the slice-1 rule live in [`slicing-strategies.md`](slicing-strategies.md#the-slice-1-rule--mechanics-why-and-violations).
+- **Don't lose the decisions log.** The prior `design.md` decisions log carries forward. Append new decisions; never remove old ones (mark as superseded with date) — the append-only rule is owned by [`persistent-knowledge.md`](persistent-knowledge.md).
 - **Don't pretend memory is current.** If memory is >90 days old and the repo has changed substantially, warn the user before applying.
 
-## Cost ceiling for Mode D
+## Cost ceiling for refinement
 
-Most Mode D invocations should cost **less than a full mode A/B/C run** because:
+Most refinement runs should cost **less than a full from-scratch run** because:
 - Backbone is already known (skip most of Steps 1-2)
 - Personas + design doc carry forward (small updates only)
 - Most of the work is the snapshot + breach detection (cheap)
@@ -212,8 +222,32 @@ Target: 30-50% of the token cost of a full run. If you're approaching a full-run
 
 ## Wiring with persistent memory
 
-Mode D and `references/persistent-knowledge.md` are complementary:
+Refinement and [`persistent-knowledge.md`](persistent-knowledge.md) are complementary:
 - Memory holds *delta-state* across sessions (preferences, prior decisions, current PI)
-- Mode D operates on *artifacts-as-input* in the current session
+- Refinement operates on *artifacts-as-input* in the current session
 
 Both can be active. If both are present, the artifact's snapshot wins where they disagree. If memory is the only source of prior state and no artifact exists, treat the memory snapshot as the prior artifact and proceed.
+
+## What each step does with prior context (per-stage)
+
+It's the same loop every time; this table spells out what each step does with whatever prior context the data sources hold — an existing codebase, a prior `design.md`, persistent memory, an active tracker, or all four. With empty data sources, each row degenerates to "nothing to carry forward." **The rule: artifacts (current files) > memory > inferred. Re-derive only what's missing or contradicted.**
+
+| Stage | If existing project (code/tests/tracker/framework artifacts) | If memory / prior artifacts |
+|---|---|---|
+| **0** Context loop | Mine the conditional sources that match the hypothesis. Framework artifacts (`.gsd/`, prior `design.md`) take precedence over redundant mining. | Load `state.json` / memory MCP as a starter signal. Tag loaded facts `[memory: <date>]`. Verify each against current state — if contradicted, current wins. |
+| **0.4** Gaps | Gaps previously *resolved* in the decisions log carry forward — don't re-ask. Only newly-introduced gaps need filling. | Same — decisions log is the gap-resolution memory. |
+| **0.5** Reconcile progress | Build status map from tracker + code surfaces + prior storymap. Mark shipped stories `done`; detect graduated activities; surface tracker drift. See [`progress-reconciliation.md`](progress-reconciliation.md). | Prior `backlog.csv` `status` column carries forward as the seed. Re-pull from tracker for live status; tracker overrides prior `status` value when they conflict. |
+| **1** Backbone | Mined routes/handlers/test names become activity *candidates* — propose, don't impose. **Graduated activities (from Step 0.5) stay visible but are excluded from active slicing.** | If prior `design.md` has a `## Backbone criteria` section, **default to those criteria** (only re-derive if the user says to change them). Preserve backbone activities unless the user requests re-derivation. |
+| **2** Decompose | Existing routes / components / handlers / endpoints are pre-existing task candidates under their activity. Reuse the team's existing naming. | Prior task/story IDs carry forward. New tasks/stories get fresh IDs from `max(prior_id) + 1` — don't renumber. |
+| **3** Slice | If the tracker has existing Fix Versions / Iteration Paths / Cycles, those are the canonical slice names — use them, don't invent. | Prior slicing strategy from `design.md` wins. Current PI name (e.g., "PI 2026-Q3") comes from memory's `active_pi`. |
+| **4** Prioritize | If the tracker stores WSJF/RICE values already (custom fields), pull them as the prior scores. Re-score only stories the team changed or new ones. | Method preference (WSJF / RICE / MoSCoW) from memory wins if the user is silent. Prior scores reused; deltas annotated. |
+| **4a** ACs | Existing e2e / integration test names are candidate AC sources — reference them by file path. Don't duplicate. | Prior ACs preserved verbatim for unchanged stories. Re-generated only for changed stories. |
+| **4b** E2E contract | Existing playwright / cypress / e2e suite informs the contract — reference scenarios by file path. The contract documents what *should* be covered, not re-writes what is. | Prior contract carries forward; coverage matrix updated only for added/removed activities. |
+| **5** Generate derived | N/A — deterministic from storymap.md | N/A |
+| **6** Hand off | Diff-style summary against the prior artifact (ADDED / MOVED / CUT / UNCHANGED). | If memory is enabled, **write back** updated state to `.user-story-mapping/state.json` (or MCP memory). Never overwrite the decisions log — append-only (see [`persistent-knowledge.md`](persistent-knowledge.md)). |
+
+### Three rules that apply at every stage
+
+1. **Artifact > memory > inferred.** Current files win over stale memory; both win over inference. This sits inside the user-input-authoritative priority order owned by [`../SKILL.md#rules-that-govern-every-run`](../SKILL.md#rules-that-govern-every-run).
+2. **Verify, don't trust.** Load memory; immediately spot-check against current state. If a remembered persona is "CS rep" but the README pivoted away, override and update memory.
+3. **Tag every fact.** Use the shared source-tag vocabulary so reviewers and later loop runs know where each claim came from — defined in [`../SKILL.md#rules-that-govern-every-run`](../SKILL.md#rules-that-govern-every-run).

@@ -1,5 +1,9 @@
 # <Project Name> — Design Doc
 
+## Bottom line
+
+<2-3 sentences, answer-first (Pyramid Principle): the outcome we're after, the one question this work answers, and the core bet. A reader who stops here still has the gist. Everything below is supporting structure — read on for the why and the evidence.>
+
 ## Backbone criteria
 
 These are the criteria chosen when the backbone was generated. **Re-runs of this skill should use the same criteria to keep the backbone stable across runs.**
@@ -38,6 +42,16 @@ move metric Z by N%?".>
 
 ### <Secondary persona name>
 - ...
+
+## Persona interactions
+
+How the personas hand off to, depend on, and connect with each other (not just where they conflict — see the conflict matrix for that). One row per interaction that shapes slicing or sequencing.
+
+| From → To | At which activity | Interaction | Becomes |
+|---|---|---|---|
+| <persona A> → <persona B> | <activity> | <handoff / dependency / shared touchpoint> | <cross-persona `depends_on` / handoff annotation / sequencing note> |
+
+A handoff that crosses a slice boundary is a slice-1 feasibility risk — the downstream persona's story can't ship without the upstream one. Omit this section only when there is a single persona.
 
 ## User activities (the backbone)
 

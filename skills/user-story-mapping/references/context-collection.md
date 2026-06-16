@@ -1,12 +1,28 @@
 # Collecting customer intent from context
 
-Customer intent rarely lives in one place. The user states *part* of it (in the prompt), the codebase encodes *part* of it (in structure, tests, docs), and the rest is in adjacent systems (Jira, Confluence, analytics, production telemetry, prior conversations). **Mining this context before driving discovery makes the resulting story map dramatically more grounded** — backbone activities reflect real user journeys, not aspirational guesses; non-goals reflect work the team already decided not to do; hypotheses are framed against existing data.
+Mine the context that already exists — the repo, its tests and docs, the tracker, prior runs — **before** you interview anyone, and the story map comes out grounded instead of guessed: backbone activities reflect real user journeys, non-goals reflect work the team already decided not to do, and hypotheses are framed against data the team can see. Customer intent is scattered (prompt, codebase, Jira, Confluence, analytics, telemetry, prior conversations); this file is the Step-0 procedure for gathering it cheaply via a hypothesis-driven loop, plus per-source guidance and worked traces.
 
-Do this **as Step 0**, before mode detection. It applies to every mode (A/B/C/D).
+This is **Step 0**. The same scan that gathers intent also establishes the diff baseline and determines whether a tracker is defined — there is no separate "mode detection" step, and "from scratch" is not a special branch. The loop runs every time; an empty baseline simply makes it exit in two or three turns. See the one re-entrant loop and the "tracker defined" predicate in [`../SKILL.md#the-loop`](../SKILL.md#the-loop).
+
+## When to use
+
+**Run it when any of these is true:**
+- The working directory is a code repo (you can see `package.json`, `pyproject.toml`, `Cargo.toml`, `.git/`, etc.).
+- The user mentions a tool (Jira, ADO, GitHub, Linear, Confluence, Notion, Sentry, Datadog, Mixpanel) and an MCP for it is available.
+- The user references an existing system ("our refund flow", "the onboarding screen 3 cliff", "PROP-110").
+- A backlog was pasted (CSV / Jira / ADO / GitHub) — here context collection *is* the discovery.
+
+**Skip or shorten when:**
+- It's a from-scratch idea with no codebase yet — the loop exits fast.
+- The working dir is empty or unrelated to the project.
+- The user gave a complete brief and asked for fast turnaround.
+- The user explicitly says "skip context".
+
+Context collection exists to *speed up* discovery by reducing the questions you have to ask. If scanning would take longer than asking, ask.
 
 ## Loop, don't pipeline
 
-Context collection is NOT a linear pipeline that always mines all six sources. That wastes turns on empty sources (from-scratch projects) and over-investigates when one signal already answers the question. Instead: **hypothesis-driven loop**.
+Do **not** walk all six sources in a fixed order every time — that wastes turns on empty sources and over-investigates when one signal already answers the question. Run a hypothesis-driven loop instead:
 
 ```
 hypothesis = "unknown"
@@ -19,21 +35,21 @@ loop until hypothesis is stable for 2 iterations OR turns_used >= cap:
     4. Surface contradictions immediately
 ```
 
-The loop adapts:
-- **From-scratch verbal idea** (empty dir, no codebase): loop exits after 2-3 turns (`ls` + check for README + re-read prompt). Skips code/test/ADR mining entirely.
-- **Mature existing project**: loop iterates through cheap signals first (README, manifests) then deeper ones (routes, tests, ADRs, commits, tracker MCP) only as the hypothesis demands more.
-- **Mixed-signal project**: contradictions surface early (e.g., README says one thing, code does another) → user asked to clarify before continuing.
-- **Mode D with prior artifact**: load it, then mine only the *delta* — what changed since the prior map.
+The same loop covers every situation:
+- **From-scratch verbal idea** (empty dir, no codebase): exits after 2–3 turns (`ls` + README check + re-read prompt). Skips code/test/ADR mining entirely.
+- **Mature existing project**: iterates cheap signals first (README, manifests) then deeper ones (routes, tests, ADRs, commits, tracker MCP) only as the hypothesis demands more.
+- **Mixed-signal project**: contradictions surface early (README says one thing, code does another) → user asked to clarify before continuing.
+- **Non-empty baseline** (a prior `storymap.md`/`design.md` or saved `state.json` exists): load it, then mine only the *delta* — what changed since the prior map. This is the loop running on an existing map, i.e. iteration, not a separate mode.
 
 ### Starter signals (always try first, in order)
 
 1. **Working directory listing** (free) — empty? populated? what languages?
-2. **User's prompt re-read** (free) — re-anchor on the highest-priority source
-3. **`.user-story-mapping/state.json`** (cheap) — prior runs to extend (Mode D signal)
-4. **`README.md`** (cheap) — one-line product description, often the outcome statement
-5. **Interview notes in the prompt** (already in context) — switch to synthesis mode
+2. **User's prompt re-read** (free) — re-anchor on the highest-priority source.
+3. **`.user-story-mapping/state.json`** (cheap) — prior runs to extend plus any saved tracker config; its presence is the non-empty-baseline signal. Schema and lifecycle live in [`persistent-knowledge.md`](persistent-knowledge.md) §A.
+4. **`README.md`** (cheap) — one-line product description, often the outcome statement.
+5. **Interview notes in the prompt** (already in context) — switch to synthesis mode.
 
-After these 5, you should know: from-scratch vs existing-project, which Mode applies, tech stack hint.
+After these five you should know: from-scratch vs existing-project, whether the baseline is empty or you're iterating, and a tech-stack hint.
 
 ### Branch-conditional sources
 
@@ -47,13 +63,13 @@ Only mine these if the hypothesis warrants:
 | Test names | Test suite present; names = golden paths |
 | `docs/`, `ARCHITECTURE.md`, `docs/adr/` | Mature docs; ADRs reveal constraints |
 | `git log --oneline -50` | Git repo; reveals current activity |
-| Tracker MCP | User mentioned tool OR Mode C |
+| Tracker MCP | User mentioned a tracker OR a backlog was pasted |
 | Analytics/runtime MCP | User mentioned production concern |
 | **Framework state directories** — `.gsd/`, `.superpowers/`, prior `design.md` anywhere in the tree | If any sister-framework is in use |
 
 #### Framework artifacts — the "always check first" sources
 
-When users work inside Claude Code skill frameworks (gstack, GSD, Superpowers), the framework's state directory often contains everything you'd otherwise extract by asking the user — but in cleaner, more authoritative form.
+When users work inside Claude Code skill frameworks (gstack, GSD, Superpowers), the framework's state directory often holds everything you'd otherwise extract by asking — in cleaner, more authoritative form.
 
 | Source | Path | What it gives you |
 |---|---|---|
@@ -64,11 +80,11 @@ When users work inside Claude Code skill frameworks (gstack, GSD, Superpowers), 
 | Superpowers brainstorming output | wherever the user saved it (often `brainstorming.md`) | The "intent" doc the user wrote before this skill ran |
 | Superpowers plans | `plans/<recent>.md` | What the team intended to do recently |
 | gstack `/plan-*-review` outputs | Whatever the user saved | Reviewer feedback on prior plans |
-| Prior `design.md` / `storymap.md` from this skill | `**/design.md`, `**/storymap.md` | Mode D signal — re-use the prior backbone criteria + decisions log |
+| Prior `design.md` / `storymap.md` from this skill | `**/design.md`, `**/storymap.md` | Non-empty-baseline signal — re-use the prior backbone criteria + decisions log |
 
-**Posture: know everything that's already written before asking the user.** Reading `.gsd/Brief.md` is much cheaper than asking "what's the outcome you're going after?". If `design.md` from a prior run exists, the prior backbone criteria + decisions log are reusable — don't re-derive.
+**Posture: know everything that's already written before asking the user.** Reading `.gsd/Brief.md` is far cheaper than asking "what's the outcome you're going after?". If `design.md` from a prior run exists, the prior backbone criteria + decisions log are reusable — don't re-derive. These directories are also the auto-activation cues for sister frameworks; the per-framework handoff and trigger phrasing live in [`framework-integration.md`](framework-integration.md).
 
-Only ask the user when the artifacts don't answer the question. And when you do ask, ask in batches (3-5 questions at a time) — not one at a time.
+Only ask the user when the artifacts don't answer the question. When you do ask, batch it (3–5 questions at a time), not one at a time.
 
 ### Invoking other installed skills as context sources
 
@@ -89,15 +105,11 @@ Available skills appear in the runtime's system-reminders. Only invoke skills th
 
 #### Invocation pattern
 
-1. **Detect what's installed.** Read system-reminder content listing available skills. Filter to ones whose descriptions match your current discovery need.
-2. **Decide if invoking is cheaper than alternatives.** A skill invocation costs 1 turn + the skill's own budget. If the alternative (asking the user 3-5 questions, or mining 5-10 files yourself) is cheaper, do the alternative.
+1. **Detect what's installed.** Read the system-reminder content listing available skills. Filter to ones whose descriptions match your current discovery need.
+2. **Decide if invoking is cheaper than alternatives.** A skill invocation costs 1 turn + the skill's own budget. If the alternative (asking the user 3–5 questions, or mining 5–10 files yourself) is cheaper, do the alternative.
 3. **Invoke via the `Skill` tool** with a precise scope. Don't ask the skill to do everything; ask for the specific input you need.
 4. **Capture the output as a context source** in `design.md` with tag `[skill: <name>]`. Don't re-derive what it returned.
-5. **Honor the same priority order** — user-stated > interview > memory > context > simulated > inferred. A `[skill: <name>]` source sits in the "context" tier; it doesn't override user statements.
-
-#### Cost ceiling
-
-Invoking another skill is expensive: it loads that skill's SKILL.md, may spawn its own subagents, and adds latency. Budget at most **one skill invocation per context-loop run** unless the user explicitly OKs more. If you find yourself wanting to chain 3+ skills, the work is probably too unscoped — stop and ask the user to narrow the discovery first.
+5. **Honor the source priority order.** A `[skill: <name>]` source sits in the "context" tier — it doesn't override user statements. The full priority order and source-tag vocabulary are governed in [`../SKILL.md#rules-that-govern-every-run`](../SKILL.md#rules-that-govern-every-run).
 
 #### Don't auto-invoke skills with side effects
 
@@ -105,21 +117,21 @@ Some installed skills *do things* (deploy, send messages, modify code). Never in
 
 #### When the user mentions a skill by name
 
-If the user says "use my `<skill-name>` skill" or "ask my `<skill-name>` what it knows about X", that's an explicit invocation request — invoke the skill (per the user-input-authoritative principle, user-instructed actions always go through). Record what the invoked skill returned in `design.md` under the appropriate context section.
+If the user says "use my `<skill-name>` skill" or "ask my `<skill-name>` what it knows about X", that's an explicit invocation request — invoke the skill (user-instructed actions always go through). Record what the invoked skill returned in `design.md` under the appropriate context section.
 
 ### Exit conditions
 
-Stop the loop when ANY:
-- Hypothesis stable for 2 iterations
-- ≥15% of total turn budget consumed
-- User said "we have enough, proceed"
-- Empty working dir + no interview notes → pivot to Step 0.4
-- Strong from-scratch signal + no codebase → skip code/test/ADR mining
-- Single strong signal already gave the outcome (e.g., README explicit) → don't keep digging for redundancy
+Stop the loop when ANY of these holds:
+- Hypothesis stable for 2 iterations.
+- ≥15% of total turn budget consumed.
+- User said "we have enough, proceed".
+- Empty working dir + no interview notes → pivot to Step 0.4.
+- Strong from-scratch signal + no codebase → skip code/test/ADR mining.
+- A single strong signal already gave the outcome (e.g., README explicit) → don't keep digging for redundancy.
 
-### Surface findings in design.md
+### Surface the trace in design.md
 
-Write the loop's trace into `design.md` as documentation — a reviewer can then see exactly what evidence drove which conclusion. Two sections:
+Write the loop's trace into `design.md` as documentation — a reviewer can then see exactly what evidence drove which conclusion.
 
 ```markdown
 ## Context loop trace
@@ -136,34 +148,12 @@ Write the loop's trace into `design.md` as documentation — a reviewer can then
 - README says "Stripe-powered invoicing" — outdated per ADR-0017 (Paddle migration). Likely safe; ADR is recent. Confirm with user.
 ```
 
-### Cost ceiling and override
-
-Target: 5–15 tool calls for context collection on a typical project. Hard cap: 20 tool calls. If you're approaching the cap and the hypothesis still isn't stable, the project is genuinely complex — write your current best understanding to `design.md`, flag the residual ambiguity, and proceed.
-
-If the user explicitly says "skip context — just build the map" or "I have a brief, work from this only", honor it. Skip Step 0 entirely; treat the prompt as the complete input. Tag everything in `design.md` as `[user-stated]` or `[inferred]` only.
-
-### What this gets right
+### Worked traces — the loop on four different inputs
 
 - **From-scratch verbal idea**: loop exits in 2–3 turns (listing + README check + prompt re-read = "no codebase, no prior artifact, just an idea"). Skips code/test/ADR mining entirely. Pivots to Step 0.4.
-- **Mature existing project**: loop iterates README → manifests → routes → tests → ADRs → commits → tracker, refining hypothesis at each step. Stops when stable.
+- **Mature existing project**: loop iterates README → manifests → routes → tests → ADRs → commits → tracker, refining the hypothesis at each step. Stops when stable.
 - **Mixed signal**: README says "we're a mobile app" but `Cargo.toml` says Rust + Tauri → contradiction surfaced; user asked to clarify; only ONE side gets pursued.
-- **Mode D with tracker MCP**: existing `storymap.md` + Jira MCP → load both, reconcile, surface deltas. Skips full code mining.
-
-## When to do this — and when to skip entirely
-
-**Do it when:** any of these is true:
-- The working directory is a code repo (you can see `package.json`, `pyproject.toml`, `Cargo.toml`, `.git/`, etc.)
-- The user mentions a tool (Jira, ADO, GitHub, Linear, Confluence, Notion, Sentry, Datadog, Mixpanel) and an MCP for it is available
-- The user references an existing system ("our refund flow", "the onboarding screen 3 cliff", "PROP-110")
-- Mode C (from existing backlog) — context collection IS the discovery
-
-**Skip or shorten when:**
-- Mode A from-scratch on a brand-new idea with no codebase yet (loop will exit fast)
-- Working dir is empty / unrelated to the project
-- User has explicitly provided a complete brief and asked for fast turnaround
-- User explicitly says "skip context"
-
-Context collection is supposed to *speed up* discovery by reducing the questions you need to ask the user. If it would take longer to scan context than to ask, skip it.
+- **Non-empty baseline + tracker MCP**: existing `storymap.md` + Jira MCP → load both, reconcile, surface deltas. Skips full code mining. (This is the iteration path; Step 0.5 reconciliation runs because the baseline is non-empty.)
 
 ## The six context sources
 
@@ -198,7 +188,7 @@ The folder layout and public exports encode the team's current mental model of a
 | Recent commits / PRs (last 30 days) | What the team is *actually* working on right now |
 | TODO/FIXME/XXX comments | Known gaps the team has already flagged |
 
-How to use: start with `Glob` for paths like `src/**/*.{ts,tsx,py,go,rs}` and a top-level `ls`. For routes, grep for routing decorators (`@app.route`, `@RequestMapping`, `<Route path=`). Read 3-5 representative files, not every file.
+How to use: start with `Glob` for paths like `src/**/*.{ts,tsx,py,go,rs}` and a top-level `ls`. For routes, grep for routing decorators (`@app.route`, `@RequestMapping`, `<Route path=`). Read 3–5 representative files, not every file.
 
 ### 3. Tests (medium cost, very high signal)
 
@@ -242,7 +232,7 @@ Look in: `docs/adr/`, `docs/decisions/`, `architecture/decisions/`, `decisions/`
 | **Decision** | What was decided |
 | **Consequences** | What's locked-in / what's traded away — these become non-goals candidates |
 
-Read the latest 5-10 accepted ADRs. For each, ask: "Does this constrain the backbone or eliminate work I might have proposed?" If yes, record in `design.md` under "Constraints" with an ADR-id reference (`Per ADR-0017: ...`).
+Read the latest 5–10 accepted ADRs. For each, ask: "Does this constrain the backbone or eliminate work I might have proposed?" If yes, record in `design.md` under "Constraints" with an ADR-id reference (`Per ADR-0017: ...`).
 
 If a recent ADR contradicts a user statement ("we want OAuth" but ADR-0023 just deprecated OAuth in favor of OIDC), surface as an **open question** — don't silently pick one.
 
@@ -250,7 +240,7 @@ If a recent ADR contradicts a user statement ("we want OAuth" but ADR-0023 just 
 
 The commit log is the most honest source of intent the team has. It tells you what's getting built *right now*, what got abandoned, who's working on what, and where the friction is.
 
-Pull the last 30-50 commits on the default branch (or PI window if known). Look for:
+Pull the last 30–50 commits on the default branch (or PI window if known). Look for:
 
 | Signal | What it means |
 |---|---|
@@ -261,7 +251,7 @@ Pull the last 30-50 commits on the default branch (or PI window if known). Look 
 | **Long PR descriptions for small commits** | Often a sign of contentious changes — read the PR body for context on what was traded off |
 | **`chore:` / `refactor:` commits in a cluster** | Pre-work for a bigger upcoming feature — ask the user what that feature is |
 
-How to fetch: `git log --oneline -50` and (if you want bodies) `git log -10 --format=fuller`. Don't read every commit body — sample 3-5 recent ones from each cluster.
+How to fetch: `git log --oneline -50` and (if you want bodies) `git log -10 --format=fuller`. Don't read every commit body — sample 3–5 recent ones from each cluster.
 
 **Combined ADR + commit signal**: an ADR proposes something; the commit log shows whether it actually got implemented. ADRs that were "Accepted" but the commit log shows zero implementation work are red flags worth raising.
 
@@ -280,7 +270,7 @@ The actual behavior of the running system reveals intent the team may not have a
 
 How to use: only mine runtime data if MCP is wired up. Don't speculate from screenshots or descriptions; either get the data or skip this source.
 
-### 6. Other MCPs — work-item systems (high cost, very high signal for Mode C)
+### 6. Other MCPs — work-item systems (high cost, very high signal when a tracker/backlog exists)
 
 Existing tracker data is often the single richest source of customer intent.
 
@@ -293,7 +283,9 @@ Existing tracker data is often the single richest source of customer intent.
 | Slack MCP | Recent product-channel conversations |
 | Anthropic Memory MCP | Prior conversations about the project |
 
-**For Mode C (existing backlog)**, this is your primary source — the CSV the user pastes is the surface, but the tracker has metadata (labels, priorities, comments, links to PRs) the CSV loses. Always ask: "Would it help to pull the live tracker via MCP, or is the export sufficient?"
+**When a tracker or backlog exists**, this is your primary source — the CSV the user pastes is the surface, but the tracker has metadata (labels, priorities, comments, links to PRs) the CSV loses. Always ask: "Would it help to pull the live tracker via MCP, or is the export sufficient?"
+
+**Pull the taxonomy read-only too, not just the issues** — so Steps 2–4 reuse the team's existing categories instead of inventing new ones, and Step 6 can persist it. The full pull list, the propose-don't-create rule, and the mapping table live in [`work-item-tracking.md`](work-item-tracking.md#align-to-the-existing-tracker-taxonomy) under "Align to the existing tracker taxonomy".
 
 ## The procedure
 
@@ -311,7 +303,7 @@ Step 0 (this step)
         - What are the current "activities" implied by routes/tests/issues?
         - What gaps or contradictions stand out?
 
-Then proceed to Mode detection and the normal workflow.
+Then proceed to the diff (Step 0.5 reconciliation when the baseline is non-empty) and the normal workflow.
 ```
 
 ## How to surface findings in artifacts
@@ -337,12 +329,21 @@ This makes the resulting story map auditable: a reviewer can see what evidence d
 
 Don't quietly resolve conflicts. Surface them as **open questions** in `design.md` and (where they affect ranking) as **hypotheses** to validate in slice 1. Examples:
 
-- README claims "10 min onboarding" but analytics show median 47 min → hypothesis H1: simplifying flow X reduces time-to-activation by Y%
-- Test suite covers checkout exhaustively but no e2e tests for refund → flagged as coverage gap, not as scope expansion
-- Jira has 6 "must-fix" P0 bugs in dashboard, but user prompt focuses on a new feature → ask: should the bugs go in slice 1 first?
+- README claims "10 min onboarding" but analytics show median 47 min → hypothesis H1: simplifying flow X reduces time-to-activation by Y%.
+- Test suite covers checkout exhaustively but no e2e tests for refund → flagged as coverage gap, not as scope expansion.
+- Jira has 6 "must-fix" P0 bugs in dashboard, but the user prompt focuses on a new feature → ask: should the bugs go in slice 1 first?
+
+## What NOT to do
+
+- Don't walk all six sources in fixed order regardless of signal — that's the pipeline anti-pattern this whole file replaces.
+- Don't keep digging once the hypothesis is stable; redundant confirmation burns the budget that belongs to the artifacts.
+- Don't speculate runtime behavior from screenshots or prose — either pull the data via MCP or skip source 5.
+- Don't read secret values from `.env`; the integration surface is enough.
+- Don't auto-invoke skills that have side effects, and don't chain 3+ context skills in one run.
+- Don't silently pick a side when context conflicts — surface it as an open question.
 
 ## Cost ceiling
 
-Total Step-0 context collection should consume **<15% of total turns/tokens** for the skill invocation. If you find yourself reading 20+ files or making 30+ MCP calls, you've gone too deep — the budget belongs to producing the actual artifacts. Stop, synthesize what you have, and proceed.
+Total Step-0 context collection should consume **<15% of total turns/tokens** for the skill invocation. A good rule of thumb: 5–15 tool calls on a typical repo; hard cap 20. Reach for breadth (sampling many sources) over depth (reading entire files). Invoking another installed skill is expensive (it loads that skill's SKILL.md, may spawn its own subagents, adds latency) — budget at most **one skill invocation per context-loop run** unless the user explicitly OKs more; if you want to chain 3+ skills, the work is too unscoped, so stop and ask the user to narrow the discovery first. If you approach the cap and the hypothesis still isn't stable, the project is genuinely complex — write your current best understanding to `design.md`, flag the residual ambiguity, and proceed.
 
-A good rule of thumb: 5-15 tool calls for context collection on a typical repo. Reach for breadth (sampling many sources) over depth (reading entire files).
+If the user explicitly says "skip context — just build the map" or "I have a brief, work from this only", honor it: skip Step 0 entirely, treat the prompt as the complete input, and tag everything in `design.md` as `[user-stated]` or `[inferred]` only.

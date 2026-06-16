@@ -1,18 +1,16 @@
 # Role hints (UX/UI designer, architect) and flow advice from sister skills
 
-This reference covers Step 2.5 — the small-but-high-leverage step that turns a story map from "engineer-ready backlog" into something a UX/UI designer and an architect can also act on, and that pulls in domain expertise from other installed skills when it's available.
-
-The output is `role-hints.md` (plus advice notes folded into `design.md`). Don't conflate this with full design or architecture work — `role-hints.md` is a *head-start* artifact, not a deliverable that replaces the designer's or architect's own work.
+Step 2.5 produces `role-hints.md` — a head-start artifact that turns the story map from an engineer-ready backlog into something a UX/UI designer and an architect can also act on first, and that folds in domain expertise from other installed skills when one matches a backbone flow. It is a *starting point that names what each role should look at first*, never a design system or an architecture decision record — the designer and architect still own their deliverables. Run it after Step 2 (per-persona stories) and before slicing locks in commitments.
 
 ## When to run Step 2.5
 
-- **Always run** when ≥1 persona faces a UI surface AND ≥1 backbone activity touches a non-trivial system boundary (third party, multi-tenant data, regulated data, async workflow). That's most product work.
+- **Always run** when ≥1 persona faces a UI surface AND ≥1 backbone activity touches a non-trivial system boundary (third party, multi-tenant data, regulated data, async workflow). That covers most product work.
 - **Skip** when:
   - Pure infra / cron / cleanup work with no UI (architect hints might still be useful — produce just that half)
   - Solo founder pre-PMF doing 1-week experiments — overhead exceeds value
   - User explicitly says "skip the role hints, we have a designer/architect already on this"
 
-When in doubt, produce a minimal `role-hints.md` — even ten lines per role is more useful than zero.
+When in doubt, produce a minimal `role-hints.md` — even ten lines per role beats zero.
 
 ## Inputs
 
@@ -22,7 +20,7 @@ When in doubt, produce a minimal `role-hints.md` — even ten lines per role is 
 2. `storymap.md` backbone activities + per-persona stories (Step 2 output)
 3. `## Non-backbone / cross-cutting` section of `storymap.md` (themes for the architect)
 4. Any third-party integrations or platform constraints surfaced during context collection
-5. Skill-chaining results (see "Flow-advisor skill chaining" below) — folded into the relevant role section
+5. Skill-chaining results (see [Flow-advisor skill chaining](#flow-advisor-skill-chaining) below) — folded into the relevant role section
 
 If any input is missing, note it explicitly in the corresponding section: "(no cross-cutting themes recorded — confirm with user)".
 
@@ -143,7 +141,7 @@ Adapt the headings to the project — if there's no Compliance persona, drop tha
 
 ## Flow-advisor skill chaining
 
-The Skill tool may expose other installed skills. Some of them are domain experts on flows that appear in your backbone. Use them.
+The Skill tool may expose other installed skills. Some of them are domain experts on flows that appear in your backbone. Use them — within the per-run cap.
 
 ### Discovery protocol
 
@@ -160,8 +158,8 @@ At the entry to Step 2.5:
    - Cross-cutting "accessibility / a11y" theme → look for `accessibility*`, `a11y*` skills
    - Cross-cutting "i18n / localization" theme → look for `i18n*`, `*localization*`, `*translation*` skills
    - Cross-cutting "multi-tenancy" theme → look for `multitenant*`, `*tenant*`, `*saas*` skills
-3. **Dedupe and rank** — at most 3 invocations per run (the cap). Rank by impact: which flows are in slice 1 (high), slice 2 (medium), later (skip)?
-4. **Skip sister-framework slash-commands** — gstack `/plan-design-review`, Superpowers `brainstorming`, etc. are user-facing commands, not advisors to invoke from within this skill. They are inbound integrations, not outbound. (See `framework-integration.md`.)
+3. **Dedupe and rank by impact** — which flows are in slice 1 (high), slice 2 (medium), later (skip)? Stay within the Step 2.5 advisor cap — see the skill-chaining caps in [SKILL.md → Rules that govern every run](../SKILL.md#rules-that-govern-every-run) (Rule 5).
+4. **Skip sister-framework slash-commands** — gstack `/plan-design-review`, Superpowers `brainstorming`, etc. are user-facing commands, not advisors to invoke from within this skill. They are inbound integrations, not outbound. (See [framework-integration.md](framework-integration.md).)
 
 ### Invocation pattern
 
@@ -187,6 +185,7 @@ Tag with `[skill: <name> @ <date>]` in `design.md` so reviewers can trace which 
 ### When the advisor says "I don't know" or asks for more context
 
 If the advisor responds with clarifying questions, you have two options:
+
 1. **Pass through to the user** — surface the questions; treat them as additional gaps under Step 0.4
 2. **Fold into open questions** — add the unanswered items under "Open UX questions" or "Open architecture questions" in `role-hints.md`
 
@@ -205,13 +204,22 @@ Document it explicitly in `role-hints.md`:
 
 This is honest signal — it tells the user where outside expertise is needed, without pretending the skill provided it.
 
+## Refining `role-hints.md` on a non-empty baseline (iteration)
+
+When the loop runs on an existing storymap rather than from scratch:
+
+1. **Read the prior `role-hints.md`** if it exists — it's authoritative for any persona snapshots and constraints that weren't re-derived
+2. **Diff the new backbone vs. the old** — added activities → new flow inventory rows + new boundary candidates; removed activities → archive (don't silently delete) the related hints
+3. **Re-invoke advisor skills** only for *new* flows or for flows where the advice has plausibly changed since the last run (e.g., if Stripe published a major API change). Don't re-invoke just because time passed.
+4. **Append to the decisions log** in `design.md` for any UX or architecture question resolved since the prior run — append-only, never overwrite. The append-only decisions-log rule is owned by [persistent-knowledge.md](persistent-knowledge.md).
+
 ## Anti-patterns
 
 - **Don't author UX or architecture work from inside this skill.** `role-hints.md` is a head-start with concrete pointers, not a design system or an architecture decision record. The designer and architect own the deliverables; this skill seeds them.
 - **Don't fabricate persona snapshots.** If `design.md` doesn't have a verbatim or interview source for a persona's pain point, write `[inferred]` and surface it as an open question. Don't invent UX advice grounded in nothing.
-- **Don't invoke 5 advisor skills "just in case".** The cap is 3, and you should usually be at 1-2. Each invocation costs turns and adds maintenance burden — only invoke when the flow actually has a known-pattern surface (auth, payment, search, accessibility).
-- **Don't let advisor output override user-stated decisions.** If the user said "we don't need refund webhooks in slice 1" and the payment advisor says "you absolutely need refund webhooks", the user wins. Surface the advisor's objection as a future-slice risk, not a slice-1 override. Same user-input-authoritative principle that governs persona simulation.
-- **Don't generate `role-hints.md` after slice-1 ACs are written.** The point of Step 2.5 is that designer/architect questions surface *before* slicing locks in commitments. If you delay, you produce hints that are documenting a decision instead of informing it.
+- **Don't invoke advisor skills "just in case".** You should usually be at 1-2, never above the Step 2.5 cap. Each invocation costs turns and adds maintenance burden — only invoke when the flow actually has a known-pattern surface (auth, payment, search, accessibility).
+- **Don't let advisor output override user-stated decisions.** If the user said "we don't need refund webhooks in slice 1" and the payment advisor says "you absolutely need refund webhooks", the user wins — surface the advisor's objection as a future-slice risk, not a slice-1 override. This follows the same user-input-authoritative priority order that governs persona simulation; see [SKILL.md → Rules that govern every run](../SKILL.md#rules-that-govern-every-run).
+- **Don't generate `role-hints.md` after slice-1 ACs are written.** The point of Step 2.5 is that designer/architect questions surface *before* slicing locks in commitments. If you delay, you produce hints that document a decision instead of informing it.
 - **Don't duplicate `design.md` content.** `role-hints.md` references personas and activities by name; the source of truth stays in `design.md`. If you're copy-pasting paragraphs across files, you're producing maintenance debt.
 
 ## Cost ceiling
@@ -220,21 +228,12 @@ Step 2.5 should consume 10-15% of the total turn budget — most of it is restru
 
 If Step 2.5 is exceeding 20% of the budget, you're authoring instead of summarizing. Stop, write what you have, and document the gaps as open questions.
 
-## Mode D and `role-hints.md`
-
-When refining an existing storymap (Mode D):
-
-1. **Read the prior `role-hints.md`** if it exists — it's authoritative for any persona snapshots and constraints that weren't re-derived
-2. **Diff the new backbone vs. the old** — added activities → new flow inventory rows + new boundary candidates; removed activities → archive (don't silently delete) the related hints
-3. **Re-invoke advisor skills** only for *new* flows or for flows where the advice has plausibly changed since the last run (e.g., if Stripe published a major API change). Don't re-invoke just because time passed.
-4. **Append to the decisions log** in `design.md` for any UX or architecture question that was resolved since the prior run. Don't overwrite — append-only.
-
 ## Where this fits in the framework integrations
 
 - **Superpowers** — `role-hints.md` is *not* the same as a `brainstorming` design doc; brainstorming clarifies intent (input to this skill), `role-hints.md` is downstream of intent. After this skill produces `role-hints.md`, the designer / architect work on it before `writing-plans` decomposes slice 1 into tasks.
-- **gstack** — `/plan-design-review` reviews `role-hints.md` for UX coherence + persona narratives; `/plan-eng-review` reviews `role-hints.md` architect section for engineering feasibility. Both are *inbound* commands the user runs; this skill produces the input.
+- **gstack** — `/plan-design-review` reviews `role-hints.md` for UX coherence + persona narratives; `/plan-eng-review` reviews the `role-hints.md` architect section for engineering feasibility. Both are *inbound* commands the user runs; this skill produces the input.
 - **GSD** — `role-hints.md` lives alongside the GSD Brief and informs Milestone planning. Reference it in `.gsd/Brief.md` (after the user imports), not write directly into `.gsd/`.
 
-The handoff line at Step 6 should name `role-hints.md` if it was produced:
+The per-framework handoff cues and the GSD slice/Milestone terminology collision are owned by [framework-integration.md](framework-integration.md). The handoff line at Step 6 should name `role-hints.md` if it was produced:
 
 > "Slice 1 (12 stories) → .gsd/Roadmap.md + TODO.md. Designer should read role-hints.md§UX before slice-1 mocks; architect should read role-hints.md§Architect before slice-1 contracts. Run /gsd discuss next."

@@ -3,6 +3,10 @@
 > **Method:** WSJF (per user request — SAFe context)
 > **Slicing:** PI 1 / PI 2 / PI 3, 12-week PIs
 
+## Bottom line
+
+**Start here:** PI 1 leads with the governance-for-velocity trade — S012 (mandatory tags) and S027 (spend dashboard) are the platform team's risk-reduction win in exchange for the deferred approval queue, ranked alongside S001 (SSO) and S008 (safe-by-default blueprints), which are what make permit-by-default defensible.
+
 See `backlog.csv` for the full table with all scoring columns.
 
 ## Top 10 (this slice — PI 1)

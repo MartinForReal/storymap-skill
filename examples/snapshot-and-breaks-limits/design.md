@@ -1,8 +1,12 @@
-# Design Doc — Refund Portal — PI 1 mid-flight refinement (Mode D)
+# Design Doc — Refund Portal — PI 1 mid-flight refinement
 
 > **Outcome:** Determine whether SCIM 2.0 provisioning ($400K ARR deal commit) fits into the remaining 6 weeks of PI 1 without breaking SOC 2 audit readiness or the org-committed KR-2.1 (CS time-per-ticket cut).
-> **Mode:** D (iterative refinement against a mid-flight PI)
+> **Run:** Refinement of an existing map (the loop re-run against a mid-flight PI)
 > **Snapshot taken:** 2026-06-08 (6 weeks into a 12-week PI; 6 weeks remaining)
+
+## Bottom line
+
+The $400K SCIM commit (~25 SP, 5-week deadline) does **not** cleanly fit the remaining 50 SP of PI 1 — and PI 1 was already ~20 SP underwater before SCIM entered. It can fit only at the minimum bundle, and only by cutting ~29 SP of existing work and re-baselining KR-2.1 with Marcus. Six breaches are surfaced with trade-off options; every resulting commitment is conditional on user confirmation.
 
 ---
 
@@ -58,6 +62,7 @@ F-SCIM is **provisioning** (creating users + group membership via SCIM 2.0). It 
 - [user-stated] Sales commit: $400K ARR + 5-week deadline for SCIM
 - [user-stated] Team shape: 4 eng + 1 PM + 0.5 SRE
 - [user-stated] Decisions log entry on auto-approve
+- [user-stated] The team's existing PI 1 tracker is the **system of record** — the PI 1 work and its acceptance criteria live there (carried forward, not re-derived)
 - [inferred] Backbone activities — extracted from PI 1 story set (see storymap.md)
 
 ### Contradictions flagged
@@ -123,7 +128,7 @@ If "before EOQ" only requires "demonstrable in a sales call," F-SCIM-04 can defe
 
 ---
 
-## Anti-goals for this Mode D pass
+## Anti-goals for this refinement pass
 
 - Do **not** silently absorb F-SCIM by quietly slipping KR-2.1 stories.
 - Do **not** re-derive the prior backbone — only add the new activity.
