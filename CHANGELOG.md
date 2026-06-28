@@ -2,6 +2,16 @@
 
 All notable changes to **storymap-skill** are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning is [SemVer](https://semver.org/).
 
+## [0.0.6] — 2026-06-28 — compressed runtime docs and explicit plan-stage triggers
+
+### Changed — runtime instruction compression
+
+- Applied a compress-text + SkillOpt pass to `SKILL.md` and all 20 references: **36,088 → 27,430 words** (-24.0%) and **235,061 → 188,220 chars** (-19.9%) while preserving frontmatter, links/anchors, source tags, numeric hard rules, auto-trigger cues, and parser behavior.
+
+### Changed — Plan-stage auto-activation cues
+
+- Clarified Superpowers plan generation, gstack `/plan-dev-design-review` / any `/plan-*-review`, and design-doc plan-adjustment loops explicitly route through this skill.
+
 ## [0.0.5] — 2026-06-16 — items+status manifest always; mode-terminology fully purged
 
 A small but real spec change on top of v0.0.4: every run produces a flat items+status list as a checked-in snapshot, regardless of whether an issue tracker is the system of record. And the legacy "Mode A/B/C/D" terminology is now gone from every working artifact (only [0.0.4] and earlier historical CHANGELOG blocks retain the term, as they describe what was true when those versions shipped).

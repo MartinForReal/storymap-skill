@@ -1,20 +1,20 @@
 # Where the items land — output-routing decision
 
-Route by the baseline, not by chat: an **empty baseline (no tracker defined) → seed an issue tracker** so the team has somewhere to work; a **non-empty baseline (tracker defined) → persist to sister-framework state, a plain `TODO.md`, or Memory MCP** and never push into the curated queue uninvited. Wrong destination is expensive both ways — pushing 50 fresh stories into a mature Jira backlog pollutes a curated work queue; keeping the plan only in chat means it evaporates.
+Route by baseline, not chat: **empty baseline (no tracker defined) → seed an issue tracker**; **non-empty baseline (tracker defined) → persist to sister-framework state, `TODO.md`, or Memory MCP** and never push into curated queues uninvited. Wrong: stories pollute Jira; chat-only plans evaporate.
 
 ## When to use
 
-Read this at Step 5/6, once the backbone, slices, and ranked backlog exist and you must decide where the items physically go. The routing decision hinges on one predicate computed earlier — "is a tracker defined?" — whose operational detector this file owns (below). Claude Code's `TodoWrite` is an orthogonal in-session execution helper, covered here too — pair it with a persistent destination when the user is about to code.
+At Step 5/6, after backbone, slices, and ranked backlog. Routing hinges on "is a tracker defined?" — detector owned here. `TodoWrite` is in-session only; pair it with persistence before coding.
 
 ## The decision in one sentence
 
-**Empty baseline (no tracker defined) → seed an issue tracker.** **Non-empty baseline (tracker defined) → persist to framework state, plain `TODO.md`, or Memory MCP.** `TodoWrite` is orthogonal — pair it with a persistent destination, never use it as the system of record.
+**Empty baseline (no tracker defined) → seed an issue tracker.** **Non-empty baseline (tracker defined) → framework state, `TODO.md`, or Memory MCP.** `TodoWrite` is orthogonal — pair with persistence; never system of record.
 
 ## Detecting the empty baseline (no tracker defined)
 
-This is the operational detector for the **"tracker defined" test** — the predicate itself is stated once in [../SKILL.md#the-loop](../SKILL.md#the-loop). The loop decides it once in Step 0 — from the data sources, not from anything the user labels the work — and reuses it everywhere: the routing below, **which files get produced** ([§ What each branch produces](#what-each-branch-produces)), the conditional `storymap.mmd`, and the tracker burn-down write-back.
+Detector for the **"tracker defined" test** — predicate stated once in [../SKILL.md#the-loop](../SKILL.md#the-loop). Step 0 decides from data, not labels, then reuses it for routing, **which files get produced** ([§ What each branch produces](#what-each-branch-produces)), conditional `storymap.mmd`, and burn-down write-back.
 
-ALL of the following = empty baseline / **no tracker defined**:
+ALL following = empty baseline / **no tracker defined**:
 
 - No package manifest (`package.json` / `pyproject.toml` / `Cargo.toml` / `go.mod` / `Gemfile`)
 - No populated `.git` history (≤3 commits, all setup)
@@ -22,36 +22,36 @@ ALL of the following = empty baseline / **no tracker defined**:
 - No tracker MCP used during Step 0
 - No `.gsd/`, `.superpowers/`, or `.user-story-mapping/`
 
-Any failure → **non-empty baseline / tracker defined** (the "existing" branch). A passing mention of a tool the company uses elsewhere — no MCP connected, no project named for *this* work — does **not** count as a tracker defined. Decide this once in Step 0 and reuse it; do not re-derive at Step 6.
+Any failure → **non-empty baseline / tracker defined** (the "existing" branch). Generic company-tool mention — no MCP, no project for *this* work — does **not** count. Decide once in Step 0; don't re-derive at Step 6.
 
-Two edge cases worth knowing:
+Edge cases:
 
 | Signal | Branch |
 |---|---|
 | Mature repo, but user says "ignore the existing backlog, this is a clean PI" | Empty baseline — user override wins per the user-input-authoritative priority order ([../SKILL.md#rules-that-govern-every-run](../SKILL.md#rules-that-govern-every-run)) |
 | Empty working dir, but user says "this is for the existing `acme-billing` repo, I just haven't cloned it" | Tracker defined — the project exists even if the working dir doesn't |
 
-When signals conflict, **ask once**: "treat as new (seed tracker) or existing (keep in framework state)?"
+When signals conflict, **ask once**: "new (seed tracker) or existing (keep in framework state)?"
 
 ## What each branch produces
 
-The output **set** keys off one thing: **is an issue tracker (Jira / ADO / GitHub Issues / Linear) the system of record?** — the "tracker defined" predicate above. (Sister-framework state like `.gsd/` is a non-empty baseline but *not* an issue tracker.) Canonical tier list: [../SKILL.md § What it produces](../SKILL.md#what-it-produces).
+The output **set** depends on: **is an issue tracker (Jira / ADO / GitHub Issues / Linear) system of record?** (`.gsd/`-style state is non-empty baseline but *not* issue tracker.) Tiers: [../SKILL.md § What it produces](../SKILL.md#what-it-produces).
 
-- **Always, every run:** `design.md` (rationale) + `storymap.md` (the authored narrative the parser/import reads) + `storymap.csv` (the flat items+status manifest — a deterministic projection of `storymap.md`, useful as a checked-in snapshot regardless of where the dynamic plan lives).
-- **No issue tracker** (empty baseline *or* an existing project whose system of record is framework state / `TODO.md`): also emit the visualization + ranked-backlog views — `storymap.mmd`, `backlog.md`, `backlog.csv` — because the plan needs somewhere live to be navigated and ranked. Persist or seed them per the branches below.
-- **Issue tracker defined:** do **not** emit `storymap.mmd` / `backlog.{md,csv}` — the tracker provides the live navigation + ranked view. The plan goes into the tracker via the opt-in write-back, which sets each item's **burn-down fields** (points + sprint + status) — see [work-item-tracking.md § Enable the tracker burn-down](work-item-tracking.md#enable-the-tracker-burn-down). The ranked "start here" summary moves into `handoff.md`. `storymap.csv` is still produced (it's a checked-in manifest, not a dynamic ranking).
+- **Always, every run:** `design.md` (rationale) + `storymap.md` (parser/import narrative) + `storymap.csv` (flat items+status manifest; deterministic `storymap.md` projection).
+- **No issue tracker** (empty baseline *or* existing project whose system of record is framework state / `TODO.md`): also emit `storymap.mmd`, `backlog.md`, and `backlog.csv` for navigation/ranking. Persist/seed below.
+- **Issue tracker defined:** do **not** emit `storymap.mmd` / `backlog.{md,csv}`; tracker provides navigation/ranking. Opt-in write-back sets **burn-down fields** (points + sprint + status) — see [work-item-tracking.md § Enable the tracker burn-down](work-item-tracking.md#enable-the-tracker-burn-down). Put ranked "start here" in `handoff.md`; still produce `storymap.csv` as manifest.
 
 ## The seed branch (empty baseline)
 
-Goal: give the team a tracker to work out of, populated from `backlog.csv`.
+Goal: create tracker from `backlog.csv`.
 
-Pick the tracker per the decision tree in [work-item-tracking.md](work-item-tracking.md#decision-tree-for-the-user) — it covers the GitHub-remote / ADO-remote / Linear / Jira / ask-user logic. Generate the import script; don't auto-run it. Also write a thin `.user-story-mapping/state.json` per [persistent-knowledge.md §A](persistent-knowledge.md) (including the `tracker` block once a tracker is chosen) so a future iteration of the loop can find the tracker and stay consistent.
+Pick tracker via [work-item-tracking.md](work-item-tracking.md#decision-tree-for-the-user): GitHub-remote / ADO-remote / Linear / Jira / ask-user. Generate import script; don't auto-run it. Write `.user-story-mapping/state.json` per [persistent-knowledge.md §A](persistent-knowledge.md), including `tracker`, for future iterations.
 
-Do NOT also write to `TODO.md` or Memory MCP on this branch — the tracker is the system of record now.
+Do NOT write to `TODO.md` or Memory MCP here — tracker is system of record.
 
 ## The keep branch — persistence cascade (tracker defined)
 
-Walk in order. Write to **the first destination that applies**; optionally add Memory MCP if cross-session recall matters.
+Walk in order. Write to **the first destination that applies**; optionally add Memory MCP.
 
 ### 1. Sister-framework state (highest priority when present)
 
@@ -61,11 +61,11 @@ Walk in order. Write to **the first destination that applies**; optionally add M
 | `.superpowers/` or `plans/` in use by Superpowers | `plans/<dated-name>.md` next to existing plans |
 | `.user-story-mapping/` from a prior run | `.user-story-mapping/state.json` delta + `decisions.log.md` append |
 
-Conventions: [framework-integration.md](framework-integration.md) (gstack / GSD / Superpowers handoff lines) and [persistent-knowledge.md §A](persistent-knowledge.md) (the `.user-story-mapping/` schema). Don't invent new file shapes.
+Conventions: [framework-integration.md](framework-integration.md) (gstack / GSD / Superpowers handoff lines) and [persistent-knowledge.md §A](persistent-knowledge.md) (`.user-story-mapping/` schema). Don't invent shapes.
 
 ### 2. Plain `TODO.md` at the repo root (universal fallback)
 
-Safe default for projects with code + history but no framework state.
+Default for code + history with no framework state.
 
 ```markdown
 # TODO
@@ -84,11 +84,11 @@ Safe default for projects with code + history but no framework state.
 - [ ] **Partial refunds** — *CS rep* — `WSJF: 9`
 ```
 
-**Always append, never overwrite.** If `TODO.md` already exists, add a dated section with a `---` rule above it — the existing content is someone's prior work.
+**Always append, never overwrite.** If `TODO.md` exists, add a dated section with a `---` rule above it.
 
 ### 3. Anthropic Memory MCP (cross-session recall)
 
-When `mcp__*_memory__*` is available AND the user has opted in or asked the skill to "remember" the plan. Project / PI / hypothesis entity shapes live in [persistent-knowledge.md §B](persistent-knowledge.md) — don't duplicate them. Add one new entity per slice-1 story (skip the deferred ones — too noisy):
+Use when `mcp__*_memory__*` is available AND user opted in or asked to "remember". Project / PI / hypothesis shapes live in [persistent-knowledge.md §B](persistent-knowledge.md) — don't duplicate them. Add one entity per slice-1 story; skip deferred:
 
 ```
 Entity: story:S001
@@ -102,7 +102,7 @@ Entity: story:S001
 
 ## Claude Code `TodoWrite` — orthogonal in-session helper
 
-Not a persistence destination. When the user is about to execute slice 1 in the same Claude Code session, populate the in-session todo list so the stories appear in the working list:
+`TodoWrite` is not persistence. If the user will execute slice 1 now, populate the working list:
 
 ```
 TodoWrite([
@@ -111,11 +111,11 @@ TodoWrite([
 ])
 ```
 
-Slice-1 stories only — don't dump the full backlog. **Always pair with one of the three persistence destinations above**; `TodoWrite` dies with the session.
+Slice-1 stories only — not full backlog. **Always pair with one of the three persistence destinations above**; `TodoWrite` dies with the session.
 
 ## The handoff line
 
-Tell the user in one line where the items landed and what to do next:
+Tell the user landing spot and next step:
 
 ```
 "Slice 1 (12 stories) → .gsd/Roadmap.md + .user-story-mapping/state.json;
@@ -129,15 +129,15 @@ Tell the user in one line where the items landed and what to do next:
 
 ## Anti-patterns
 
-- **Pushing to a populated tracker without asking.** A mature backlog is someone's curated queue. Seed only on an empty baseline; require explicit opt-in for a defined tracker.
-- **Silently overwriting `TODO.md`.** Always append with a dated header.
-- **Dumping the full backlog into TodoWrite.** Slice 1 only — it's a working list, not an archive.
-- **Using TodoWrite alone when a tracker is defined.** It evaporates with the session.
-- **Re-deriving the baseline at Step 6.** Decide "tracker defined?" once in Step 0 and reuse it; a late flip silently changes both routing and whether `storymap.mmd` ships.
+- **Pushing to a populated tracker without asking.** Mature backlog = curated queue. Seed only on empty baseline; require opt-in for defined tracker.
+- **Silently overwriting `TODO.md`.** Always append with dated header.
+- **Dumping the full backlog into TodoWrite.** Slice 1 only — working list, not archive.
+- **Using TodoWrite alone when a tracker is defined.** It evaporates.
+- **Re-deriving the baseline at Step 6.** Decide "tracker defined?" once in Step 0; late flips change routing and `storymap.mmd` shipping.
 
 ## Cross-references
 
-- Tracker mechanics + per-tool decision tree: [work-item-tracking.md](work-item-tracking.md)
-- Sister-framework state conventions: [framework-integration.md](framework-integration.md)
-- `.user-story-mapping/` schema + Memory MCP entity shapes: [persistent-knowledge.md](persistent-knowledge.md)
-- Memory opt-in lifecycle: [persistent-knowledge.md](persistent-knowledge.md#the-opt-in-lifecycle)
+- Tracker mechanics: [work-item-tracking.md](work-item-tracking.md)
+- Sister-framework conventions: [framework-integration.md](framework-integration.md)
+- `.user-story-mapping/` schema + Memory MCP shapes: [persistent-knowledge.md](persistent-knowledge.md)
+- Memory opt-in: [persistent-knowledge.md](persistent-knowledge.md#the-opt-in-lifecycle)

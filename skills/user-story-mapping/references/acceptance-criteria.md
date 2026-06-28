@@ -1,18 +1,18 @@
 # Acceptance criteria (Given/When/Then)
 
-Step 4a turns each slice-1 story into testable Gherkin (Given/When/Then) scenarios and runs the INVEST check on it — this is what converts a one-line story into something engineering can build and verify against. Stories in `storymap.md` stay deliberately concise (`As a <persona>, I want to <action>, so that <outcome>` — enough for slicing and prioritization); acceptance criteria are added separately, only for the stories about to be committed, and live in their own file so the map stays clean.
+Step 4a converts slice-1 stories into testable Gherkin (Given/When/Then) scenarios and runs INVEST. `storymap.md` stays concise (`As a <persona>, I want to <action>, so that <outcome>` — enough for slicing/prioritization); acceptance criteria live separately for commit-ready, buildable, verifiable work.
 
-Use Gherkin because it is portable across teams, drops straight into BDD frameworks, and forces precision (a vague AC is a non-testable AC). The scenarios produced here are the per-story unit of the team's test playbook; the end-to-end thread that strings them together is the separate [e2e-verification-and-contract.md](e2e-verification-and-contract.md) deliverable.
+Use Gherkin because it is team-portable, BDD-ready, and precision-forcing: vague ACs are not testable. These are the per-story test-playbook unit; [e2e-verification-and-contract.md](e2e-verification-and-contract.md) owns the end-to-end thread.
 
 ## When to use
 
-Generate ACs at Step 4a, after slicing (Step 3) has fixed which stories are in slice 1.
+Generate ACs at Step 4a, after slicing (Step 3) fixes slice 1.
 
-- **Always** — for slice-1 stories. They are the ones being committed in the next PI/sprint.
-- **Optional** — for slice 2+. Wait until they get pulled into slice 1, since requirements often shift before then.
-- **Skip** — for trivial stories ("rename button label", "fix typo"). Overhead exceeds value.
+- **Always** — slice-1 stories committed in the next PI/sprint.
+- **Optional** — slice 2+ after they move into slice 1; requirements often shift.
+- **Skip** — trivial stories ("rename button label", "fix typo"); overhead exceeds value.
 
-If the user explicitly asks for ACs across the full backlog, oblige; otherwise default to slice 1 only. Output lands in `slice-1-acceptance-criteria.md` (an optional artifact alongside the always-produced design.md / storymap.md / storymap.csv set; backlog.md / backlog.csv ride along too when no issue tracker is defined).
+If asked for full-backlog ACs, oblige; otherwise default to slice 1. Output: `slice-1-acceptance-criteria.md` (optional, alongside always-produced design.md / storymap.md / storymap.csv; backlog.md / backlog.csv also appear when no issue tracker is defined).
 
 ## The Given/When/Then template
 
@@ -27,7 +27,7 @@ Scenario: <one-line scenario name>
 
 Most stories need 2-4 scenarios:
 
-- The **happy path** (it works for the typical case)
+- **happy path** (typical case)
 - 1-2 **edge cases** (boundary, missing input, max input)
 - 1 **failure case** (error handling)
 
@@ -87,7 +87,7 @@ Scenario: Invalid cursor returns 400
 
 ## Where the ACs go
 
-For slice 1, write a separate file `slice-1-acceptance-criteria.md` alongside the other artifacts, keyed by story ID:
+For slice 1, write `slice-1-acceptance-criteria.md` beside other artifacts, keyed by story ID:
 
 ```markdown
 # Slice 1 — Acceptance Criteria
@@ -101,11 +101,11 @@ Scenario: ...
 Scenario: ...
 ```
 
-Story IDs are the `S001`… identifiers from `storymap.csv`. Folding ACs into `storymap.md` clutters the map — keep the map for sequencing/slicing and keep ACs in the sibling file for engineering handoff.
+Story IDs are `S001`… from `storymap.csv`. Do not fold ACs into `storymap.md`; keep the map for sequencing/slicing and ACs for engineering handoff.
 
 ## The INVEST check
 
-After generating ACs, run the INVEST checklist on each slice-1 story:
+After AC generation, run INVEST on each slice-1 story:
 
 | Property | Question |
 |---|---|
@@ -116,7 +116,7 @@ After generating ACs, run the INVEST checklist on each slice-1 story:
 | **S**mall | Can it ship in a single sprint? If not, split. |
 | **T**estable | Can each AC be turned into a passing/failing assertion? |
 
-Stories that fail INVEST get an inline comment in `slice-1-acceptance-criteria.md`:
+INVEST failures get an inline comment in `slice-1-acceptance-criteria.md`:
 
 ```markdown
 ## S027 — As an admin, I want to configure tenant-wide policies...
@@ -126,11 +126,11 @@ Stories that fail INVEST get an inline comment in `slice-1-acceptance-criteria.m
 before sprint commitment.
 ```
 
-An INVEST failure on **I**ndependent is a slicing signal: if a slice-1 story can only ship after a story that is not itself in slice 1, the slice does not stand alone — kick it back to [slicing-strategies.md](slicing-strategies.md). A failure on **S**mall means split before sprint commitment.
+An **I**ndependent failure is a slicing signal: if a slice-1 story needs a non-slice-1 story, the slice does not stand alone — kick it back to [slicing-strategies.md](slicing-strategies.md). An **S**mall failure means split before sprint commitment.
 
 ## When the team doesn't use Gherkin
 
-Some teams prefer prose acceptance criteria or bulleted "Definition of Done" lists. The structure — pre-condition → action → observable outcome — is what matters; the syntax is portable. If the user says "we don't use Gherkin", produce the same content as bulleted ACs:
+Some teams prefer prose ACs or bulleted "Definition of Done" lists. Keep structure — pre-condition → action → observable outcome — and change only syntax. If the user says "we don't use Gherkin", produce bulleted ACs:
 
 ```markdown
 ## S005 — Submit refund (happy path)
@@ -154,8 +154,8 @@ Same precision, different shell.
 
 ## Anti-patterns
 
-- **Acceptance criteria that restate the title.** "Given a refund, when submitted, then it's refunded" is not testable. Force concrete pre-conditions and observable post-conditions.
-- **Implementation in the ACs.** "When the user clicks the React button…" — don't say React. Say "user action". The AC governs outcome, not mechanism.
+- **Acceptance criteria that restate the title.** "Given a refund, when submitted, then it's refunded" is not testable. Require concrete pre-conditions and observable post-conditions.
+- **Implementation in the ACs.** "When the user clicks the React button…" — don't say React. Say "user action". AC governs outcome, not mechanism.
 - **Time-based criteria without measurement.** "Then customer receives email quickly" — *quickly* is not testable. Pick a number ("within 60 seconds").
 - **Over-coverage on edge cases for slice 1.** Slice 1 is the walking skeleton; cover happy path + 1-2 edge cases. Save the long tail for slice 2+.
 - **Generating ACs before the slice is fixed.** Run Step 4a after slicing, or you will write criteria for stories that get re-sliced out.

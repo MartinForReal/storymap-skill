@@ -1,135 +1,135 @@
 # Progress reconciliation (Step 0.5)
 
-When the loop runs on a non-empty baseline, reconcile the three things that disagree about what's done — the prior storymap, the tracker, and the shipped code — into one status view that slicing and prioritization can trust. **Tracker is authority for status; storymap is authority for intent; code is evidence.** Drift is surfaced to the user in `handoff.md`, never silently absorbed. This reference owns Step 0.5: the status taxonomy, the drift detectors, activity graduation, and the opt-in tracker write-back scripts.
+Reconcile non-empty baseline (storymap, tracker, code). **Tracker is authority for status; storymap is authority for intent; code is evidence.** Surface drift in `handoff.md`; never absorb. Owns Step 0.5 taxonomy/drift/graduation.
 
-Reconciliation is always part of the loop. It simply has nothing to do when the data sources hold no prior state — the loop running on empty data sources skips it entirely.
+Reconciliation is in-loop; no-ops when prior-state sources are empty.
 
 ## When Step 0.5 has work to do
 
-**Has work** when ≥1 is true:
-- A prior `storymap.md` / `backlog.csv` exists in this working tree (a non-empty baseline)
-- Step 0 mined an active tracker (Jira / ADO / GitHub / Linear) with issues plausibly tied to the backbone
-- The codebase has shipped surfaces (deployed routes, merged feature PRs, named integration tests) that map to plausible backbone activities
+**Has work** when ≥1:
+- Prior `storymap.md` / `backlog.csv` exists (non-empty baseline)
+- Step 0 mined an active tracker (Jira / ADO / GitHub / Linear) with backbone-tied issues
+- Code has shipped surfaces (deployed routes, merged PRs, named integration tests) mapped to backbone activities
 
-**No-op (nothing to reconcile)** when:
-- Data sources are truly empty — empty/near-empty repo, no tracker, no prior storymap (whatever state you do have is governed by the source hierarchy in [../SKILL.md#rules-that-govern-every-run](../SKILL.md#rules-that-govern-every-run))
-- The user has explicitly said "ignore the tracker, treat this as fresh" — honor it; tag every status as `[user-stated]` or `[inferred]`
-- Solo founder mid-build, no tracker, prior storymap is from yesterday — the diff is trivially empty; skip
+**No-op** when:
+- Data sources empty — empty/near-empty repo, no tracker, no prior storymap (remaining state follows [../SKILL.md#rules-that-govern-every-run](../SKILL.md#rules-that-govern-every-run))
+- User said "ignore the tracker, treat this as fresh" — honor it; tag every status `[user-stated]` or `[inferred]`
+- Solo founder mid-build, no tracker, prior storymap from yesterday — trivial diff; skip
 
-For the operational "tracker defined" test that decides whether a tracker even counts as a source, see [output-routing.md § Detecting the empty baseline (no tracker defined)](output-routing.md#detecting-the-empty-baseline-no-tracker-defined).
+For "tracker defined", see [output-routing.md](output-routing.md#detecting-the-empty-baseline-no-tracker-defined) § Detecting the empty baseline (no tracker defined).
 
 ## The three inputs
 
-| Source | What it tells you | What it does NOT tell you | Authority for... |
+| Source | Tells you | Does NOT tell you | Authority for... |
 |---|---|---|---|
-| **Prior storymap.md / backlog.csv** | What we *intended* to build, in what slice, with what scoring | Whether any of it actually shipped | Intent + slicing rationale + dependencies |
-| **Tracker (Jira / ADO / GitHub / Linear)** | Live status of every tracked issue: open / in-progress / closed / blocked, current Fix Version, assignee, recent activity | Whether the issue maps to a backbone activity or persona | Status of stories that exist in the tracker |
-| **Code state (routes, tests, commits, PRs)** | Evidence of what's been built — code surfaces that exist, tests that pass, commits that reference issue IDs | Whether what's built satisfies the AC, whether the user has accepted it, whether it's deployed to production | Evidence that *escalates* to status confirmation in the tracker |
+| **Prior storymap.md / backlog.csv** | Intent, slice, scoring | Shipped? | Intent + slicing rationale + dependencies |
+| **Tracker (Jira / ADO / GitHub / Linear)** | Status, Fix Version, assignee | Backbone/persona mapping | Tracked-story status |
+| **Code state (routes, tests, commits, PRs)** | Surfaces, tests, issue-id commits | AC/user/prod acceptance | Evidence escalating tracker status |
 
-The reconciliation algorithm uses all three, weighted by these authority columns.
+Weight by authority.
 
 ## Status taxonomy
 
-Every story (current and prior) gets exactly one of six statuses:
+Every current/prior story gets one of six statuses:
 
 | Status | Definition | Detection signals (need ≥1 strong + tracker confirmation for `done`) |
 |---|---|---|
-| `done` | Implemented, merged, ACs satisfied (or, absent ACs, the matching tracker issue is closed) | Tracker = closed/done state **AND** (matching code surface exists OR commit-id reference in tracker) |
-| `in-progress` | Open work with active commits / PR / branch | Tracker = in-progress / in-review state OR open PR referencing the story ID OR commits to a feature branch in last 14 days |
-| `blocked` | Cannot proceed; depends on something not yet done | Tracker = blocked label OR `depends_on` chain has an unresolved hard dep |
-| `deferred` | Was in a slice; moved out (next PI / Later / cut from current slice) | Tracker Fix Version pushed forward OR storymap re-slicing put it in a future slice |
+| `done` | Implemented/merged; ACs satisfied or tracker closed | Tracker = closed/done **AND** (code surface OR tracker commit-id) |
+| `in-progress` | Active commits / PR / branch | Tracker in-progress/in-review OR PR references story ID OR branch commits in last 14 days |
+| `blocked` | Unresolved dependency | Tracker blocked label OR `depends_on` unresolved hard dep |
+| `deferred` | Moved out (next PI / Later / cut) | Tracker Fix Version pushed forward OR storymap future slice |
 | `cut` | No longer in scope at all | Tracker closed-as-wontfix OR explicit user statement |
-| `unchanged` | None of the above — story is in the storymap, not actively being worked, no shipped evidence | Default for stories that have neither moved in tracker nor have matching code surfaces |
+| `unchanged` | In storymap; no active/shipped evidence | Default when tracker unchanged and no code surface |
 
-Annotation format in `storymap.md` — the `[status:<state> | <evidence>]` tag rides alongside `[slice:…]` and `[persona:…]`:
+In `storymap.md`, `[status:<state> | <evidence>]` rides with `[slice:…]` and `[persona:…]`:
 
 ```markdown
 - [slice:1] [persona:CSRep] [status: done | 2026-05-12 | tracker: PROJ-142]
-  As a CS rep, I want to sign in with SSO, so that I don't manage another password.
+  As a CS rep, I want SSO, so that passwords drop.
 
 - [slice:1] [persona:CSRep] [status: in-progress | branch: feat/refund-routing | tracker: PROJ-148]
-  As a CS rep, I want to submit a refund within my auto-approve limit, so that simple cases close fast.
+  As a CS rep, I want auto-approve refunds, so that simple cases close.
 
 - [slice:2] [persona:CSRep] [status: deferred | from: 1 | tracker: PROJ-151]
-  As a CS rep, I want bulk refund import, so that month-end batches don't take 4 hours.
+  As a CS rep, I want bulk import, so that month-end avoids 4 hours.
 ```
 
-In `backlog.csv`, add columns: `status`, `status_evidence` (free-text source description), `status_date`.
+In `backlog.csv`, add `status`, `status_evidence` (free-text source), `status_date`.
 
 ## Reconciliation algorithm
 
 ```
 inputs:
-  prior_storymap = read storymap.md if it exists, else empty
-  prior_backlog  = read backlog.csv if it exists, else empty
-  tracker_state  = mined in Step 0 (tracker MCP or grep over .gsd/Roadmap.md)
-  code_state     = mined in Step 0 (routes, tests, recent commits)
+  prior_storymap = storymap.md or empty
+  prior_backlog  = backlog.csv or empty
+  tracker_state  = Step 0 tracker MCP or .gsd/Roadmap.md
+  code_state     = Step 0 routes, tests, recent commits
 
 for each story in (prior_storymap ∪ tracker_state ∪ inferred-from-code):
-  1. Match the story across sources (by id when possible; by fuzzy persona+action when not)
+  1. Match across sources (id, else fuzzy persona+action)
   2. Apply authority rules:
-     - If tracker has a definitive status (closed, blocked, in-progress) → use it
-     - Else if code state shows shipped surface AND tracker has matching open issue → flag for confirmation (likely done, not yet closed in tracker)
-     - Else if storymap had it in a prior slice and tracker has it in a later Fix Version → mark deferred
+     - If tracker has definitive status (closed, blocked, in-progress) → use it
+     - Else if code shows shipped surface AND tracker has matching open issue → flag confirmation (likely done, tracker open)
+     - Else if storymap had prior slice and tracker has later Fix Version → mark deferred
      - Else status = unchanged
-  3. Record evidence sources for the status (date, tracker id, file path, commit sha)
+  3. Record evidence (date, tracker id, file path, commit sha)
 ```
 
-Then run three drift detectors.
+Run drift detectors.
 
 ### Drift detector 1 — Orphan tracker issues
 
-Issues in the tracker that don't match any storymap story.
+Tracker issues with no matching storymap story.
 
-Action: list them under `## Detected drift — orphan tracker items` in `handoff.md`. For each, propose one of:
+Action: list under `## Detected drift — orphan tracker items` in `handoff.md`; propose:
 - "Map to existing story `S027`" (your best guess; user confirms)
-- "Belongs to backbone activity `<X>` but no story written — write a new story?"
+- "Belongs to backbone activity `<X>` but no story — write one?"
 - "Out of scope; close with explanation in tracker?"
 - "Indicates a missing backbone activity — re-run Step 1?"
 
-Don't silently absorb. Each orphan needs a user decision before slicing proceeds.
+Each orphan needs a user decision before slicing.
 
 ### Drift detector 2 — Orphan storymap stories
 
-Stories in the prior storymap with no matching tracker issue.
+Prior storymap stories without matching tracker issue.
 
-Action: list under `## Detected drift — untracked storymap items`. For each:
-- "Was this never tracked because it was deferred / cut?" → propose `deferred` or `cut` status
+Action: list under `## Detected drift — untracked storymap items`; for each:
+- "Was this never tracked because it was deferred / cut?" → propose `deferred` or `cut`
 - "Does this still belong to slice 1?" → if yes, queue for tracker write-back at Step 6
-- "Is this still relevant?" → may need re-confirmation against the user-stated source of truth ([../SKILL.md#rules-that-govern-every-run](../SKILL.md#rules-that-govern-every-run))
+- "Is this still relevant?" → re-confirm against user-stated truth ([../SKILL.md#rules-that-govern-every-run](../SKILL.md#rules-that-govern-every-run))
 
 ### Drift detector 3 — Backbone activity graduation
 
-For each backbone activity, count `done` vs total. If 100% done:
+For each activity, count `done` vs total. If 100% done:
 
-- Move the activity to a new `## Shipped foundation` section in `storymap.md` (heading after the active backbone, before the cross-cutting section)
-- Note in `design.md` under `## Activity status`: `<Activity name>` graduated on `<date>`; total `<N>` stories shipped; current backbone now has `<M>` active activities
-- Graduated activities drop out of slice-1 coverage. The slice-1 rule applies only to **active** backbone activities; see [slicing-strategies.md § The slice-1 rule](slicing-strategies.md#the-slice-1-rule--mechanics-why-and-violations) for the coverage mechanics.
-- If a graduated activity later acquires new stories on a later loop pass, it returns to active status — graduation is reversible.
+- Move it to `## Shipped foundation` in `storymap.md` (after active backbone, before cross-cutting)
+- Note in `design.md` under `## Activity status`: `<Activity name>` graduated on `<date>`; `<N>` shipped; `<M>` active remain
+- Graduated activities leave slice-1 coverage. Rule applies only to **active** activities; see [slicing-strategies.md](slicing-strategies.md#the-slice-1-rule--mechanics-why-and-violations) § The slice-1 rule.
+- If a graduated activity later gains stories, it returns active; graduation is reversible.
 
-Symmetrically: if status reconciliation reveals an activity has 0 done stories despite being targeted in slice 1 from a prior run, that's a *stale* slice — flag in `handoff.md` under `## Slice realism check`.
+If activity has 0 done stories despite prior slice-1 targeting, flag *stale* slice in `handoff.md` `## Slice realism check`.
 
 ## Conflict resolution table
 
-When the three sources disagree on a single story:
+When sources disagree:
 
 | Storymap says | Tracker says | Code says | Resolution |
 |---|---|---|---|
-| slice-1 (planned) | closed/done | matching surface exists | `done` — already shipped; remove from slice-1, add to graduated set if activity now 100% done |
-| slice-1 (planned) | closed/done | **no** surface, **no** commit ref | **claimed-but-unverified** — the tracker asserts done but nothing backs it; surface for confirmation, do **not** auto-mark `done` (mirror of "don't infer `done` from code alone") |
-| slice-1 (planned) | open/in-progress | partial surface | `in-progress` — keep in slice-1, flag for completion |
+| slice-1 (planned) | closed/done | matching surface exists | `done` — remove from slice-1; graduate if now 100% done |
+| slice-1 (planned) | closed/done | **no** surface, **no** commit ref | **claimed-but-unverified** — confirm; do **not** auto-mark `done` |
+| slice-1 (planned) | open/in-progress | partial surface | `in-progress` — keep in slice-1, flag completion |
 | slice-1 (planned) | open | no matching surface | `unchanged` — proceed as planned |
-| slice-1 (planned) | not in tracker | no surface | `unchanged` — but flag as untracked under "orphan storymap items" |
-| slice-2 (deferred) | open in current sprint | active branch | **conflict** — tracker shows the team is doing it now despite storymap deferring it. Surface to user; honor the user's decision. |
-| not in storymap | open in tracker | active branch | **orphan tracker item** — likely a new story; propose mapping or escalate |
-| done (in prior storymap) | re-opened in tracker | new commits | `in-progress` (work resumed) — flag as a regression candidate; ask if AC has changed |
-| cut (user stated previously) | open in tracker | no surface | **stale tracker** — propose closing the tracker issue; queue for write-back |
+| slice-1 (planned) | not in tracker | no surface | `unchanged` — flag under "orphan storymap items" |
+| slice-2 (deferred) | open in current sprint | active branch | **conflict** — current work despite deferral; surface; honor user |
+| not in storymap | open in tracker | active branch | **orphan tracker item** — likely story; map/escalate |
+| done (in prior storymap) | re-opened in tracker | new commits | `in-progress` — flag regression; ask if AC changed |
+| cut (user stated previously) | open in tracker | no surface | **stale tracker** — propose close; queue write-back |
 
-Whenever a conflict involves a user-stated preference (Person A said "we don't need RBAC in slice 1"), the user wins — per the source hierarchy in [../SKILL.md#rules-that-govern-every-run](../SKILL.md#rules-that-govern-every-run). Tag the resolution `[user-stated]` and update both storymap intent and the proposed tracker write-back.
+If conflict touches user-stated preference (Person A: "we don't need RBAC in slice 1"), user wins per [../SKILL.md#rules-that-govern-every-run](../SKILL.md#rules-that-govern-every-run). Tag `[user-stated]`; update intent + write-back.
 
 ## Outputs of Step 0.5
 
-Step 0.5 doesn't produce a new top-level file — it appends to existing artifacts:
+Step 0.5 appends; no new top-level file.
 
 1. **`design.md`** gets two new sections:
    ```markdown
@@ -145,33 +145,33 @@ Step 0.5 doesn't produce a new top-level file — it appends to existing artifac
    Sources reconciled:
    - Prior storymap.md (2026-04-15)
    - Jira tracker MCP (live, snapshot 2026-06-10)
-   - Code state: src/routes/ (12 routes), tests/e2e/ (61 tests), git log --since="2026-04-15"
+   - Code: src/routes/ (12 routes), tests/e2e/ (61 tests), git log --since="2026-04-15"
 
    ## Activity status
 
-   - **Sign in** — graduated 2026-05-12. All 4 stories shipped to production; activity remains in storymap as historical context but is excluded from active slicing.
-   - **Find transaction** — partial; 2/5 done, 1 in-progress (PROJ-203, branch `feat/find-by-email`).
+   - **Sign in** — graduated 2026-05-12. 4 shipped; historical; excluded from active slicing.
+   - **Find transaction** — partial; 2/5 done, 1 in-progress (PROJ-203, `feat/find-by-email`).
    ```
 
-2. **`storymap.md`** gets per-story status annotations (see format above) and a new `## Shipped foundation` section if any activity has graduated.
+2. **`storymap.md`** gets status annotations and `## Shipped foundation` if any activity graduated.
 
-3. **`backlog.csv`** gets `status`, `status_evidence`, `status_date` columns. Done/cut stories are excluded from re-prioritization in Step 4 (their old scores remain as audit trail).
+3. **`backlog.csv`** gets `status`, `status_evidence`, `status_date`. Done/cut skip Step 4 re-prioritization; old scores remain audit trail.
 
-4. **`handoff.md`** gets a `## Detected drift` section listing every orphan / conflict / proposed write-back. This is the Step 0.5 hand-off to the user for decisions.
+4. **`handoff.md`** gets `## Detected drift`: every orphan, conflict, proposed write-back.
 
 ## Write-back to the tracker
 
-Reconciliation produces two kinds of status changes. The `status` it resolves is also one of the three native **burn-down fields** the tracker write-back sets (alongside story-points and sprint/iteration) when a tracker is the system of record — that field-mapping is owned by [work-item-tracking.md § Enable the tracker burn-down](work-item-tracking.md#enable-the-tracker-burn-down).
+Reconciliation yields pull-only and push-required changes. Resolved `status` is native tracker **burn-down field** (with story-points and sprint/iteration) when tracker is system of record; see [work-item-tracking.md](work-item-tracking.md#enable-the-tracker-burn-down).
 
 ### Pull-only (tracker → storymap)
 
-Tracker says PROJ-142 is closed; storymap pulls in `status: done`. **No write-back needed** — the tracker was already authoritative; we're just reflecting it locally.
+Tracker says PROJ-142 is closed; storymap pulls `status: done`. **No write-back needed**.
 
 ### Push-required (storymap → tracker)
 
-User confirms a story is `cut`; tracker still has it open as a pending issue. **Write-back required** — generate an update script.
+User confirms story `cut`; tracker still open. **Write-back required** — generate script.
 
-Same opt-in protocol as [output-routing.md](output-routing.md): don't auto-execute. Generate `tracker-status-update.<ext>` and tell the user what running it would do.
+Follow [output-routing.md](output-routing.md) opt-in: never auto-execute. Generate `tracker-status-update.<ext>`; say what it would do.
 
 #### Per-tracker script templates
 
@@ -197,9 +197,9 @@ gh issue edit 151 --add-label "wontfix" --remove-label "in-progress"
 gh issue close 151 --reason "not planned" --comment "Cut from current scope per storymap reconciliation"
 ```
 
-**Linear** — call the Linear MCP directly with one operation per change; emit a `tracker-status-update.md` enumerating the calls instead of a runnable script.
+**Linear** — call Linear MCP once per change; emit `tracker-status-update.md` listing calls, not script.
 
-For each script, include a header comment summarizing what it would do:
+Each script includes a header summary:
 ```bash
 # tracker-status-update.sh — generated 2026-06-10 by user-story-mapping skill
 # Summary: 4 issues closed (cut), 2 issues moved to PI-2026-Q3, 1 label updated.
@@ -208,32 +208,32 @@ For each script, include a header comment summarizing what it would do:
 
 ### Hard rules for write-back
 
-1. **Never auto-execute.** The user runs the script. This holds even when the user has approved write-back in principle — they review every batch.
-2. **One direction at a time.** Don't try to push storymap → tracker AND pull tracker → storymap in a single script. Pull is automatic; push is opt-in.
-3. **No silent state changes.** Every write-back action is logged in `handoff.md` under `## Tracker write-back actions`. Includes ticket id, before-state, after-state, reason.
-4. **Reversibility note.** End the script with a comment saying how to undo each kind of action in the target tracker (e.g., "To revert a Jira transition, use `jira issue transition <ID> <prior-state>` or the tracker's audit-log restore").
-5. **Tracker is one of many destinations.** If the user is using a sister-framework state directory (`.gsd/`, prior `TODO.md`) instead of a populated tracker, write-back targets *that* destination per [output-routing.md](output-routing.md)'s persistence cascade — not the tracker. Don't push to a populated tracker without explicit user opt-in.
+1. **Never auto-execute.** User runs script and reviews every batch, even after write-back approval.
+2. **One direction at a time.** Do not push storymap → tracker AND pull tracker → storymap together. Pull auto; push opt-in.
+3. **No silent state changes.** Log every `handoff.md` `## Tracker write-back actions`: ticket id, before-state, after-state, reason.
+4. **Reversibility note.** End with undo instructions (e.g., "To revert a Jira transition, use `jira issue transition <ID> <prior-state>` or audit-log restore").
+5. **Tracker is one of many destinations.** If using sister-framework state (`.gsd/`, prior `TODO.md`) instead of tracker, write there per [output-routing.md](output-routing.md)'s cascade. Never push unapproved.
 
 ## Anti-patterns
 
-- **Don't infer `done` from code alone.** A matching route with no test, or a test with no AC reference, is *evidence* — not proof. Always confirm via tracker or AC pass before marking `done`. Otherwise stories silently disappear from slicing because the agent saw a stub.
-- **Don't silently absorb orphan tracker issues.** If the tracker has 12 issues you can't map to backbone activities, that's a 12-line section in `handoff.md`, not a 12-issue invisible append to slice 1.
-- **Don't push status to the tracker without opt-in.** Even when the user said "yes, sync the tracker" once, every write-back batch needs review — same governance as outbound slice-1 routing.
-- **Don't graduate a backbone activity from `done` count alone.** Confirm with the user that the activity is genuinely retired (e.g., "Sign in is shipped and stable, no further work expected for ≥1 PI"). Activities that are 100% done but actively being maintained (auth tweaks, security patches) should *stay* active with a note.
-- **Don't re-litigate prior status decisions.** If `backlog.csv` had `status: cut` for S027 and tracker confirms closed, don't re-derive whether to cut. Use the existing decision (recorded in the append-only decisions log — see [persistent-knowledge.md](persistent-knowledge.md)); only re-evaluate if the user re-opens it.
-- **Don't conflate intent and status.** A re-sliced story (intent: now slice-2) is different from a deferred story (status: deferred). Intent is storymap authority; status is tracker authority. Annotate both, don't merge.
+- **Don't infer `done` from code alone.** Route/test evidence needs tracker confirmation or AC pass.
+- **Don't silently absorb orphan tracker issues.** 12 unmapped issues mean 12-line `handoff.md`, not invisible append.
+- **Don't push status to the tracker without opt-in.** Even after "yes, sync the tracker", review batches.
+- **Don't graduate a backbone activity from `done` count alone.** Confirm retirement (e.g., "Sign in is shipped and stable, no further work expected for ≥1 PI"). Maintenance stays active.
+- **Don't re-litigate prior status decisions.** If `backlog.csv` had `status: cut` for S027 and tracker confirms closed, use append-only decision. Re-evaluate only if re-opened; see [persistent-knowledge.md](persistent-knowledge.md).
+- **Don't conflate intent and status.** Re-sliced (intent: now slice-2) differs from deferred (status: deferred). Storymap owns intent; tracker owns status.
 
 ## Cost ceiling
 
-Step 0.5 should consume 5-10% of the total turn budget. Most of the work is mining-already-mined — Step 0 has the inputs; 0.5 is the diff + drift detection.
+Step 0.5 should consume 5-10% of turn budget: diff + drift detection using Step 0 inputs.
 
-If 0.5 exceeds 15%, you're either re-mining sources (don't — use what Step 0 already has in `## Context loop trace`) or doing exhaustive ticket-by-ticket comparison when a sample-and-spot-check would do. Sample drift detection: scan the first 20 tracker issues + the most recent 30 days of commits + every prior slice-1 story; if no drift, the rest is probably fine.
+If 0.5 exceeds 15%, you are re-mining (use `## Context loop trace`) or over-comparing. Sample first 20 tracker issues + recent 30 days commits + prior slice-1 stories; no drift likely means rest is fine.
 
-For trackers with >500 issues, pre-filter to the project's active labels / area paths / repos before reconciling — full sweeps are too slow and rarely reveal new drift past the first 100.
+For trackers with >500 issues, pre-filter to active labels / area paths / repos; drift past 100 is rare.
 
 ## Reconciliation across loop passes
 
-A loop pass over a non-empty baseline (iteration / refinement — extending an existing storymap) **always runs Step 0.5**. The pass is:
+Loop passes over non-empty baseline (iteration / refinement — extending existing storymap) **always run Step 0.5**:
 
 ```
 Step 0   — context loop, including prior storymap as input
@@ -244,14 +244,14 @@ Step 2   — decompose new stories (Step 2 per-persona sweep applies)
 ... etc.
 ```
 
-The iteration diff in `handoff.md` (per [iterative-refinement-and-snapshots.md](iterative-refinement-and-snapshots.md)) now includes a `## Status changes since prior run` section sourced from Step 0.5 reconciliation:
+The iteration diff in `handoff.md` (per [iterative-refinement-and-snapshots.md](iterative-refinement-and-snapshots.md)) includes Step 0.5 `## Status changes since prior run`:
 
 ```markdown
 ## Status changes since prior run (2026-04-15 → 2026-06-10)
 
 ADDED:
-- 3 new stories proposed under Activity 4 (Approver decision) — drafted from interview notes
-- 2 new tracker issues mapped to existing backbone activities
+- 3 new stories under Activity 4 (Approver decision) — from interview notes
+- 2 new tracker issues mapped to backbone activities
 
 GRADUATED:
 - Activity 1 (Sign in) — 4/4 done; moved to Shipped foundation
@@ -269,17 +269,17 @@ WRITE-BACK QUEUED:
 
 ## Where this fits with sister frameworks
 
-Reconciliation reads sister-framework state directories as status sources, and write-back targets whichever destination the framework owns. The per-framework state conventions and the GSD slice/Milestone terminology collision are governed in [framework-integration.md](framework-integration.md).
+Reconciliation reads sister-framework state and writes back to its destination. State conventions and GSD slice/Milestone collision: [framework-integration.md](framework-integration.md).
 
-- **GSD** — `.gsd/task-summaries/` is essentially a status log; reconciliation reads it as authoritative for tasks already executed via `/gsd execute-task`. When GSD is the active framework, write-back targets `.gsd/` (per [output-routing.md](output-routing.md)'s persistence cascade), not a populated tracker.
-- **Superpowers** — `plans/` directory has step status; reconciliation reads completed plan steps as `done` evidence. Don't push to a Superpowers-managed tracker; let `writing-plans` handle re-decomposition for the next slice.
-- **gstack** — gstack's `/retro` reads the storymap's Hypotheses table; reconciliation's `## Implementation status` table is also useful input. After Step 0.5, mention "the status table is ready for `/retro` if you want to evaluate which hypotheses played out".
+- **GSD** — `.gsd/task-summaries/` is authoritative status for `/gsd execute-task`. When active, write-back targets `.gsd/` (per [output-routing.md](output-routing.md)'s cascade), not tracker.
+- **Superpowers** — `plans/` step status gives `done` evidence. Do not push to Superpowers-managed tracker; let `writing-plans` handle next-slice decomposition.
+- **gstack** — `/retro` reads storymap Hypotheses; `## Implementation status` helps. Mention "status table is ready for `/retro` if you want to evaluate which hypotheses played out".
 
 ## TL;DR
 
-- Step 0.5 builds a status view from `prior storymap ⊕ tracker ⊕ code` whenever any two of those exist.
-- Tracker is authority for **status**; storymap is authority for **intent**; code is **evidence**.
-- Drift gets surfaced to the user in `handoff.md`, not silently absorbed.
-- Activities with all stories `done` graduate out of active slicing but stay visible.
-- Write-back to tracker is opt-in, scripted, never auto-executed.
-- Reconciliation always runs as part of the loop; it's a no-op when the data sources hold no prior state.
+- Step 0.5 reconciles `prior storymap ⊕ tracker ⊕ code` when any two exist.
+- Tracker = **status**; storymap = **intent**; code = **evidence**.
+- Drift goes to `handoff.md`, not silence.
+- All-`done` activities graduate from active slicing but stay visible.
+- Tracker write-back is opt-in, scripted, never auto-executed.
+- Reconciliation runs in-loop; no-ops without prior state.

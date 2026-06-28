@@ -1,19 +1,19 @@
 # Dependency tracking between stories
 
-Tag every blocking relationship between stories explicitly with `H:` / `S:` / `X:` in a `depends_on` column, then run two checks the rest of the workflow can't run for you: cycle detection and a slice-1 feasibility check. This is what keeps the "first slice covers every backbone activity" coverage rule from producing a slice the team literally cannot ship — refund-flow before auth, dashboard before data ingestion. Dependencies make the slicing recommendation **technically feasible**, not just narratively complete.
+Record story dependencies with `H:` / `S:` / `X:` in `depends_on`, then run cycle detection and the slice-1 feasibility check. These keep "first slice covers every backbone activity" from creating an unshippable slice — refund-flow before auth, dashboard before data ingestion. Dependencies make slicing **technically feasible**.
 
 ## When to use
 
-Run dependency tracking once a backbone and stories exist (Step 3 onward), before declaring any slice valid. Two cases skip it:
+Run after Step 3 once backbone and stories exist, before declaring any slice valid. Skip:
 
-- **Empty-baseline / early-discovery runs** (no codebase, brand-new product): dependencies are speculative — don't force them. See [When dependencies don't matter](#when-dependencies-dont-matter).
+- **Empty-baseline / early-discovery runs** (no codebase, brand-new product): dependencies are speculative; don't force them. See [When dependencies don't matter](#when-dependencies-dont-matter).
 - Runs where slice 1 is a single activity with no cross-story preconditions.
 
-This file owns the `depends_on` **mechanics** — the tag grammar, the `backlog.csv` column, cycle detection, and the slice-1 feasibility check. It does not own *where the edges come from*: the cross-persona ones are discovered in the [persona interaction map](persona-simulation-and-gap-filling.md#persona-interactions), and the slice-1 coverage rule those checks defend is governed in [../SKILL.md#rules-that-govern-every-run](../SKILL.md#rules-that-govern-every-run) (mechanics in [slicing-strategies.md](slicing-strategies.md#the-slice-1-rule--mechanics-why-and-violations)).
+This file owns `depends_on` **mechanics**: tag grammar, `backlog.csv` column, cycle detection, slice-1 feasibility. Edge sources live elsewhere: cross-persona edges come from the [persona interaction map](persona-simulation-and-gap-filling.md#persona-interactions); slice-1 coverage lives in [../SKILL.md#rules-that-govern-every-run](../SKILL.md#rules-that-govern-every-run) (mechanics in [slicing-strategies.md](slicing-strategies.md#the-slice-1-rule--mechanics-why-and-violations)).
 
 ## What counts as a dependency
 
-Three flavors. Tag each explicitly:
+Use three explicit flavors:
 
 | Type | Symbol | Meaning | Example |
 |---|---|---|---|
@@ -21,9 +21,9 @@ Three flavors. Tag each explicitly:
 | **Soft** | `S:` | Better with predecessor, technically possible without | Search filters `S:` Search basic (filters work fine, just less useful) |
 | **External** | `X:` | Depends on something outside the team's control | Plaid integration `X:` Plaid contract signed |
 
-Hard dependencies block slicing. Soft and external dependencies inform sequencing but don't override the slice-coverage rule.
+Hard blocks slicing. Soft/external inform sequencing but do not override slice coverage.
 
-A primary source of hard edges is cross-persona handoffs: every precondition in the [persona interaction map](persona-simulation-and-gap-filling.md#persona-interactions) — where one persona's story must exist before another's — lands here as an `H:` edge. The map is produced there; this file owns the `depends_on` mechanics it lands in.
+Cross-persona handoffs create hard edges: each precondition in the [persona interaction map](persona-simulation-and-gap-filling.md#persona-interactions) — one persona's story before another's — becomes an `H:` edge. That file produces the map; this file owns `depends_on`.
 
 ## How to record them
 
@@ -36,7 +36,7 @@ S005,Issue refund,Submit,User submits a refund,pi-1,"H:S001,H:S003"
 S010,Bulk refund,Batch,Process 50 refunds in one go,pi-2,"H:S005,S:S007"
 ```
 
-The format is `<type>:<story-id>` joined by commas. Multiple dependencies are fine.
+Format as comma-joined `<type>:<story-id>` values. Multiple dependencies are fine.
 
 In `storymap.md`, add a **Dependencies** section after the backbone:
 
@@ -56,7 +56,7 @@ In `storymap.md`, add a **Dependencies** section after the backbone:
 
 ## Cycle detection
 
-A dependency cycle (A `H:` B `H:` C `H:` A) is always a bug — either two of those stories are actually one story, or one of the deps is soft not hard. **Surface cycles as red-flag findings** in `handoff.md`:
+A dependency cycle (A `H:` B `H:` C `H:` A) is always a bug: merge two stories, or re-tag one dependency soft. **Surface cycles as red-flag findings** in `handoff.md`:
 
 ```markdown
 ## RED FLAG: Dependency cycle detected
@@ -71,7 +71,7 @@ Recommended: re-examine S012 (Notification rules) — it depends on S015 (Settin
 but S015 only needs notification rules for one of its views.
 ```
 
-Do NOT silently break the cycle by reordering. Make the user resolve it.
+Do NOT break the cycle silently by reordering. Make the user resolve it.
 
 ## Slice-1 feasibility check
 
@@ -95,11 +95,11 @@ Either:
 - Push S005 to slice 2
 ```
 
-This feasibility check is a distinct concern from the coverage rule it protects. The coverage rule (slice 1 must include ≥1 story from every active backbone activity, never silently drop a persona) is stated in [../SKILL.md#rules-that-govern-every-run](../SKILL.md#rules-that-govern-every-run) and its mechanics in [slicing-strategies.md](slicing-strategies.md#the-slice-1-rule--mechanics-why-and-violations); this check makes sure the slice that satisfies coverage is also buildable.
+This check is separate from the coverage rule it protects: slice 1 must include ≥1 story from every active backbone activity and never silently drop a persona. The rule lives in [../SKILL.md#rules-that-govern-every-run](../SKILL.md#rules-that-govern-every-run), mechanics in [slicing-strategies.md](slicing-strategies.md#the-slice-1-rule--mechanics-why-and-violations); this check ensures a coverage-valid slice is buildable.
 
 ## When dependencies don't matter
 
-For early-discovery work — the loop running on an empty baseline, no codebase, brand-new product — dependencies are often speculative. Don't force them in. Add a note in `design.md`:
+For early-discovery work — empty baseline, no codebase, brand-new product — dependencies are often speculative. Don't force them. Add a note in `design.md`:
 
 ```markdown
 ## Dependencies
@@ -107,14 +107,14 @@ This is early discovery; dependencies will firm up after the first technical
 design pass. Initial slicing assumes no hard dependencies between user activities.
 ```
 
-Then leave the `depends_on` column blank and skip the cycle/feasibility checks. Re-run them on the next pass of the loop, once the design firms up.
+Then leave `depends_on` blank and skip cycle/feasibility checks. Re-run next loop pass once design firms up.
 
 ## Visualizing dependencies
 
-`scripts/storymap_to_mermaid.py` can be extended to render dependencies as additional arrows in the Mermaid graph (`A -.->|H:depends| B`), but only if dependency count stays small (<20). At scale, the diagram becomes unreadable; use the textual Dependencies section instead. (Note `storymap.mmd` is only emitted when no tracker is defined; in a tracker-backed run the textual Dependencies section is the only rendering.)
+`scripts/storymap_to_mermaid.py` can be extended to render dependency arrows (`A -.->|H:depends| B`) only when dependency count stays small (<20). At scale, use text; diagrams become unreadable. `storymap.mmd` only emits when no tracker is defined, so tracker-backed runs use text only.
 
 ## Edge cases
 
 - **Dependency on a non-backbone item**: fine. Tag it like any other (`S:NB-T-001`).
-- **Dependency on a story in a future slice that's a prerequisite for slice 1**: that's the canonical case for *pulling forward*. The cheaper option is usually pulling forward; the more expensive option is splitting the dependent story.
-- **External dependency with no team owner**: flag in `handoff.md` as a **non-engineering risk** — needs PM/sales/legal to drive resolution.
+- **Dependency on a future-slice story required for slice 1**: canonical *pulling forward* case. Pulling forward is usually cheaper than splitting the dependent story.
+- **External dependency with no team owner**: flag in `handoff.md` as a **non-engineering risk** — PM/sales/legal must drive resolution.

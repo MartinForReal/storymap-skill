@@ -1,36 +1,36 @@
 # Persistent knowledge across sessions
 
-Remember across invocations **yes, but selectively and opt-in**: memory is off by default, read before write, treated as hints not gospel, and always surfaced to the user. This file owns the `.user-story-mapping/state.json` schema (including the `tracker` block), the decisions-log **append-only / never-overwrite** rule, and the memory opt-in lifecycle. Memory pays for itself on active multi-PI projects and hurts on throwaway explorations; the rest of this file is how to tell the two apart and wire it cleanly.
+Persist memory selectively and opt-in: off by default, read before write, hints not gospel, visible. Owns `.user-story-mapping/state.json` (including `tracker`), decisions-log **append-only / never-overwrite**, and opt-in lifecycle. Helps active multi-PI projects; hurts throwaways.
 
 ## When to use this
 
-Reach for persistent memory when a run is part of a *continuing* effort, and stay away from it when the run is a one-off.
+Use for *continuing* efforts; avoid one-offs.
 
 | Memory helps | What to remember |
 |---|---|
-| **Iterative refinement (the loop on a non-empty baseline)** | The prior story map, so "extend it" carries the backbone forward instead of re-deriving it |
-| **Cross-team coordination** | What other teams committed in the same PI, so dependencies stay visible |
-| **User preferences** | Default prioritization method (WSJF / RICE / MoSCoW), default slicing strategy, preferred terminology |
-| **Project context cache** | Personas + backbone candidates from the last context-collection, so Step 0 doesn't re-mine the repo every run |
-| **Hypothesis tracking** | Which prior hypotheses got validated/rejected — informs the next batch |
-| **Decisions-log continuity** | Cumulative decisions across PI-planning sessions |
+| **Iterative refinement (the loop on a non-empty baseline)** | Prior story map, so "extend it" carries backbone forward |
+| **Cross-team coordination** | Same-PI commitments; dependencies stay visible |
+| **User preferences** | Default method (WSJF / RICE / MoSCoW), slicing strategy, terminology |
+| **Project context cache** | Personas + backbone candidates from last context-collection; Step 0 skips re-mining |
+| **Hypothesis tracking** | Validated/rejected hypotheses for next batch |
+| **Decisions-log continuity** | Cumulative PI-planning decisions |
 
 | Memory hurts | Why |
 |---|---|
-| **One-shot exploration** | Don't pollute the user's state with a throwaway "what if" map |
-| **Multi-tenant / multi-project agent** | One project's preferences must not leak into another |
-| **Rapidly evolving projects** | Personas/activities from 3 months ago may now be misleading |
-| **Fresh-eyes review** | Sometimes the user wants re-discovery, not cached assumptions |
+| **One-shot exploration** | Don't pollute state with throwaway "what if" maps |
+| **Multi-tenant / multi-project agent** | One project's preferences must not leak |
+| **Rapidly evolving projects** | Personas/activities from 3 months ago may mislead |
+| **Fresh-eyes review** | User may want re-discovery, not cache |
 
-For most teams: enable for active multi-PI projects, disable for one-shot explorations.
+Default: enable active multi-PI; disable one-shots.
 
 ## Two storage backends
 
-Pick the backend by how far the state needs to travel.
+Pick by travel distance.
 
 ### A. Project-scoped — `.user-story-mapping/` directory in the repo
 
-For state tied to one project. Lives in version control (or `.gitignore` it if private). Travels with the project, is team-shared via git, and is obvious to inspect — but needs repo write access, which some users won't want.
+For one-project state. It can live in version control (or `.gitignore` if private), travels with the project, is team-shared/inspectable. Needs repo write access.
 
 ```
 my-project/
@@ -46,7 +46,7 @@ my-project/
 
 #### `state.json` schema
 
-The canonical shape. The first block is always written when memory is enabled; the `tracker` block is written whenever a tracker is defined.
+Canonical shape. Write first block when memory is enabled; write `tracker` when defined.
 
 ```json
 {
@@ -78,22 +78,22 @@ The canonical shape. The first block is always written when memory is enabled; t
 }
 ```
 
-**The `tracker` block** records project configuration, not user content, so it is **written by default whenever a tracker is defined** (the operational "tracker defined" test lives in [output-routing.md](output-routing.md#detecting-the-empty-baseline-no-tracker-defined)). Its fields:
+**The `tracker` block** records project configuration, not user content, so it is **written by default whenever a tracker is defined** (test in [output-routing.md](output-routing.md#detecting-the-empty-baseline-no-tracker-defined)). Fields:
 
 | Field | Meaning |
 |---|---|
 | `type` | Detected tracker (`jira`, `azure-devops`, `github`, …) |
-| `project_key` | The tracker's project/board identifier |
-| `process` | The tracker's process template (e.g. `agile`, `scrum`, `basic`) |
-| `mapping` | Which tracker field carries each story-map concept (activity, slice, persona, score) |
-| `taxonomy` | Read-only **snapshot** of the tracker's existing categories — epics, fix_versions, components, labels — so the next run reuses the team's own vocabulary instead of re-detecting field names |
-| `snapshot_at` | When the taxonomy snapshot was taken |
+| `project_key` | Tracker project/board identifier |
+| `process` | Tracker process template (e.g. `agile`, `scrum`, `basic`) |
+| `mapping` | Tracker field for story-map concepts (activity, slice, persona, score) |
+| `taxonomy` | Read-only **snapshot** of categories — epics, fix_versions, components, labels — so next run reuses vocabulary |
+| `snapshot_at` | When taxonomy snapshot was taken |
 
-The taxonomy is captured so the skill aligns to the team's existing categories rather than inventing new ones — the rule for that reuse (pull read-only, propose-don't-create) is owned by [work-item-tracking.md](work-item-tracking.md#align-to-the-existing-tracker-taxonomy). Treat the saved taxonomy as a **hint**: re-verify it against the live tracker on load and refresh it on drift.
+Capture taxonomy for team categories. Reuse rule (pull read-only, propose-don't-create) lives in [work-item-tracking.md](work-item-tracking.md#align-to-the-existing-tracker-taxonomy). Treat saved taxonomy as a **hint**: re-verify; refresh on drift.
 
 ### B. Cross-session — MCP memory server (e.g. `mcp__plugin_pe-shared_memory__*`)
 
-For state that should survive across machines, agents, or projects. Stored as knowledge-graph entities/relations. Survives `.gsd/`-style cleanup, is reachable across agents, and supports graph queries ("all hypotheses still open across all my projects") — but depends on MCP availability, is harder to inspect by hand, and is user-account-scoped rather than project-scoped.
+Use for state across machines, agents, or projects. Stores knowledge-graph entities/relations, survives `.gsd/`-style cleanup, works across agents, and supports graph queries ("all hypotheses still open across all my projects"). Tradeoffs: MCP availability, harder inspection, user-account scope.
 
 ```
 Entity: project:<repo-name>
@@ -114,15 +114,15 @@ Entity: hypothesis:H1
 
 ## The opt-in lifecycle
 
-**Off by default.** Memory engages only on a user signal:
+**Off by default.** Memory engages on user signal:
 
-- "remember this" / "save this for next time" → **write** to a backend
+- "remember this" / "save this for next time" → **write**
 - "use what you learned last time" / "extend the prior map" → **read**
-- Extend the prior map / "what changed since last PI" (the loop on a non-empty baseline) → **automatically read** from the prior storymap
+- Extend prior map / "what changed since last PI" (non-empty baseline loop) → **automatically read** prior storymap
 
-**Always read before write.** When reading, every remembered fact is a *hint*, not gospel — verify it against current state. If a cached persona is "CS rep" but the current README shows the product pivoted away from CS, override and update the cache.
+**Always read before write.** Remembered facts are *hints*, not gospel; verify. If cached "CS rep" conflicts with README, override and update.
 
-**Always show what was loaded.** Add a "Loaded from memory" section to `design.md`, and tag each loaded fact with the shared `[memory: <date>]` source tag (the full source-tag vocabulary and priority order are owned by [../SKILL.md#rules-that-govern-every-run](../SKILL.md#rules-that-govern-every-run); user-stated input always outranks memory).
+**Always show what was loaded.** Add "Loaded from memory" to `design.md`; tag loaded facts `[memory: <date>]` (source tags/priority order live in [../SKILL.md#rules-that-govern-every-run](../SKILL.md#rules-that-govern-every-run); user-stated input outranks memory).
 
 ```markdown
 ## Loaded from memory
@@ -136,22 +136,22 @@ The story map below builds on this state. To start fresh, delete `.user-story-ma
 or invoke with "ignore memory".
 ```
 
-Transparency is non-negotiable. Hidden state = surprise = lost user trust.
+Transparency is non-negotiable; hidden state loses trust.
 
 ### Refresh policy
 
 - **Read on every invocation** when memory is enabled.
 - **Write only when:**
-  - The user explicitly asks ("remember this").
-  - At the end of a successful invocation — write a **delta**, not the full state.
-  - **Decisions log: append on every invocation; never overwrite.** This is the load-bearing rule — `decisions.log.md` is append-only, so the full history of why the plan looks the way it does is always recoverable. Editing or replacing prior entries is forbidden; corrections are new appended entries that supersede, not in-place edits.
+  - User explicitly asks ("remember this").
+  - Successful end — write a **delta**, not full state.
+  - **Decisions log: append on every invocation; never overwrite.** `decisions.log.md` is append-only; corrections are new superseding entries.
 - **Stale-check on read:**
-  - If `state.json` is older than 90 days, warn the user before applying it.
-  - If the repo's main branch has had >50 commits since the last scan, re-mine context.
+  - If `state.json` is older than 90 days, warn before applying it.
+  - If main branch has had >50 commits since last scan, re-mine context.
 
 ## Wiring into the loop
 
-Memory load is one of the cheap **starter signals** at the entry of **Step 0** (context-collection loop) — alongside `ls`, the prompt re-read, the README, and any interview notes in the prompt:
+Memory load is a cheap **starter signal** at **Step 0** entry, alongside `ls`, prompt re-read, README, and interview notes:
 
 ```
 Step 0 (context loop, starter signals) — if .user-story-mapping/state.json exists OR memory MCP available:
@@ -174,11 +174,11 @@ Step 6 (hand off) — if memory enabled OR user said "remember this":
 
 ## What NOT to remember
 
-- **Specific user prompts.** Privacy + storage bloat. Summarize, don't quote.
-- **Generated artifact bodies.** They already live in the repo; pointers suffice.
-- **Stale priorities.** PI-2025-Q4 commitments aren't relevant in PI-2026-Q3 unless explicitly carried over.
-- **Disagreements / corrections.** If the user said "no, the persona is X not Y," update the cache to X. Don't record the disagreement itself. (This applies to the cache, not the append-only decisions log — a decision the user later reverses is recorded as a new superseding entry, not by deleting the original.)
+- **Specific user prompts.** Privacy + storage bloat. Summarize; don't quote.
+- **Generated artifact bodies.** They live in repo; use pointers.
+- **Stale priorities.** PI-2025-Q4 commitments aren't relevant in PI-2026-Q3 unless carried over.
+- **Disagreements / corrections.** If user says "no, the persona is X not Y," update cache to X. Don't record the disagreement. (In the append-only decisions log, later reversal is a new superseding entry, not deletion.)
 
 ## Verify, then trust
 
-Final test: turn memory on for one project, run twice, compare. If the second run is *meaningfully better* — faster context-scan, more grounded backbone, fewer questions — memory is paying for itself. If the second run is just *the same answer* arrived at faster, the savings are marginal; weigh whether the overhead is worth it. The cost of getting it wrong silently is higher than the cost of typing "use prior state" each time.
+Test: enable memory for one project, run twice. If run 2 is *meaningfully better* — faster context-scan, grounded backbone, fewer questions — memory pays. If merely *same answer* faster, savings are marginal. Silent wrong memory costs more than "use prior state".

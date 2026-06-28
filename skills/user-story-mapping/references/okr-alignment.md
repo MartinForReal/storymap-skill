@@ -1,14 +1,14 @@
 # OKR / strategic alignment
 
-Tie every story (or at minimum every slice) to a Key Result, then run the coverage matrix in both directions: it surfaces **orphan stories** (work that ladders to no KR — either the KR is missing or the work is out of scope) and **orphan KRs** (committed Key Results with zero story coverage — either the KR is unrealistic or the team forgot to plan for it). Both are red-flag findings worth surfacing in `design.md`.
+Tie stories, or at least slices, to Key Results, then check both directions. **Orphan stories** have no KR (missing KR or out-of-scope work). **Orphan KRs** have no story coverage (unrealistic KR or forgotten plan). Surface both in `design.md`.
 
 ## When to use
 
-Apply this when the user provides OKRs/KRs, or talks about strategic goals informally enough that candidate KRs can be drafted. **Skip it entirely** when the user explicitly has no OKR framework — bolting OKR structure onto a team that doesn't use OKRs is bureaucratic noise. This reference governs the `okr` ladder column in `backlog.csv`, the coverage matrix, and the two orphan checks; it does not own the source-tagging or priority rules it touches — those are linked below.
+Use this when the user provides OKRs/KRs, or goals clear enough to draft candidate KRs. **Skip it entirely** when the user explicitly has no OKR framework; forced OKRs are noise. This reference governs the `okr` column in `backlog.csv`, the matrix, and orphan checks; linked references own source-tagging and priority rules.
 
 ## How to record the ladder
 
-When OKRs (or KRs) are provided, add two columns to `backlog.csv`: `okr` (the KR id this story ladders to) and `okr_contribution` (a one-line explanation of *how* the story moves that KR). Force the contribution — "ladders to KR-1.2" with no reason is decoration, not alignment.
+With OKRs/KRs, add two `backlog.csv` columns: `okr` (KR id) and `okr_contribution` (how the story moves that KR). Require the latter: "ladders to KR-1.2" without a reason is decoration, not alignment.
 
 ```csv
 id,activity,task,story,slice,okr,okr_contribution
@@ -17,11 +17,11 @@ S005,Issue refund,Submit,User submits a refund,pi-1,KR-2.1,reduces CS toil per t
 S017,Dark mode toggle,UI,Dark mode toggle,r3,,does not ladder
 ```
 
-A blank `okr` cell is a legitimate signal, not an omission — it flags a candidate orphan story for the matrix below. Story ids stay `S001`-style in document order, exactly as the canonical `storymap.csv`/`backlog.csv` produce them; OKR work never renumbers them.
+A blank `okr` cell is legitimate: a candidate orphan story. Story ids stay `S001`-style in document order, as canonical `storymap.csv`/`backlog.csv` produce them; OKR work never renumbers.
 
 ## The OKR alignment section in design.md
 
-Record the stated OKRs, then the coverage matrix, then the two orphan lists. This is the payload that makes the alignment auditable:
+In `design.md`, record stated OKRs, the coverage matrix, then the two orphan lists:
 
 ```markdown
 ## OKR alignment
@@ -50,29 +50,29 @@ Record the stated OKRs, then the coverage matrix, then the two orphan lists. Thi
 - KR-1.1 "Land 3 enterprise contracts" has only enabling stories (SSO/SCIM/SOC 2) but no GTM-side stories — clarify with Sales whether their work is in scope here or separate
 ```
 
-The matrix's per-slice columns (`Slice 1`, `Slice 2`, …) are how you catch a KR that is "covered" on paper but deferred entirely past the first release — story count alone hides that.
+Per-slice columns (`Slice 1`, `Slice 2`, …) catch KRs "covered" on paper but deferred past the first release; story count hides that.
 
 ## Running the two orphan checks
 
-- **Orphan stories** — walk the backlog; any row with a blank `okr` is a candidate. Decide per row: the KR is genuinely missing (add or propose it), or the story is out of scope (recommend cutting). Don't silently leave a blank cell unexplained.
-- **Orphan KRs** — walk the stated KRs; any KR with zero rows pointing at it, or covered only by *enabling* stories with no user-facing path, is a planning gap. Surface it with a concrete "clarify with <owner>" note rather than fabricating coverage.
+- **Orphan stories** — any blank `okr` row is a candidate. Decide whether the KR is missing (add/propose it) or the story is out of scope (recommend cutting). Don't leave blanks unexplained.
+- **Orphan KRs** — any stated KR with zero rows, or only *enabling* stories with no user-facing path, is a planning gap. Add a concrete "clarify with <owner>" note; don't fabricate coverage.
 
 ## When you don't have OKRs
 
-If the user talks about strategic goals informally ("we need to grow enterprise revenue") but states no OKRs, draft 1-2 candidate OKRs and surface them as **proposed OKRs** in `design.md` with a "Confirm with leadership" note. Tag any drafted KR `[inferred]` per the source-tag vocabulary so its provenance is visible (see [`../SKILL.md#rules-that-govern-every-run`](../SKILL.md#rules-that-govern-every-run)). Don't fabricate OKRs and present them as gospel.
+If the user gives informal goals ("we need to grow enterprise revenue") but no OKRs, draft 1-2 candidate OKRs as **proposed OKRs** in `design.md` with "Confirm with leadership". Tag drafted KRs `[inferred]` for provenance (see [`../SKILL.md#rules-that-govern-every-run`](../SKILL.md#rules-that-govern-every-run)). Don't present them as gospel.
 
 If the user explicitly has no OKR framework, skip this reference.
 
 ## How OKRs change prioritization
 
-When OKRs are present, two things happen during prioritization (the scoring math itself lives in [prioritization-frameworks.md](prioritization-frameworks.md)):
+With OKRs, prioritization changes two ways (scoring math lives in [prioritization-frameworks.md](prioritization-frameworks.md)):
 
-1. **WSJF/RICE scores get an OKR multiplier.** Stories that ladder to a committed KR get a +30% (or whatever the team decides) bonus to their Value/Impact score. Make the bonus explicit in the reasoning column.
-2. **The ranked-backlog view gains a per-KR grouping** alongside the per-slice grouping. Both are useful: per-slice tells you what ships; per-KR tells you how each KR is supported. The slice-1 governing rule still binds the per-slice view — see [`../SKILL.md#rules-that-govern-every-run`](../SKILL.md#rules-that-govern-every-run) (Rule 2) and the mechanics in [slicing-strategies.md](slicing-strategies.md).
+1. **WSJF/RICE scores get an OKR multiplier.** Stories laddering to a committed KR get a +30% (or team-chosen) Value/Impact bonus. Show it in the reasoning column.
+2. **The ranked-backlog view gains a per-KR grouping** alongside per-slice grouping. Per-slice shows what ships; per-KR shows support. The slice-1 rule still binds per-slice — see [`../SKILL.md#rules-that-govern-every-run`](../SKILL.md#rules-that-govern-every-run) (Rule 2) and [slicing-strategies.md](slicing-strategies.md).
 
 ## Anti-patterns
 
-- **Force-fitting every story to an OKR.** Some stories (security fixes, legal compliance, infra hygiene) legitimately don't ladder to a feature OKR. Tag them `OKR:HYGIENE` or leave the cell blank — don't invent a ladder.
-- **Per-story OKR theatrics.** If you're writing "ladders to KR-X" with vague justification on every row, the OKRs are too broad. Push back to the user to sharpen the KRs.
+- **Force-fitting every story to an OKR.** Security fixes, legal compliance, and infra hygiene may not ladder to a feature OKR. Tag `OKR:HYGIENE` or leave blank — don't invent a ladder.
+- **Per-story OKR theatrics.** If every row says "ladders to KR-X" vaguely, the OKRs are too broad. Push back to sharpen the KRs.
 - **OKR cascade overload.** Don't require story → KR → Objective → Theme → North Star chains. Story → KR is enough; the rest is overhead.
-- **Mapping the OKR id onto a tracker field unilaterally.** If the work item tracker already carries fix-versions, epics, or custom fields for strategy, align to that taxonomy read-only rather than minting a parallel one — see [`work-item-tracking.md`](work-item-tracking.md#align-to-the-existing-tracker-taxonomy).
+- **Mapping the OKR id onto a tracker field unilaterally.** If the tracker already carries fix-versions, epics, or custom fields for strategy, align to that taxonomy read-only instead of minting a parallel one — see [`work-item-tracking.md`](work-item-tracking.md#align-to-the-existing-tracker-taxonomy).

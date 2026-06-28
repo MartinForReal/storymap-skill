@@ -1,30 +1,30 @@
 # Integration with sibling skill frameworks and SAFe tooling
 
-When a sister framework (Superpowers, gstack, GSD) hits its Plan stage, self-activate this skill there and produce the story map once — those frameworks' Plan-stage commands all consume the same inputs (design doc, slice-1 stories, role hints, test contract). This skill is otherwise standalone: none of the tools below are required, and when the user has none of them you just emit the canonical files.
+When Superpowers, gstack, or GSD reaches Plan, self-activate and produce the story map once. This includes Superpowers plan generation, any gstack `/plan-*-review` (including `/plan-dev-design-review`), and cases where a design doc exists and the plan is being adjusted. Their Plan commands consume the same inputs: design doc, slice-1 stories, role hints, test contract. Otherwise this skill is standalone; if no tool applies, emit canonical files.
 
 ## When to use
 
-Read this file when a prompt carries a sister-framework Plan-stage signal, when you need the exact hand-off line to leave for one of those frameworks, or when you are writing artifacts for a GSD team and must navigate the "slice" terminology collision. For *whether* to push outputs to an issue tracker at all, see [output-routing.md](output-routing.md); for the per-tool import mechanics, see [work-item-tracking.md](work-item-tracking.md).
+Read this for sister-framework Plan signals, exact hand-off lines, or GSD "slice" terminology. For tracker routing, see [output-routing.md](output-routing.md); for imports, see [work-item-tracking.md](work-item-tracking.md).
 
 ## Auto-activation cues — Plan-stage commands of sister frameworks
 
-Before falling through to ad-hoc story drafting, detect whether a sister framework is at its Plan stage and self-activate this skill there. The story map + per-persona stories + role hints + test contract is what each of those frameworks' Plan-stage commands need as input — produce them once, here, and let the framework's own commands review and consume them.
+Before ad-hoc drafting, detect a sister framework at Plan and self-activate. Produce story map, per-persona stories, role hints, and test contract once; framework commands review and consume them.
 
 | Framework | Plan-stage signal (any of these = activate this skill) | This skill produces what they consume |
 |---|---|---|
-| **Superpowers** | Just finished `brainstorming`; about to call `writing-plans` and the slice 1 stories aren't written yet | `storymap.md` slice 1 → input to `writing-plans` task decomposition |
-| **gstack** | User invokes `/office-hours`, `/autoplan`, `/plan-ceo-review`, `/plan-eng-review`, `/plan-design-review`, `/plan-devex-review` | `design.md` → `/plan-ceo-review`; slice 1 → `/plan-eng-review`; persona narratives + `role-hints.md` → `/plan-design-review`; `backlog.md` → `/plan-devex-review` |
-| **GSD** | User invokes `/gsd discuss`, `/gsd plan-milestone`; or is authoring `.gsd/Brief.md` / `.gsd/Roadmap.md` / a new `.gsd/Milestones/Mn/` directory | `design.md` → `.gsd/Brief.md`; slice 1 → `.gsd/Milestones/M1/`; `backlog.md` → `.gsd/Roadmap.md` |
+| **Superpowers** | Finished `brainstorming`; about to call `writing-plans`; generating a plan; slice 1 stories not written | `storymap.md` slice 1 → `writing-plans` task decomposition |
+| **gstack** | User invokes `/office-hours`, `/autoplan`, any `/plan-*-review` including `/plan-ceo-review`, `/plan-eng-review`, `/plan-design-review`, `/plan-dev-design-review`, `/plan-devex-review`; or a generated `design.md` is being adjusted into a plan | `design.md` → `/plan-ceo-review`; slice 1 → `/plan-eng-review`; persona narratives + `role-hints.md` → `/plan-design-review` / `/plan-dev-design-review`; `backlog.md` → `/plan-devex-review` |
+| **GSD** | User invokes `/gsd discuss`, `/gsd plan-milestone`; or authors `.gsd/Brief.md` / `.gsd/Roadmap.md` / new `.gsd/Milestones/Mn/` | `design.md` → `.gsd/Brief.md`; slice 1 → `.gsd/Milestones/M1/`; `backlog.md` → `.gsd/Roadmap.md` |
 
-When activated under a sister framework, skip framework-specific authoring of artifacts (don't write `.gsd/` files directly), but use that framework's vocabulary in your final hand-off line. See the per-framework notes below.
+Under a sister framework, do not author framework-specific files (especially `.gsd/`); use its vocabulary in the final hand-off.
 
-**Disambiguation rule.** If both this skill's triggers AND a sister-framework slash-command fire on the same prompt (e.g., the user types `/office-hours we need to plan our refund flow`), this skill runs *first* — produce the canonical artifacts — and the framework command runs against them. Don't try to satisfy both in one nested invocation.
+**Disambiguation rule.** If this skill and a sister-framework slash-command trigger together (e.g., `/office-hours we need to plan our refund flow`), run this skill *first*, produce canonical artifacts, then let the framework consume them. Do not satisfy both in one nested invocation.
 
 ## gstack (garrytan/gstack)
 
-[gstack](https://github.com/garrytan/gstack) — Garry Tan (Y Combinator) — is a Claude Code slash-command pack that organizes work into a Think → Plan → Build → Review → Test → Ship → Reflect sprint. It exposes 23+ commands like `/office-hours`, `/autoplan`, `/plan-ceo-review`, `/plan-eng-review`, `/design-review`, `/review`, `/qa`, `/ship`, `/retro`.
+[gstack](https://github.com/garrytan/gstack) — Garry Tan (Y Combinator) — is a Claude Code slash-command pack for Think → Plan → Build → Review → Test → Ship → Reflect. It exposes 23+ commands: `/office-hours`, `/autoplan`, `/plan-ceo-review`, `/plan-eng-review`, `/plan-design-review`, `/plan-dev-design-review`, `/design-review`, `/review`, `/qa`, `/ship`, `/retro`.
 
-This skill is the natural artifact-producer for gstack's **Plan** phase. The diagram below shows the no-tracker case; when an issue tracker is the system of record, `backlog.md` is **not** emitted — `/plan-devex-review` reads the tracker's ranked view, and the opt-in `tracker-status-update.<ext>` script populates burn-down fields ([output-routing.md § What each branch produces](output-routing.md#what-each-branch-produces)).
+This skill produces gstack **Plan** artifacts. In the tracker case, `backlog.md` is **not** emitted; `/plan-devex-review` reads the ranked tracker view, and opt-in `tracker-status-update.<ext>` populates burn-down fields ([output-routing.md § What each branch produces](output-routing.md#what-each-branch-produces)).
 
 ```
 gstack /office-hours          ──→ user-story-mapping (the loop)
@@ -32,46 +32,48 @@ gstack /autoplan                  ↳ produces design.md + storymap.md + backlog
 gstack /plan-ceo-review       ──→ reviews design.md (the "why")
 gstack /plan-eng-review       ──→ reviews storymap.md slice-1 (the "what to build first")
 gstack /plan-design-review    ──→ reviews user activities + persona narratives
+gstack /plan-dev-design-review──→ reviews developer/design fit across story slices
 gstack /plan-devex-review     ──→ reviews backlog ranking
                                 ↓
 gstack /ship, /canary, /qa, /retro work the resulting slices
 ```
 
-Practical mapping for the with-this-skill workflow inside gstack:
+Practical gstack mapping:
 
 | gstack command | What it reads from this skill |
 |---|---|
-| `/office-hours` (refine an idea) | Feed it `design.md` — the personas, opportunities, and hypotheses sections give it concrete framing |
-| `/autoplan` (turn a goal into work) | Skip if you've already produced `storymap.md` — point it at the first slice instead |
-| `/plan-ceo-review` | Reviews `design.md` for outcome clarity and the question being answered |
-| `/plan-eng-review` | Reviews `storymap.md` slice 1 for engineering feasibility — also surfaces `role-hints.md`§Architect open questions |
-| `/plan-design-review` | Reviews persona narratives, activity backbone, and `role-hints.md`§UX for UX coherence |
-| `/plan-devex-review` | Reviews `backlog.md` for ranking sanity |
-| `/ship`, `/canary` | Operate on built stories; this skill stops at the plan |
-| `/retro`, `/learn` | Use `design.md` Hypotheses table as the "what did we believe" input to retro |
+| `/office-hours` (refine an idea) | Read `design.md`: personas, opportunities, hypotheses |
+| `/autoplan` (turn a goal into work) | Skip if `storymap.md` exists; point to first slice |
+| `/plan-ceo-review` | Review `design.md` for outcome clarity and core question |
+| `/plan-eng-review` | Review `storymap.md` slice 1 for feasibility; surface `role-hints.md`§Architect open questions |
+| `/plan-design-review` | Review persona narratives, activity backbone, `role-hints.md`§UX |
+| `/plan-dev-design-review` | Review slice-1 developer/design fit; use `storymap.md`, `design.md`, and both `role-hints.md` sections |
+| `/plan-devex-review` | Review `backlog.md` ranking |
+| `/ship`, `/canary` | Operate on built stories; this skill stops at plan |
+| `/retro`, `/learn` | Use `design.md` Hypotheses table as retro input |
 
-If gstack is active, after producing artifacts say: "Outputs are ready for `/plan-ceo-review` on `design.md`, `/plan-eng-review` on slice 1 of `storymap.md` + `role-hints.md`§Architect, and `/plan-design-review` on persona narratives + `role-hints.md`§UX." That makes the handoff explicit.
+If active, say: "Outputs are ready for `/plan-ceo-review` on `design.md`, `/plan-eng-review` on slice 1 of `storymap.md` + `role-hints.md`§Architect, and `/plan-design-review` on persona narratives + `role-hints.md`§UX."
 
-**Don't auto-invoke gstack commands from inside this skill.** They are user-facing slash commands the human runs when they want the review. This skill produces the *inputs* those commands need.
+**Don't auto-invoke gstack commands.** They are user-facing; this skill produces their *inputs*.
 
 ## GSD — Get Shit Done (getshitdone.help)
 
-[GSD](https://getshitdone.help/solo-guide/why-gsd/) is a context-engineering layer on top of Claude Code, aimed primarily at solo builders. It enforces a structured Research → Plan → Execute → Validate → Complete pipeline with a `.gsd/` project-state directory containing a Brief, Roadmap, Decisions, and task summaries.
+[GSD](https://getshitdone.help/solo-guide/why-gsd/) is a Claude Code context layer for solo builders. It enforces Research → Plan → Execute → Validate → Complete with `.gsd/` project state: Brief, Roadmap, Decisions, task summaries.
 
-The GSD hierarchy is **Milestone → Slice → Task**, which maps to this skill's outputs but at a different unit of scope. Be careful to translate, not equate:
+GSD uses **Milestone → Slice → Task**; map by scope, not by identical names:
 
 | This skill | GSD term | Mapping note |
 |---|---|---|
-| The whole `storymap.md` | A multi-milestone **Roadmap** | The full backbone may span 2-3 GSD milestones |
-| One **slice** (walking-skeleton / PI 1 / MVP / Now) | One GSD **Milestone** | A slice = a Milestone-sized unit of work |
-| One **activity** within a slice | A GSD **Slice** (yes, the names collide) | A backbone activity, scoped to its share of the milestone |
+| The whole `storymap.md` | A multi-milestone **Roadmap** | Full backbone may span 2-3 GSD milestones |
+| One **slice** (walking-skeleton / PI 1 / MVP / Now) | One GSD **Milestone** | Slice = Milestone-sized work |
+| One **activity** within a slice | A GSD **Slice** (yes, names collide) | Backbone activity scoped to its milestone share |
 | One **story** | A GSD **Task** | Atomic execution unit |
-| `design.md` | The GSD **Brief** | Direct mapping — both are the "why and what" input doc |
+| `design.md` | The GSD **Brief** | Direct "why and what" input doc |
 | `backlog.md` | The GSD **Roadmap** | Add a per-row note like `[gsd-milestone: 1]` for clarity |
 
-**Important terminology collision:** "slice" means different things in the two systems. In this skill, a slice is a horizontal cut across the backbone (e.g., MVP, R2, R3). In GSD, a "slice" is a sub-unit within a milestone — closer to an *activity* in our terms. When writing artifacts for a GSD-using team, use GSD's vocabulary in the final deliverable and add a one-line note in `design.md` explaining the mapping. Translate, never equate.
+**Important terminology collision:** "slice" differs by system. Here it is a horizontal cut across the backbone (MVP, R2, R3). In GSD it is a milestone sub-unit, closer to an *activity*. For GSD teams, use GSD vocabulary and add a one-line mapping note in `design.md`. Translate, never equate.
 
-GSD workflow handoff (no-tracker case shown; with an issue tracker, `backlog.md` is replaced by burn-down field writes via the opt-in tracker write-back):
+GSD handoff (no tracker; with tracker, opt-in burn-down writes replace `backlog.md`):
 
 ```
 This skill (the loop)
@@ -83,13 +85,13 @@ This skill (the loop)
                              GSD /gsd discuss → /gsd plan-milestone → /gsd auto
 ```
 
-If GSD is active, after producing artifacts say something like: "Outputs map to GSD as: design.md → Brief; slice 1 of storymap.md → Milestone 1 (with 5 GSD slices = 5 backbone activities, ~15 GSD tasks); role-hints.md (UX + architect) sits alongside the Brief for the team to work through. Ready for `/gsd discuss` to confirm framing or `/gsd plan-milestone` to start the pipeline."
+If active, say: "Outputs map to GSD as: design.md → Brief; slice 1 of storymap.md → Milestone 1 (with 5 GSD slices = 5 backbone activities, ~15 GSD tasks); role-hints.md (UX + architect) sits alongside the Brief for the team to work through. Ready for `/gsd discuss` to confirm framing or `/gsd plan-milestone` to start the pipeline."
 
-**Don't write directly to `.gsd/` from inside this skill** — GSD owns that directory and has its own state-machine expectations. Produce the canonical files and emit suggested import lines; let the user (or GSD's own commands) do the import.
+**Don't write directly to `.gsd/` from inside this skill** — GSD owns that directory/state machine. Produce canonical files and suggested import lines; user or GSD commands import.
 
 ## Superpowers (obra/superpowers)
 
-[Superpowers](https://github.com/obra/superpowers) — Jesse Vincent / Prime Radiant — is an agentic skills framework organized into a 7-stage software-development workflow: `brainstorming` → `using-git-worktrees` → `writing-plans` → `subagent-driven-development` → `test-driven-development` → `requesting-code-review` → `finishing-a-development-branch`.
+[Superpowers](https://github.com/obra/superpowers) — Jesse Vincent / Prime Radiant — is an agentic skills framework with 7 stages: `brainstorming` → `using-git-worktrees` → `writing-plans` → `subagent-driven-development` → `test-driven-development` → `requesting-code-review` → `finishing-a-development-branch`.
 
 This skill slots between **`brainstorming`** and **`writing-plans`**:
 
@@ -99,27 +101,27 @@ brainstorming  →  user-story-mapping  →  writing-plans  →  rest of Superpo
                    plan + design doc)       tasks)
 ```
 
-**Handoff in:** Superpowers' `brainstorming` produces a design doc clarifying intent. Use that doc as a problem-brief input to the loop.
+**Handoff in:** Superpowers `brainstorming` produces an intent design doc. Use it as the loop's brief.
 
-**Handoff out:** The first slice of `storymap.md` becomes the input to `writing-plans`. Each story → 2-5 min tasks. `design.md` and `backlog.md` remain authoritative for scope decisions; `role-hints.md` rides alongside as a *head-start* for the designer and architect — resolve its open questions before `writing-plans` decomposes the work, but don't treat the hints themselves as scope-authoritative.
+**Handoff out:** First slice of `storymap.md` feeds `writing-plans`; each story → 2-5 min tasks. `design.md` and `backlog.md` stay scope-authoritative. `role-hints.md` is a designer/architect *head-start*: resolve open questions before `writing-plans`, but don't treat hints as scope-authoritative.
 
-If Superpowers is active, mention this in your hand-off message: "Slice 1 is ready for `writing-plans`. design.md and backlog.md are authoritative for scope; role-hints.md (UX + architect) is a head-start — work through its open questions first."
+If active, say: "Slice 1 is ready for `writing-plans`. design.md and backlog.md are authoritative for scope; role-hints.md (UX + architect) is a head-start — work through its open questions first."
 
 ## Jira / Azure DevOps / GitHub Issues / Linear / Trello / spreadsheets
 
-For *whether* to push to a tracker at all, see [output-routing.md](output-routing.md) — for existing projects, the sister-framework state directories above are usually the right destination instead. For the full per-tool mapping and import mechanics, see [work-item-tracking.md](work-item-tracking.md). Short version: the CSV outputs are import sources — don't recreate stories by hand inside the tool.
+For tracker routing, see [output-routing.md](output-routing.md). For existing projects, sister-framework state dirs are usually right. For imports, see [work-item-tracking.md](work-item-tracking.md). CSV outputs are import sources; don't recreate stories by hand.
 
 ## SAFe ART tooling (Jira Align, Targetprocess, Tempo)
 
-These speak SAFe natively and have first-class WSJF support. Use the SAFe column mapping (Activity→Epic, Task→Feature, Story→Story) and let the tool calculate WSJF rather than pre-computing it.
+These speak SAFe natively and support WSJF directly. Use the SAFe mapping (Activity→Epic, Task→Feature, Story→Story) and let the tool calculate WSJF.
 
 ## What NOT to do
 
-- **Don't auto-invoke any sister-framework slash command** from inside this skill — they are user-facing commands the human runs when they want the review; this skill produces only the *inputs*.
-- **Don't write directly into a framework's state directory** (`.gsd/` especially). Emit suggested import lines instead and let the user or the framework's own commands import.
+- **Don't auto-invoke any sister-framework slash command** from inside this skill — they are user-facing review commands; this skill produces only the *inputs*.
+- **Don't write directly into a framework's state directory** (`.gsd/` especially). Emit suggested import lines; let the user or framework commands import.
 - **Don't equate a GSD "slice" with this skill's slice** — they collide. Translate using the table above.
-- **Don't push tooling integration the user hasn't mentioned.** Producing the canonical files for a human to read, edit, and act on is the supported and most common case.
+- **Don't push unmentioned tooling integration.** Canonical files for a human to read, edit, and act on are the supported/common case.
 
 ## When the user has none of these
 
-You produce the canonical files. They read them, edit them, decide what to do next. That's the supported case and probably the most common one. Don't push tooling integration if the user hasn't mentioned it.
+Produce the canonical files. The user reads, edits, and decides next steps. Do not push tooling integration unless the user mentions it.

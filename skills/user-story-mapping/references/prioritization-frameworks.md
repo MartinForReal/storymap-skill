@@ -1,29 +1,29 @@
 # Prioritization frameworks
 
-Pick exactly one method and use it for the whole backlog: **WSJF** when the org runs SAFe / multi-team PI planning, **RICE** when you have reach-and-impact metrics, **MoSCoW** when data is thin and you need to triage fast. Mixing methods within one ranking is meaningless — the numbers stop being comparable. Whatever you choose, the `reasoning` column matters more than the score.
+Pick one method across the backlog: **WSJF** for SAFe / multi-team PI planning, **RICE** with reach-and-impact metrics, **MoSCoW** for thin-data triage. Mixed methods make scores non-comparable. `reasoning` matters more than score.
 
 ## When to use
 
-Reach for this reference at Step 4 (slice + prioritize), once the backbone and per-persona stories exist and you need to order them. The default picker:
+Use at Step 4 (slice + prioritize), once backbone and per-persona stories need ordering. Default picker:
 
 - **SAFe / multi-team / PI-driven** → WSJF
 - **Product team with a metrics dashboard** → RICE
 - **Discovery / new product / no data** → MoSCoW
 - **Mixed signals** → MoSCoW first (cheap), then upgrade to WSJF or RICE next iteration once data exists
 
-Ask the user which method they want; fall back to the rules above only if they have no preference. Two related concerns live in their own files: when an item's rank is constrained by what must ship before it, see [dependency-tracking.md](dependency-tracking.md) for feasibility ordering; when you want the score to reflect strategic alignment rather than raw effort math, link the item to an objective via [okr-alignment.md](okr-alignment.md).
+Ask first; use the rules above only without a preference. Related files: [dependency-tracking.md](dependency-tracking.md) for prerequisite-constrained rank; [okr-alignment.md](okr-alignment.md) for objective-linked scores.
 
-**Where the scores land:** with no issue tracker, the method's columns go in `backlog.csv`; when an issue tracker is the system of record the **sizing** feeds the tracker's story-points/estimate field (the burn-down's work axis) instead of `backlog.csv` — see [work-item-tracking.md § Enable the tracker burn-down](work-item-tracking.md#enable-the-tracker-burn-down).
+**Where the scores land:** without an issue tracker, method columns go in `backlog.csv`. With a tracker system of record, **sizing** feeds story-points/estimate (burn-down work axis) instead of `backlog.csv` — see [work-item-tracking.md § Enable the tracker burn-down](work-item-tracking.md#enable-the-tracker-burn-down).
 
 ## WSJF — Weighted Shortest Job First
 
-The SAFe default. Economic framing: deliver the highest-value-per-unit-of-effort work first.
+SAFe default: highest value per effort first.
 
 **Formula:** `WSJF = Cost of Delay / Job Size`
 
 **Cost of Delay** = User-Business Value + Time Criticality + Risk Reduction / Opportunity Enablement
 
-Each component scored on a modified Fibonacci scale: **1, 2, 3, 5, 8, 13, 20**. Score *relative to other items in the same backlog* — absolute values don't matter, ratios do.
+Score components on modified Fibonacci: **1, 2, 3, 5, 8, 13, 20**. Score *relative to other items in the same backlog*; ratios matter, absolutes don't.
 
 | Component | What it measures | High score (13–20) | Low score (1–2) |
 |---|---|---|---|
@@ -40,16 +40,16 @@ Each component scored on a modified Fibonacci scale: **1, 2, 3, 5, 8, 13, 20**. 
 - Size = 8 (one team, one PI)
 - WSJF = (13 + 8 + 5) / 8 = **3.25**
 
-Compare against:
+Against:
 - Story: "Dark mode toggle"
 - Value = 2, Time = 1, Risk/Opp = 1, Size = 2
 - WSJF = (2 + 1 + 1) / 2 = **2.0**
 
-OAuth wins. Note: dark mode has a positive WSJF — it's not bad work, it's just lower-leverage right now.
+OAuth wins; dark mode is positive but lower-leverage now.
 
 ## RICE — Reach × Impact × Confidence / Effort
 
-Product-team standard. Best when you have data on user reach and can estimate impact.
+Product-team standard for user-reach data and impact estimates.
 
 **Formula:** `RICE = (Reach × Impact × Confidence) / Effort`
 
@@ -68,13 +68,13 @@ Product-team standard. Best when you have data on user reach and can estimate im
 - Effort = 1 person-month
 - RICE = (8000 × 0.5 × 0.80) / 1 = **3200**
 
-The number itself doesn't mean much. The *ranking* across the backlog is what matters.
+Rank matters more than the raw number.
 
-When to be skeptical: if everyone's confidence is 100% across a 30-item backlog, the team is lying to itself. Push for 80% as the realistic default.
+If confidence is 100% across a 30-item backlog, push for 80% as the realistic default.
 
 ## MoSCoW — Must / Should / Could / Won't
 
-Categorical, not numeric. Best when data is thin and you need to triage fast.
+Categorical triage for thin data.
 
 | Bucket | Meaning | Typical share |
 |---|---|---|
@@ -83,7 +83,7 @@ Categorical, not numeric. Best when data is thin and you need to triage fast.
 | **Could** | Desirable, included if capacity allows | ~20% |
 | **Won't (this slice)** | Explicitly out of scope. Document so it's not re-litigated. | — |
 
-The "Won't" column is the one teams skip and shouldn't. Recording what's *out* prevents the same conversation in week 4.
+Don't skip "Won't"; recording what's *out* prevents the same conversation in week 4.
 
 **Worked example for Slice 1 (MVP) of a property-search app:**
 
@@ -98,7 +98,7 @@ The "Won't" column is the one teams skip and shouldn't. Recording what's *out* p
 
 ## What to record in `backlog.csv`
 
-For all methods, include columns:
+For all methods, include:
 `id, activity, task, story, persona, outcome, slice, method, score, reasoning`
 
 Method-specific columns:
@@ -106,12 +106,12 @@ Method-specific columns:
 - RICE: `rice_reach, rice_impact, rice_confidence, rice_effort`
 - MoSCoW: `moscow` (one of: must, should, could, wont)
 
-The `reasoning` column is the most important. A score with no reasoning is unauditable in 3 months. Force one sentence per row even if it's "comparable to similar [other-story]".
+`reasoning` is mandatory. A score without it is unauditable in 3 months. One sentence per row, even "comparable to similar [other-story]".
 
 ## Anti-patterns
 
-- **Mixing methods in one ranking.** A WSJF of 3.25 and a RICE of 3200 are not comparable. Pick one per invocation and stick to it for the whole backlog.
-- **Scoring on an absolute scale.** WSJF and RICE only mean anything relative to the rest of *this* backlog. Re-anchor when items are added.
-- **Confidence inflation.** A backlog where every RICE item is 100% confident is self-deception; 80% is the honest default.
-- **Skipping the "Won't" column.** Recording what's explicitly out of scope is the cheapest way to stop re-litigating it later.
-- **A score with no reasoning.** Unauditable in three months. Every row gets one sentence, even if it's just "comparable to [other-story]".
+- **Mixing methods in one ranking.** A WSJF of 3.25 and a RICE of 3200 are not comparable. Pick one per backlog.
+- **Scoring on an absolute scale.** WSJF/RICE are relative to *this* backlog. Re-anchor when items are added.
+- **Confidence inflation.** If every RICE item is 100% confident, the team is fooling itself; 80% is the honest default.
+- **Skipping the "Won't" column.** Recording out-of-scope work cheaply stops re-litigation.
+- **A score with no reasoning.** Unauditable in three months. Every row gets one sentence, even "comparable to [other-story]".
