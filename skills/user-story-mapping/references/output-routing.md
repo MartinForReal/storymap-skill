@@ -37,7 +37,7 @@ When signals conflict, **ask once**: "new (seed tracker) or existing (keep in fr
 
 The output **set** depends on: **is an issue tracker (Jira / ADO / GitHub Issues / Linear) system of record?** (`.gsd/`-style state is non-empty baseline but *not* issue tracker.) Tiers: [../SKILL.md § What it produces](../SKILL.md#what-it-produces).
 
-- **Always, every run:** `design.md` (rationale) + `storymap.md` (parser/import narrative) + `storymap.csv` (flat items+status manifest; deterministic `storymap.md` projection).
+- **Always, every run:** `design.md` (create if absent; if gstack/Superpowers already wrote it, preserve their sections and append/update this skill's story-map addendum) + `storymap.md` (parser/import narrative) + `storymap.csv` (flat items+status manifest; deterministic `storymap.md` projection).
 - **No issue tracker** (empty baseline *or* existing project whose system of record is framework state / `TODO.md`): also emit `storymap.mmd`, `backlog.md`, and `backlog.csv` for navigation/ranking. Persist/seed below.
 - **Issue tracker defined:** do **not** emit `storymap.mmd` / `backlog.{md,csv}`; tracker provides navigation/ranking. Opt-in write-back sets **burn-down fields** (points + sprint + status) — see [work-item-tracking.md § Enable the tracker burn-down](work-item-tracking.md#enable-the-tracker-burn-down). Put ranked "start here" in `handoff.md`; still produce `storymap.csv` as manifest.
 

@@ -1,6 +1,6 @@
 # Integration with sibling skill frameworks and SAFe tooling
 
-When Superpowers, gstack, or GSD reaches Plan, self-activate and produce the story map once. This includes Superpowers plan generation, any gstack `/plan-*-review` (including `/plan-dev-design-review`), and cases where a design doc exists and the plan is being adjusted. Their Plan commands consume the same inputs: design doc, slice-1 stories, role hints, test contract. Otherwise this skill is standalone; if no tool applies, emit canonical files.
+When Superpowers, gstack, or GSD reaches Plan, self-activate and produce the story map once. This includes Superpowers plan generation, any gstack `/plan-*-review` (including `/plan-dev-design-review`), and cases where a design doc exists and the plan is being adjusted. If the framework already produced `design.md`, treat it as the brief and augment it; don't replace it. Their Plan commands consume the same inputs: design doc, slice-1 stories, role hints, test contract. Otherwise this skill is standalone; if no tool applies, emit canonical files.
 
 ## When to use
 
@@ -10,10 +10,10 @@ Read this for sister-framework Plan signals, exact hand-off lines, or GSD "slice
 
 Before ad-hoc drafting, detect a sister framework at Plan and self-activate. Produce story map, per-persona stories, role hints, and test contract once; framework commands review and consume them.
 
-| Framework | Plan-stage signal (any of these = activate this skill) | This skill produces what they consume |
+| Framework | Plan-stage signal (any of these = activate this skill) | Integration contract |
 |---|---|---|
-| **Superpowers** | Finished `brainstorming`; about to call `writing-plans`; generating a plan; slice 1 stories not written | `storymap.md` slice 1 → `writing-plans` task decomposition |
-| **gstack** | User invokes `/office-hours`, `/autoplan`, any `/plan-*-review` including `/plan-ceo-review`, `/plan-eng-review`, `/plan-design-review`, `/plan-dev-design-review`, `/plan-devex-review`; or a generated `design.md` is being adjusted into a plan | `design.md` → `/plan-ceo-review`; slice 1 → `/plan-eng-review`; persona narratives + `role-hints.md` → `/plan-design-review` / `/plan-dev-design-review`; `backlog.md` → `/plan-devex-review` |
+| **Superpowers** | Finished `brainstorming`; about to call `writing-plans`; generating a plan; slice 1 stories not written | Existing `design.md` / brainstorming output → brief; `storymap.md` slice 1 → `writing-plans` task decomposition |
+| **gstack** | User invokes `/office-hours`, `/autoplan`, any `/plan-*-review` including `/plan-ceo-review`, `/plan-eng-review`, `/plan-design-review`, `/plan-dev-design-review`, `/plan-devex-review`; or a generated `design.md` is being adjusted into a plan | Existing `design.md` → brief and `/plan-ceo-review`; slice 1 → `/plan-eng-review`; persona narratives + `role-hints.md` → `/plan-design-review` / `/plan-dev-design-review`; `backlog.md` → `/plan-devex-review` |
 | **GSD** | User invokes `/gsd discuss`, `/gsd plan-milestone`; or authors `.gsd/Brief.md` / `.gsd/Roadmap.md` / new `.gsd/Milestones/Mn/` | `design.md` → `.gsd/Brief.md`; slice 1 → `.gsd/Milestones/M1/`; `backlog.md` → `.gsd/Roadmap.md` |
 
 Under a sister framework, do not author framework-specific files (especially `.gsd/`); use its vocabulary in the final hand-off.
@@ -24,11 +24,11 @@ Under a sister framework, do not author framework-specific files (especially `.g
 
 [gstack](https://github.com/garrytan/gstack) — Garry Tan (Y Combinator) — is a Claude Code slash-command pack for Think → Plan → Build → Review → Test → Ship → Reflect. It exposes 23+ commands: `/office-hours`, `/autoplan`, `/plan-ceo-review`, `/plan-eng-review`, `/plan-design-review`, `/plan-dev-design-review`, `/design-review`, `/review`, `/qa`, `/ship`, `/retro`.
 
-This skill produces gstack **Plan** artifacts. In the tracker case, `backlog.md` is **not** emitted; `/plan-devex-review` reads the ranked tracker view, and opt-in `tracker-status-update.<ext>` populates burn-down fields ([output-routing.md § What each branch produces](output-routing.md#what-each-branch-produces)).
+This skill consumes or produces gstack **Plan** artifacts. If gstack already wrote `design.md`, use it as the authoritative brief and append/update only the story-map addendum (bottom line, context trace, persona interactions, decisions); don't rewrite the gstack-owned framing. In the tracker case, `backlog.md` is **not** emitted; `/plan-devex-review` reads the ranked tracker view, and opt-in `tracker-status-update.<ext>` populates burn-down fields ([output-routing.md § What each branch produces](output-routing.md#what-each-branch-produces)).
 
 ```
 gstack /office-hours          ──→ user-story-mapping (the loop)
-gstack /autoplan                  ↳ produces design.md + storymap.md + backlog.md
+gstack /autoplan                  ↳ consumes/updates design.md + produces storymap.md + backlog.md
 gstack /plan-ceo-review       ──→ reviews design.md (the "why")
 gstack /plan-eng-review       ──→ reviews storymap.md slice-1 (the "what to build first")
 gstack /plan-design-review    ──→ reviews user activities + persona narratives
@@ -43,7 +43,7 @@ Practical gstack mapping:
 | gstack command | What it reads from this skill |
 |---|---|
 | `/office-hours` (refine an idea) | Read `design.md`: personas, opportunities, hypotheses |
-| `/autoplan` (turn a goal into work) | Skip if `storymap.md` exists; point to first slice |
+| `/autoplan` (turn a goal into work) | If `design.md` exists, use it as brief; skip if `storymap.md` exists; point to first slice |
 | `/plan-ceo-review` | Review `design.md` for outcome clarity and core question |
 | `/plan-eng-review` | Review `storymap.md` slice 1 for feasibility; surface `role-hints.md`§Architect open questions |
 | `/plan-design-review` | Review persona narratives, activity backbone, `role-hints.md`§UX |
@@ -101,9 +101,9 @@ brainstorming  →  user-story-mapping  →  writing-plans  →  rest of Superpo
                    plan + design doc)       tasks)
 ```
 
-**Handoff in:** Superpowers `brainstorming` produces an intent design doc. Use it as the loop's brief.
+**Handoff in:** Superpowers `brainstorming` or plan generation may produce an intent `design.md`. Use it as the loop's brief and framework-owned source; do not overwrite it.
 
-**Handoff out:** First slice of `storymap.md` feeds `writing-plans`; each story → 2-5 min tasks. `design.md` and `backlog.md` stay scope-authoritative. `role-hints.md` is a designer/architect *head-start*: resolve open questions before `writing-plans`, but don't treat hints as scope-authoritative.
+**Handoff out:** First slice of `storymap.md` feeds `writing-plans`; each story → 2-5 min tasks. `design.md` (original brief plus story-map addendum) and `backlog.md` stay scope-authoritative. `role-hints.md` is a designer/architect *head-start*: resolve open questions before `writing-plans`, but don't treat hints as scope-authoritative.
 
 If active, say: "Slice 1 is ready for `writing-plans`. design.md and backlog.md are authoritative for scope; role-hints.md (UX + architect) is a head-start — work through its open questions first."
 

@@ -2,7 +2,7 @@
 
 Mine existing context — repo, tests, docs, tracker, prior runs — before interviewing. Ground the map in journeys, decisions, evidence. Intent spans prompt, codebase, Jira, Confluence, analytics, telemetry, prior conversations; Step 0 is a hypothesis loop.
 
-This is **Step 0**. One scan gathers intent, sets the diff baseline, and detects whether a tracker is defined. No "mode detection"; "from scratch" loops empty sources. See [`../SKILL.md#the-loop`](../SKILL.md#the-loop).
+This is **Step 0**. One scan gathers intent, sets the diff baseline, and detects whether a tracker is defined. A framework-owned `design.md` (gstack/Superpowers) is input first, output second: mine it as the brief, then augment it later. No "mode detection"; "from scratch" loops empty sources. See [`../SKILL.md#the-loop`](../SKILL.md#the-loop).
 
 ## When to use
 
@@ -46,10 +46,11 @@ The loop handles every input:
 1. **Working directory listing** (free) — empty/populated? languages?
 2. **User's prompt re-read** (free) — re-anchor on highest-priority source.
 3. **`.user-story-mapping/state.json`** (cheap) — prior runs + tracker config; presence = non-empty baseline. Schema/lifecycle live in [`persistent-knowledge.md`](persistent-knowledge.md) §A.
-4. **`README.md`** (cheap) — product one-liner, often outcome.
-5. **Interview notes in the prompt** (already in context) — synthesize.
+4. **Framework `design.md`** (cheap, if present) — gstack/Superpowers design output; use as the brief and non-empty baseline.
+5. **`README.md`** (cheap) — product one-liner, often outcome.
+6. **Interview notes in the prompt** (already in context) — synthesize.
 
-These five reveal project/baseline type and tech-stack hint.
+These reveal project/baseline type and tech-stack hint.
 
 ### Branch-conditional sources
 
@@ -79,10 +80,11 @@ Framework state directories (gstack, GSD, Superpowers) often beat interviews for
 | GSD task summaries | `.gsd/task-summaries/*.md` | Shipped work + prior-milestone learning |
 | Superpowers brainstorming output | wherever the user saved it (often `brainstorming.md`) | The pre-skill intent doc |
 | Superpowers plans | `plans/<recent>.md` | Recent intended work |
-| gstack `/plan-*-review` outputs | Whatever the user saved | Prior-plan reviewer feedback |
+| gstack `/office-hours` / `/autoplan` / `/plan-*-review` outputs | Usually `design.md` or wherever the user saved it | Brief + prior-plan reviewer feedback; treat as framework-owned input |
+| Superpowers brainstorming / generated plan output | Often `design.md`, `brainstorming.md`, or `plans/<recent>.md` | Intent design doc; treat as the loop's brief |
 | Prior `design.md` / `storymap.md` from this skill | `**/design.md`, `**/storymap.md` | Non-empty-baseline signal — reuse backbone criteria + decisions log |
 
-Read before asking: `.gsd/Brief.md` for outcome; prior `design.md` for backbone criteria + decisions log. Sister-framework handoff/trigger phrasing lives in [`framework-integration.md`](framework-integration.md).
+Read before asking: `.gsd/Brief.md` for outcome; framework/prior `design.md` for outcome, scope, backbone criteria, and decisions log. Later, preserve framework-owned sections and append/update only the story-map addendum; don't overwrite a gstack/Superpowers design doc. Sister-framework handoff/trigger phrasing lives in [`framework-integration.md`](framework-integration.md).
 
 Ask only for gaps; batch 3–5 questions.
 

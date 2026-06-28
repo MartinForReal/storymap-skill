@@ -11,6 +11,7 @@ All notable changes to **storymap-skill** are documented here. Format follows [K
 ### Changed — Plan-stage auto-activation cues
 
 - Clarified Superpowers plan generation, gstack `/plan-dev-design-review` / any `/plan-*-review`, and design-doc plan-adjustment loops explicitly route through this skill.
+- Defined `design.md` as a shared framework handoff: if gstack/Superpowers already produced it, this skill mines it as the brief and appends/updates story-map sections instead of overwriting framework-owned content.
 
 ## [0.0.5] — 2026-06-16 — items+status manifest always; mode-terminology fully purged
 

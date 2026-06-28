@@ -6,7 +6,7 @@ Barbara Minto's Pyramid Principle for artifacts: **answer** → **arguments** (w
 
 ## When to use
 
-Use only for **human-facing narrative artifacts**: `design.md`, `backlog.md`, `handoff.md`, including iteration re-runs where the bottom line becomes diff + next decision.
+Use only for **human-facing narrative artifacts**: `design.md`, `backlog.md`, `handoff.md`, including iteration re-runs where the bottom line becomes diff + next decision. If `design.md` is framework-owned (gstack/Superpowers), preserve its existing order and put this skill's answer-first content in the story-map addendum instead of rewriting the whole file.
 
 Do **not** apply it to machine artifacts `storymap.csv` / `storymap.mmd` or to `storymap.md`; its `## Activity:` / `### Task:` / `- [slice:...]` structure is parser-load-bearing and must not be reordered.
 
@@ -18,7 +18,7 @@ Do **not** apply it to machine artifacts `storymap.csv` / `storymap.mmd` or to `
         │   └─ evidence/detail     │   └─ evidence       │   └─ evidence
 ```
 
-`## Bottom line` is mandatory and first. State the answer, then descend: supporting arguments, then evidence.
+`## Bottom line` is mandatory and first for storymap-owned files. For framework-owned `design.md`, add/update a story-map `## Bottom line` addendum as high as safely possible without clobbering the framework's sections. State the answer, then descend: supporting arguments, then evidence.
 
 ## Per-artifact
 
@@ -28,7 +28,7 @@ Do **not** apply it to machine artifacts `storymap.csv` / `storymap.mmd` or to `
 | **backlog.md** | **Start here:** the slice-1 headline — what to build first and why, in one line | Top-10 ranked; per-slice tables | Full scoring in `backlog.csv` |
 | **design.md** | The **outcome** + the **question this work answers** + the core bet (hypothesis) | Personas, backbone activities, opportunities, hypotheses | Context sources, backbone criteria, decisions log |
 
-`design.md`'s `## Backbone criteria` and `## Context sources mined` are *process / reproducibility metadata*; keep them **below**.
+`design.md`'s `## Backbone criteria` and `## Context sources mined` are *process / reproducibility metadata*; keep them **below**. In a framework-owned `design.md`, these belong in the story-map addendum, not in the framework's own framing sections.
 
 On an iteration re-run (the [loop](../SKILL.md#the-loop) on a non-empty baseline), the bottom line carries the change: `handoff.md` leads with the smallest next decision + diff; `backlog.md` leads with whether slice 1 moved.
 
@@ -41,7 +41,7 @@ On an iteration re-run (the [loop](../SKILL.md#the-loop) on a non-empty baseline
 
 ## Checklist
 
-- [ ] `design.md` / `backlog.md` / `handoff.md` opens with `## Bottom line` (the answer, ≤3 sentences)
+- [ ] Storymap-owned `design.md` / `backlog.md` / `handoff.md` opens with `## Bottom line` (the answer, ≤3 sentences); framework-owned `design.md` has a story-map addendum with its own `## Bottom line`
 - [ ] Stopping after the bottom line still gives the core message
 - [ ] Arguments share one abstraction level and support the bottom line
 - [ ] Process / criteria / inventory sit **below** the answer
