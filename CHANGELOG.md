@@ -2,6 +2,13 @@
 
 All notable changes to **storymap-skill** are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning is [SemVer](https://semver.org/).
 
+## [Unreleased]
+
+### Test infrastructure
+
+- Removed unreachable dead code in `tests/grade_runs.py` (`grade_multi_stakeholder_conflict` had a stray duplicate of `grade_okr_alignment`'s body after its `return`).
+- `tests/build_viewer.py` now renders the actual iteration name and eval count in `review.html` instead of hardcoded "iteration 5" / "3 test cases" strings.
+
 ## [0.0.6] — 2026-06-28 — compressed runtime docs and explicit plan-stage triggers
 
 ### Changed — runtime instruction compression

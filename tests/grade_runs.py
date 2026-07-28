@@ -670,57 +670,6 @@ def grade_multi_stakeholder_conflict(out_dir: Path) -> list[dict]:
     a6 = grade_method_columns(out_dir, "wsjf")
 
     return [a1, a2, a3, a4, a5, a6]
-    """Six assertions for eval-13 (OKR-aligned roadmap)."""
-    text = read_all_text(out_dir)
-    text_lower = text.lower()
-    design = read_file(out_dir, "design.md") or ""
-    backlog = read_file(out_dir, "backlog.csv") or ""
-
-    # okr column in backlog.csv
-    has_okr_col = "okr" in backlog.lower().splitlines()[0] if backlog.strip() else False
-    a1 = {
-        "text": "backlog.csv has okr column",
-        "passed": has_okr_col,
-        "evidence": "okr column present in header" if has_okr_col else "missing",
-    }
-
-    # okr column populated — look for KR-x.y references
-    kr_refs = sum(1 for line in backlog.splitlines() if re.search(r"kr-?\d\.\d", line.lower()))
-    a2 = {
-        "text": "okr column has KR-x.y references populated",
-        "passed": kr_refs >= 5,
-        "evidence": f"KR-x.y references in backlog: {kr_refs}",
-    }
-
-    # OKR coverage matrix in design.md
-    matrix_signal = "coverage" in design.lower() and ("kr-" in design.lower() or "kr " in design.lower())
-    a3 = {
-        "text": "design.md has an OKR coverage matrix",
-        "passed": matrix_signal,
-        "evidence": "coverage + KR mentioned in design.md" if matrix_signal else "missing",
-    }
-
-    # Orphan KRs surfaced — should call out KR-2.1, KR-2.2, KR-2.3 as belonging to other ARTs or surface gaps
-    orphan_signal = ("orphan" in text_lower or "gap" in text_lower or "no coverage" in text_lower or "no platform" in text_lower or "another art" in text_lower or "other arts" in text_lower or "escalat" in text_lower)
-    a4 = {
-        "text": "Orphan KRs (KRs we own but have no story coverage) are surfaced",
-        "passed": orphan_signal,
-        "evidence": "orphan/gap terminology found" if orphan_signal else "missing",
-    }
-
-    # All 9 KRs referenced
-    kr_ids = [f"KR-{o}.{i}" for o in (1, 2, 3) for i in (1, 2, 3)]
-    found_krs = sum(1 for kr in kr_ids if kr in text or kr.lower() in text_lower or kr.replace("-", "") in text)
-    a5 = {
-        "text": "All 9 KRs (KR-1.1 through KR-3.3) referenced in outputs",
-        "passed": found_krs >= 8,  # tolerance for one naming variation
-        "evidence": f"{found_krs}/9 KRs referenced",
-    }
-
-    # WSJF
-    a6 = grade_method_columns(out_dir, "wsjf")
-
-    return [a1, a2, a3, a4, a5, a6]
 
 
 def grade_okr_alignment(out_dir: Path) -> list[dict]:

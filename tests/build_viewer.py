@@ -104,7 +104,7 @@ def main() -> int:
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>user-story-mapping — iteration 5 review</title>
+<title>user-story-mapping — {html.escape(ITERATION.name)} review</title>
 <style>
   body {{ font-family: -apple-system, Segoe UI, sans-serif; max-width: 1300px; margin: 0 auto; padding: 20px; color: #222; }}
   h1 {{ border-bottom: 2px solid #4338ca; padding-bottom: 8px; }}
@@ -144,8 +144,8 @@ def main() -> int:
 </style>
 </head>
 <body>
-<h1>user-story-mapping — iteration 5 review</h1>
-<p>Skill outputs and benchmark for 3 test cases × 2 configurations (with-skill vs baseline). Auto-saves your feedback to localStorage; click <strong>Submit All Reviews</strong> to download <code>feedback.json</code>.</p>
+<h1>user-story-mapping — {html.escape(ITERATION.name)} review</h1>
+<p>Skill outputs and benchmark for {len(per_eval)} test cases × 2 configurations (with-skill vs baseline). Auto-saves your feedback to localStorage; click <strong>Submit All Reviews</strong> to download <code>feedback.json</code>.</p>
 <button class="submit" onclick="submitAll()">📥 Submit All Reviews (download feedback.json)</button>
 
 <div class="tabs">
