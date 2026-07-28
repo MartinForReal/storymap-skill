@@ -95,7 +95,6 @@ def parse_storymap(md_text: str) -> Iterator[dict]:
         if line.startswith("## ") and "non-backbone" in line.lower():
             activity = None  # waits for a ### Theme: header
             task = None
-            in_non_backbone = True
             continue
 
         if line.startswith("### Theme:"):
