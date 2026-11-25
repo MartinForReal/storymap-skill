@@ -22,7 +22,7 @@ Use for *continuing* efforts; avoid one-offs.
 | **Rapidly evolving projects** | Personas/activities from 3 months ago may mislead |
 | **Fresh-eyes review** | User may want re-discovery, not cache |
 
-Default: enable active multi-PI; disable one-shots.
+Offer persistence for active multi-PI projects rather than assuming it is wanted. One-shot runs can use the plan artifacts alone.
 
 ## Two storage backends
 
@@ -46,7 +46,7 @@ my-project/
 
 #### `state.json` schema
 
-Canonical shape. Write first block when memory is enabled; write `tracker` when defined.
+Canonical shape for opt-in project state. Include `tracker` only when a tracker is defined for this work.
 
 ```json
 {
@@ -78,7 +78,7 @@ Canonical shape. Write first block when memory is enabled; write `tracker` when 
 }
 ```
 
-**The `tracker` block** records project configuration, not user content, so it is **written by default whenever a tracker is defined** (test in [output-routing.md](output-routing.md#detecting-the-empty-baseline-no-tracker-defined)). Fields:
+**The `tracker` block** records project configuration when saving project state is authorized (tracker test in [output-routing.md](output-routing.md#detecting-the-empty-baseline-no-tracker-defined)). Fields:
 
 | Field | Meaning |
 |---|---|
@@ -120,7 +120,7 @@ Entity: hypothesis:H1
 - "use what you learned last time" / "extend the prior map" → **read**
 - Extend prior map / "what changed since last PI" (non-empty baseline loop) → **automatically read** prior storymap
 
-**Always read before write.** Remembered facts are *hints*, not gospel; verify. If cached "CS rep" conflicts with README, override and update.
+**Always read before write.** Remembered facts are *hints*, not gospel; verify. If cached "CS rep" conflicts with README, override for the run; update the cache only if authorized.
 
 **Always show what was loaded.** Add "Loaded from memory" to `design.md`; tag loaded facts `[memory: <date>]` (source tags/priority order live in [../SKILL.md#rules-that-govern-every-run](../SKILL.md#rules-that-govern-every-run); user-stated input outranks memory).
 
@@ -140,11 +140,9 @@ Transparency is non-negotiable; hidden state loses trust.
 
 ### Refresh policy
 
-- **Read on every invocation** when memory is enabled.
-- **Write only when:**
-  - User explicitly asks ("remember this").
-  - Successful end — write a **delta**, not full state.
-  - **Decisions log: append on every invocation; never overwrite.** `decisions.log.md` is append-only; corrections are new superseding entries.
+- **Read** relevant local project state during discovery unless the user asks to ignore it. Read cross-session Memory MCP only with opt-in.
+- **Write** the scoped delta at successful handoff only when the user opted in to the specific backend. A prior map, installed connector, or existing state file is not write authorization.
+- **Decisions log:** when authorized to save project state, append new decisions to `decisions.log.md`; corrections are new superseding entries.
 - **Stale-check on read:**
   - If `state.json` is older than 90 days, warn before applying it.
   - If main branch has had >50 commits since last scan, re-mine context.
@@ -154,7 +152,7 @@ Transparency is non-negotiable; hidden state loses trust.
 Memory load is a cheap **starter signal** at **Step 0** entry, alongside `ls`, prompt re-read, README, and interview notes:
 
 ```
-Step 0 (context loop, starter signals) — if .user-story-mapping/state.json exists OR memory MCP available:
+Step 0 — if relevant .user-story-mapping/state.json exists or the user opted in to Memory MCP:
   - Read prior state as a cheap signal (free or near-free tool call)
   - Surface in design.md "Loaded from memory" section
   - Tag loaded facts [memory: <date>]; verify against current state
@@ -166,9 +164,9 @@ Step 1+ — normal loop
 End-of-run write-back rides on **Step 6 (Hand off)**:
 
 ```
-Step 6 (hand off) — if memory enabled OR user said "remember this":
+Step 6 (hand off) — only if the user authorized writing to the chosen backend:
   - Write delta to chosen backend
-  - Append to decisions log (never overwrite)
+  - For local project state, append new decisions (never overwrite)
   - Tell the user what was saved, in one line
 ```
 

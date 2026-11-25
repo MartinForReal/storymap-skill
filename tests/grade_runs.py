@@ -1224,21 +1224,45 @@ def grade_run(eval_id: int, out_dir: Path) -> list[dict]:
             "evidence": f"header: {header[:200]}",
         })
     elif eval_id == 24:
-        # Plan-stage auto-trigger via gstack /office-hours cue
+        # Agreed gstack brief -> release slice -> engineering-review handoff
         handoff = read_file(out_dir, "handoff.md") or ""
         text = read_all_text(out_dir).lower()
         results.append({
-            "text": "Auto-activates on gstack /office-hours cue (storymap.md produced, not just free-form discussion)",
+            "text": "Maps the agreed gstack brief (storymap.md produced)",
             "passed": bool(read_file(out_dir, "storymap.md")),
             "evidence": "storymap.md present",
         })
         results.append(grade_backbone_user_voice(out_dir))
         results.append(grade_first_slice_coverage(out_dir))
         results.append(grade_method_columns(out_dir, "wsjf"))
+        local_views = ("storymap.mmd", "backlog.md", "backlog.csv")
+        missing = [name for name in local_views if not read_file(out_dir, name)]
         results.append({
-            "text": "Handoff references gstack /plan-*-review commands",
-            "passed": ("/plan-ceo-review" in handoff.lower() or "/plan-eng-review" in handoff.lower() or "/plan-design-review" in handoff.lower() or "/plan-devex-review" in handoff.lower()) and ("/plan-" in handoff.lower()),
-            "evidence": "gstack plan-review commands named",
+            "text": "Keeps the no-tracker views for an existing project",
+            "passed": not missing,
+            "evidence": f"missing: {missing}",
+        })
+        section = re.search(r"^## Slice 1 handoff\s*\n(.*?)(?=^##\s|\Z)", handoff, re.M | re.S | re.I)
+        contract = section[1].lower() if section else ""
+        results.append({
+            "text": "Slice handoff points engineering review at the mapped slice",
+            "passed": all(term in contract for term in ("/plan-eng-review", "storymap.md", "outcome", "in scope", "demo", "deferred")),
+            "evidence": contract[:600] if contract else "no Slice 1 handoff section",
+        })
+        demo = re.search(r"\bdemo\b\W+(.+)", contract)
+        demo_text = demo[1] if demo else ""
+        results.append({
+            "text": "Demo connects the saved filters to a match email and listing",
+            "passed": all(term in demo_text for term in ("sav", "email", "list")) and any(verb in demo_text for verb in ("open", "follow", "click", "view")),
+            "evidence": demo_text or "no observable demo",
+        })
+        _, rows = _read_storymap_rows(out_dir)
+        first = [row for row in rows if row.get("slice", "").strip().lower() == "walking-skeleton"]
+        digest_in_first = any("digest" in row.get("story", "").lower() for row in first)
+        results.append({
+            "text": "Daily digest stays deferred, out of the walking skeleton",
+            "passed": bool(first) and bool(re.search(r"\bdeferred\b[^\n]*daily digest", contract)) and not digest_in_first,
+            "evidence": f"walking-skeleton rows: {len(first)}; digest story in first slice: {digest_in_first}",
         })
         results.append({
             "text": "Backbone uses user-voice verbs (search/save/get-notified/etc.)",

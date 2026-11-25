@@ -365,12 +365,13 @@
       "id": 24,
       "name": "plan-stage-auto-trigger-gstack",
       "category": "Plan-stage auto-trigger",
-      "prompt": "/office-hours we just kicked off a new initiative — let's add a 'Saved Searches' feature to our property-search app. Users want to save filters and get notified when new listings match. PM wants a plan by end of week, engineering team is 3 people, 6-week cycle. WSJF preferred.",
+      "prompt": "We already finished gstack /office-hours for our mature property-search app. Here is the approved brief: a signed-in home seeker saves filters, gets one email when a new listing matches, and follows it to that listing. A daily digest is explicitly out of the first release. No issue tracker for this work; hand off using local artifacts only. Story-map the end-to-end first slice and hand it to /plan-eng-review without re-running discovery or invoking the review. Use a walking-skeleton slice and WSJF. The team has 3 engineers and a 6-week cycle. Proceed with the brief as given.",
       "files": [],
       "assertions": [
-        "Detects gstack /office-hours as a Plan-stage cue and auto-activates this skill (storymap.md is produced, not just a free-form discussion)",
-        "All canonical files produced (design.md / storymap.md / storymap.csv always; storymap.mmd / backlog.{md,csv} when no tracker is defined)",
-        "Handoff line references gstack /plan-*-review commands explicitly (at minimum /plan-ceo-review on design.md and /plan-eng-review on slice 1)",
+        "Uses the approved /office-hours brief to produce a map without restarting framework discovery",
+        "Produces all six canonical files because no tracker is defined, even in a mature repo",
+        "Slice 1 handoff gives /plan-eng-review the agreed outcome, scope, observable demo, and exclusions without invoking it",
+        "Demo covers saving filters, receiving a match email, and opening the listing; daily digest is deferred and not a slice-1 story",
         "Method columns reflect WSJF",
         "Backbone in user voice (search, save, get notified, etc.) — not in system voice",
         "Slice 1 covers every backbone activity (walking-skeleton coverage rule)"

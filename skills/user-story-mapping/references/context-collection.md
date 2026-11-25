@@ -84,7 +84,7 @@ Framework state directories (gstack, GSD, Superpowers) often beat interviews for
 | Superpowers brainstorming / generated plan output | Often `design.md`, `brainstorming.md`, or `plans/<recent>.md` | Intent design doc; treat as the loop's brief |
 | Prior `design.md` / `storymap.md` from this skill | `**/design.md`, `**/storymap.md` | Non-empty-baseline signal — reuse backbone criteria + decisions log |
 
-Read before asking: `.gsd/Brief.md` for outcome; framework/prior `design.md` for outcome, scope, backbone criteria, and decisions log. Later, preserve framework-owned sections and append/update only the story-map addendum; don't overwrite a gstack/Superpowers design doc. Sister-framework handoff/trigger phrasing lives in [`framework-integration.md`](framework-integration.md).
+Read before asking: `.gsd/Brief.md` or the actual saved framework brief for agreed outcome, scope, and decisions; a prior storymap also gives backbone criteria. Carry agreed decisions into discovery and ask only about open slice decisions. Preserve the framework's source; if it is already the shared `design.md`, update only the story-map addendum. See [`framework-integration.md`](framework-integration.md) for the handoff.
 
 Ask only for gaps; batch 3–5 questions.
 
@@ -283,11 +283,11 @@ Tracker data is often the richest intent source.
 | Linear MCP | Current cycle, roadmap |
 | Notion / Confluence MCP | Strategy docs, OKRs, design specs |
 | Slack MCP | Product conversations |
-| Anthropic Memory MCP | Prior conversations about the project |
+| Memory MCP (opt-in) | Relevant prior project knowledge; follow the [persistence rules](persistent-knowledge.md#the-opt-in-lifecycle) |
 
 **When a tracker or backlog exists**, treat it as primary. CSV loses labels, priorities, comments, PR links. Ask whether live MCP or export is sufficient.
 
-**Pull taxonomy read-only too, not just issues** so Steps 2–4 reuse categories and Step 6 can persist them. Pull list, propose-don't-create rule, mapping table: [`work-item-tracking.md`](work-item-tracking.md#align-to-the-existing-tracker-taxonomy).
+**Pull taxonomy read-only too, not just issues** so Steps 2–4 can reuse categories. Pull list, propose-don't-create rule, mapping table: [`work-item-tracking.md`](work-item-tracking.md#align-to-the-existing-tracker-taxonomy).
 
 ## The procedure
 

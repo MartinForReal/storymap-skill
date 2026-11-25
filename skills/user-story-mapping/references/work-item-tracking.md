@@ -29,7 +29,7 @@ When tracker is system of record, do **not** invent parallel structure. In Step 
 
 - **Propose, never auto-create.** Missing tracker category (new epic, new fix-version) becomes *proposed*. Writes are opt-in scripts only.
 - **Keep user-narrative name in description, tool name in title.** If discovery says "Find a property" and tracker convention says "Epic-style: Improve search", keep **both**: user-narrative in description, tool-convention in title. User-narrative is discovery signal; overwriting loses map value. (See also "what NOT to do" below.)
-- **Persist the mapping.** Save field mapping + taxonomy snapshot to the `tracker` block of `.user-story-mapping/state.json` ([persistent-knowledge.md §A](persistent-knowledge.md#a-project-scoped--user-story-mapping-directory-in-the-repo)). Treat saved taxonomy as *hint*: reload, verify live tracker, refresh on drift.
+- **Reuse the mapping.** Keep it in the current run unless the user opted in to [project state](persistent-knowledge.md#a-project-scoped--user-story-mapping-directory-in-the-repo); then save the field mapping and taxonomy snapshot in `tracker`. Verify saved taxonomy against the live tracker before reuse.
 
 ## Enable the tracker burn-down
 

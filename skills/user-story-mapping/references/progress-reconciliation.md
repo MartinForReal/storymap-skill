@@ -212,7 +212,7 @@ Each script includes a header summary:
 2. **One direction at a time.** Do not push storymap → tracker AND pull tracker → storymap together. Pull auto; push opt-in.
 3. **No silent state changes.** Log every `handoff.md` `## Tracker write-back actions`: ticket id, before-state, after-state, reason.
 4. **Reversibility note.** End with undo instructions (e.g., "To revert a Jira transition, use `jira issue transition <ID> <prior-state>` or audit-log restore").
-5. **Tracker is one of many destinations.** If using sister-framework state (`.gsd/`, prior `TODO.md`) instead of tracker, write there per [output-routing.md](output-routing.md)'s cascade. Never push unapproved.
+5. **Handoff is not write-back.** If a framework owns planning, record suggested changes in `handoff.md` per [output-routing.md](output-routing.md). Leave framework state edits to the owning workflow and never push unapproved tracker changes.
 
 ## Anti-patterns
 
@@ -271,7 +271,7 @@ WRITE-BACK QUEUED:
 
 Reconciliation reads sister-framework state and writes back to its destination. State conventions and GSD slice/Milestone collision: [framework-integration.md](framework-integration.md).
 
-- **GSD** — `.gsd/task-summaries/` is authoritative status for `/gsd execute-task`. When active, write-back targets `.gsd/` (per [output-routing.md](output-routing.md)'s cascade), not tracker.
+- **GSD** — read the installed variant's task status as reconciliation evidence. Put proposed updates in the [slice handoff](framework-integration.md#slice-handoff); GSD owns its state.
 - **Superpowers** — `plans/` step status gives `done` evidence. Do not push to Superpowers-managed tracker; let `writing-plans` handle next-slice decomposition.
 - **gstack** — `/retro` reads storymap Hypotheses; `## Implementation status` helps. Mention "status table is ready for `/retro` if you want to evaluate which hypotheses played out".
 

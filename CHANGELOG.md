@@ -2,6 +2,15 @@
 
 All notable changes to **storymap-skill** are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning is [SemVer](https://semver.org/).
 
+## [0.0.7] — 2026-11-25 — release-slice handoff to planning frameworks (unreleased)
+
+### Changed
+
+- Storymap shapes release scope alongside Superpowers, gstack, or GSD instead of intercepting review-only or already-scoped planning requests. A downstream handoff carries the approved outcome, slice scope, observable demo, exclusions, and next decision or action.
+- Framework state and repo history no longer count as issue-tracker evidence. Keep the local visualization and backlog when no tracker is defined; propose framework imports in `handoff.md` rather than writing framework-owned state.
+- Saving optional project state or cross-session memory is separate from approving a map or choosing a downstream planner, and requires opt-in.
+- Extend the gstack integration eval to exercise a handoff from an already-agreed brief with excluded scope and no tracker.
+
 ## [0.0.6] — 2026-06-28 — compressed runtime docs and explicit plan-stage triggers
 
 ### Changed — runtime instruction compression

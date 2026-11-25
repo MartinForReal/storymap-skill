@@ -1,11 +1,11 @@
 ---
 name: user-story-mapping
-description: Run user story mapping (Jeff Patton style) — turns a vague goal, brief, or messy backlog into a sliced delivery plan with per-persona user stories that act as the blueprint for the team's test playbook (acceptance criteria + E2E contract). Mines existing context first (README, code, tests, issue tracker via MCP) and reuses the tracker's own taxonomy. Produces a design doc, a story map (Markdown + CSV, plus Mermaid when no tracker is defined), a prioritized backlog (WSJF / RICE / MoSCoW), and optional role-hints for UX/UI + architect. Auto-activates when a sister framework enters its Plan stage — Superpowers between `brainstorming` and `writing-plans` / plan generation, gstack `/office-hours` / `/autoplan` / `/plan-*-review` including `/plan-dev-design-review`, or GSD `/gsd discuss` / `/gsd plan-milestone` / Brief / Roadmap authoring. Also activate when a design doc has been generated and the plan is being adjusted. Use when shaping work (discovery, MVP scoping, "what should we build first", PI planning, organizing a backlog, "stories per persona"). Skip for pure engineering — bug fixes, refactors, code review, deploy debugging.
+description: User story mapping (Jeff Patton style). Turn a goal, brief, or backlog into a user-journey backbone and prioritized delivery slices, with per-persona stories, an end-to-end first-slice demo, and optional acceptance criteria. Mine context first. Use for discovery, MVP scoping, what to build first, PI planning, backlog organization, or revising release scope. Plan-stage cues when scope needs shaping — Superpowers `brainstorming` to `writing-plans` or plan generation, gstack `/office-hours`, `/autoplan`, `/plan-*-review` (incl. `/plan-dev-design-review`), GSD `/gsd discuss`, `/gsd plan-milestone`, Brief/Roadmap authoring. Hand the selected slice to the next planner without replacing its workflow. Skip review-only, already-scoped implementation planning, bug fixes, refactors, and deploy debugging.
 license: MIT
 compatibility: Requires Python 3.10+ for bundled scripts (storymap_to_csv.py, storymap_to_mermaid.py). No other system dependencies. Works across Claude Code, Claude.ai, and any Agent Skills v1 host (Cursor, Codex, Copilot, Gemini CLI, OpenCode, Goose, etc.).
 metadata:
   author: MartinForReal
-  version: "0.0.6"
+  version: "0.0.7"
   homepage: https://github.com/MartinForReal/storymap-skill
 allowed-tools: Bash(python:*) Read Write Edit Glob Grep Agent Skill
 ---
@@ -36,11 +36,11 @@ Each run discovers what exists, diffs it against the desired map, and **material
 5. **Interview until approved** (Step 0.4) — present the simulation findings + the diff, resolve *blocking* gaps/conflicts, loop to ① until the user approves. User wins over simulation; nothing to resolve ⇒ a fast confirm. No backbone work before approval.
 6. **Backbone** (Step 1) — only after approval; carry a prior backbone forward, never silently re-derive.
 7. **Generate / update** (Steps 2–4b) — **materialize the diff's delta**: per-persona stories, slices, prioritization, ACs, E2E. ∅ existing ⇒ author the whole map; a clean delta ⇒ update only it; **∅ diff ⇒ a snapshot, no regeneration**. Idempotent; reuse the tracker's taxonomy.
-8. **Derive + hand off** (Steps 5–6) — **always** create-or-update `design.md` + `storymap.md` + `storymap.csv` (the flat items+status list, derived from `storymap.md`); if `design.md` came from gstack/Superpowers, preserve its framework-owned sections and append/update only the story-map addendum (bottom line, context trace, persona interactions, decisions). The ranked-backlog views (`backlog.md`, `backlog.csv`) and visualization (`storymap.mmd`) are **only when no tracker is defined**; when a tracker *is* defined the opt-in write-back sets burn-down fields (points + sprint + status) instead. Persist `state.json`; emit a diff-style `handoff.md`.
+8. **Derive + hand off** (Steps 5–6) — produce the artifacts below and a diff-style handoff. If `design.md` is framework-owned, preserve its sections and update only the story-map addendum. Save state or prepare tracker write-back only on explicit opt-in to that destination.
 
 **"Tracker defined"** (gates the local renderings, `storymap.mmd`, and the burn-down write-back): true when a tracker MCP is connected for this work, the user points the skill at a specific tracker/project, or `state.json` already holds a `tracker` block. Operational test (and why a passing mention of a tool used elsewhere doesn't count): [`output-routing.md`](references/output-routing.md#detecting-the-empty-baseline-no-tracker-defined).
 
-**Auto-trigger** when a sister framework enters its Plan stage — Superpowers (between `brainstorming` and `writing-plans`, or while generating a plan), gstack (`/office-hours`, `/autoplan`, `/plan-*-review`, including `/plan-dev-design-review`), GSD (`/gsd discuss`, `/gsd plan-milestone`, authoring `.gsd/Brief.md` / `Roadmap.md`), or when a design doc exists and the plan is being adjusted. Signal: "the user is shaping work, not coding it" — propose this skill rather than hand-drafting stories. Detail: [`framework-integration.md`](references/framework-integration.md).
+**Framework boundary:** Plan-stage cues activate mapping when the user needs a journey or release-scope decision. Let the explicitly requested framework lead its discovery, approval, or review; map once at the scope boundary or update only the approved delta. At Step 6, use the [slice handoff](references/framework-integration.md#slice-handoff). Storymap owns slicing; the next workflow owns review and implementation tasks.
 
 ## When to use
 
@@ -52,7 +52,7 @@ Each run discovers what exists, diffs it against the desired map, and **material
 - **Only when no tracker is defined:** `storymap.mmd`, `backlog.md`, `backlog.csv` — the visualization and ranked-backlog views, redundant once a tracker is the system of record. (Canonical statement of the rule; the steps table and derived-file commands just reference it.)
 - **When a tracker is defined:** instead of those files, the opt-in tracker write-back sets each item's **burn-down fields** — story-points/estimate + sprint/iteration + status — so the tracker's native burn-down works; the ranked "start here" essence moves into `handoff.md`. Mechanics: [`work-item-tracking.md`](references/work-item-tracking.md).
 - **Optional:** `role-hints.md` (Step 2.5), `slice-1-acceptance-criteria.md` (4a), `e2e-test-contract.md` (4b), `tracker-status-update.<ext>` (Step 6 write-back), `handoff.md`.
-- **State:** `.user-story-mapping/state.json` — saved preferences + the `tracker` config block (on by default; cross-session Memory MCP is an opt-in second backend — see [`persistent-knowledge.md`](references/persistent-knowledge.md)).
+- **Opt-in state:** `.user-story-mapping/state.json` or cross-session Memory MCP. Approval of the map is not approval to save state; see [`persistent-knowledge.md`](references/persistent-knowledge.md).
 
 Templates and column schemas live in `assets/` — use them, don't hand-roll. The story-map → ACs → E2E-contract chain is deliberate: one test playbook at three levels of refinement, not a one-shot spec.
 
@@ -79,7 +79,7 @@ Templates and column schemas live in `assets/` — use them, don't hand-roll. Th
 | Has OKRs/KRs, or story dependencies | `okr-alignment.md` / `dependency-tracking.md` |
 | Wants ACs / E2E scenarios | `acceptance-criteria.md` + `e2e-verification-and-contract.md` |
 | Wants stories pushed somewhere | `output-routing.md`, then `work-item-tracking.md` |
-| Working inside Superpowers / gstack / GSD | `framework-integration.md` |
+| Needs to shape or change a release slice inside Superpowers / gstack / GSD, or hand a slice to another planner | `framework-integration.md` |
 
 ## The steps
 
@@ -99,7 +99,7 @@ Load the reference when you reach the step. Budgets are % of the run; Steps 0.3 
 | **4a** ACs | Given/When/Then for slice-1 + INVEST | `slice-1-acceptance-criteria.md` | 10-15% | `acceptance-criteria.md` |
 | **4b** E2E contract | Coverage matrix + E2E-HAPPY + per-activity scenarios — the test playbook | `e2e-test-contract.md` | 5-10% | `e2e-verification-and-contract.md` |
 | **5** Derive | `storymap.csv` (always — the flat items+status list) + `storymap.mmd` (only when no tracker) via the bundled scripts | derived files | <2% | scripts in `scripts/` |
-| **6** Hand off | Answer-first `handoff.md`; route items; persist `state.json`; opt-in write-back — sets tracker **burn-down fields** (points + sprint + status) when a tracker is defined | `handoff.md` (+ tracker write-back) | 5% | `output-routing.md`, `work-item-tracking.md`, `answer-first-writing.md`, `persistent-knowledge.md` |
+| **6** Hand off | Answer-first `handoff.md`; route selected slice; opt-in state or user-run tracker write-back only as requested | `handoff.md` (+ requested destinations) | 5% | `output-routing.md`, `work-item-tracking.md`, `answer-first-writing.md`, `persistent-knowledge.md` |
 
 **Glossary for first-use jargon in the table:** *Walking skeleton* — a slice that demos every backbone activity end-to-end, even if every step is minimal. *PI* — SAFe Program Increment, typically 8–12 weeks. *WSJF* — Weighted Shortest Job First (cost-of-delay ÷ job-size; SAFe default). *RICE* — Reach × Impact × Confidence ÷ Effort. *MoSCoW* — Must / Should / Could / Won't. *INVEST* — Independent / Negotiable / Valuable / Estimable / Small / Testable.
 
@@ -140,5 +140,5 @@ Backbone reads aloud as a coherent user story · slice 1 is demoable end-to-end 
 | `e2e-verification-and-contract.md` | Step 4b — backbone-as-E2E-contract |
 | `output-routing.md` | Step 6 — diff-baseline / tracker-defined routing decision |
 | `work-item-tracking.md` | Step 6 — per-tool import, aligning to an existing tracker's taxonomy, enabling the tracker burn-down |
-| `framework-integration.md` | Superpowers/gstack/GSD plan-stage auto-trigger + handoff |
+| `framework-integration.md` | Framework activation boundary, slice handoff, and downstream adapters |
 | `answer-first-writing.md` | Writing design.md/backlog.md/handoff.md answer-first (Pyramid Principle) |

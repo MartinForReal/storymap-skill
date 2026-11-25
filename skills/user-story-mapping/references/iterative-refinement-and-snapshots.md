@@ -188,7 +188,7 @@ Snapshot-only request ⇒ produce Step D.1; do not speculate or breach-check.
 
 ## When prior artifacts conflict with current memory
 
-If `storymap.md` contradicts `.user-story-mapping/state.json` or MCP memory, artifact wins (see [`../SKILL.md#rules-that-govern-every-run`](../SKILL.md#rules-that-govern-every-run)). Update memory; skip contradicted hints.
+If `storymap.md` contradicts `.user-story-mapping/state.json` or MCP memory, artifact wins (see [`../SKILL.md#rules-that-govern-every-run`](../SKILL.md#rules-that-govern-every-run)). Skip contradicted hints; update state only under the [persistence rules](persistent-knowledge.md#the-opt-in-lifecycle).
 
 ## When prior artifacts contradict the user
 
@@ -240,5 +240,5 @@ Same loop; prior context controls carry-forward from code, tests, tracker, frame
 ### Three rules that apply at every stage
 
 1. **Artifact > memory > inferred.** Current files beat stale memory; both beat inference. See [`../SKILL.md#rules-that-govern-every-run`](../SKILL.md#rules-that-govern-every-run).
-2. **Verify, don't trust.** Load memory, spot-check. If "CS rep" conflicts with pivoted README, override and update memory.
+2. **Verify, don't trust.** Spot-check loaded hints. If "CS rep" conflicts with a pivoted README, use current evidence.
 3. **Tag every fact.** Use shared source-tags for provenance — [`../SKILL.md#rules-that-govern-every-run`](../SKILL.md#rules-that-govern-every-run).

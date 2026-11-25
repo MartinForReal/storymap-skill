@@ -1,6 +1,6 @@
 # Where the items land — output-routing decision
 
-Route by baseline, not chat: **empty baseline (no tracker defined) → seed an issue tracker**; **non-empty baseline (tracker defined) → persist to sister-framework state, `TODO.md`, or Memory MCP** and never push into curated queues uninvited. Wrong: stories pollute Jira; chat-only plans evaporate.
+Decide artifact tier by the issue tracker actually used for this work, not by repo maturity or framework state. A separate handoff decision selects where the plan goes next. Tracker import/write-back stays opt-in and user-run.
 
 ## When to use
 
@@ -8,30 +8,18 @@ At Step 5/6, after backbone, slices, and ranked backlog. Routing hinges on "is a
 
 ## The decision in one sentence
 
-**Empty baseline (no tracker defined) → seed an issue tracker.** **Non-empty baseline (tracker defined) → framework state, `TODO.md`, or Memory MCP.** `TodoWrite` is orthogonal — pair with persistence; never system of record.
+**Tracker defined → ranked summary in `handoff.md`; otherwise → local visualization and backlog.** Either tier can feed a downstream framework without writing its state.
 
 ## Detecting the empty baseline (no tracker defined)
 
-Detector for the **"tracker defined" test** — predicate stated once in [../SKILL.md#the-loop](../SKILL.md#the-loop). Step 0 decides from data, not labels, then reuses it for routing, **which files get produced** ([§ What each branch produces](#what-each-branch-produces)), conditional `storymap.mmd`, and burn-down write-back.
+Despite this section's legacy link, **tracker defined** and **non-empty diff baseline** are independent. Apply the tracker predicate in [the loop](../SKILL.md#the-loop) once in Step 0. A tracker connection must be scoped to this work and a saved `tracker` block must still apply to the current planning scope. If signals conflict, ask only which system of record the user wants for this work.
 
-ALL following = empty baseline / **no tracker defined**:
-
-- No package manifest (`package.json` / `pyproject.toml` / `Cargo.toml` / `go.mod` / `Gemfile`)
-- No populated `.git` history (≤3 commits, all setup)
-- User's prompt didn't mention an existing tracker, ticket id, or running system
-- No tracker MCP used during Step 0
-- No `.gsd/`, `.superpowers/`, or `.user-story-mapping/`
-
-Any failure → **non-empty baseline / tracker defined** (the "existing" branch). Generic company-tool mention — no MCP, no project for *this* work — does **not** count. Decide once in Step 0; don't re-derive at Step 6.
-
-Edge cases:
-
-| Signal | Branch |
+| Signal | What it establishes |
 |---|---|
-| Mature repo, but user says "ignore the existing backlog, this is a clean PI" | Empty baseline — user override wins per the user-input-authoritative priority order ([../SKILL.md#rules-that-govern-every-run](../SKILL.md#rules-that-govern-every-run)) |
-| Empty working dir, but user says "this is for the existing `acme-billing` repo, I just haven't cloned it" | Tracker defined — the project exists even if the working dir doesn't |
-
-When signals conflict, **ask once**: "new (seed tracker) or existing (keep in framework state)?"
+| Prior storymap, accepted framework brief, or relevant existing plan items | Prior context for the diff, not by itself an issue tracker |
+| Package manifest, Git history/remote, framework directory, or generic mention of Jira | Context to mine, not proof of a tracker for this work |
+| Empty directory, but user names the Jira project used for this work | Tracker defined; reconcile any relevant plan items you can actually read |
+| Mature repo, framework brief, no applicable tracker | Use the brief and existing context; emit the no-tracker artifact tier |
 
 ## What each branch produces
 
@@ -41,31 +29,25 @@ The output **set** depends on: **is an issue tracker (Jira / ADO / GitHub Issues
 - **No issue tracker** (empty baseline *or* existing project whose system of record is framework state / `TODO.md`): also emit `storymap.mmd`, `backlog.md`, and `backlog.csv` for navigation/ranking. Persist/seed below.
 - **Issue tracker defined:** do **not** emit `storymap.mmd` / `backlog.{md,csv}`; tracker provides navigation/ranking. Opt-in write-back sets **burn-down fields** (points + sprint + status) — see [work-item-tracking.md § Enable the tracker burn-down](work-item-tracking.md#enable-the-tracker-burn-down). Put ranked "start here" in `handoff.md`; still produce `storymap.csv` as manifest.
 
-## The seed branch (empty baseline)
+## The seed branch (requested tracker import)
 
-Goal: create tracker from `backlog.csv`.
+Use only when the user asks to seed a tracker that is not yet defined. A clean baseline alone does not select an import.
 
-Pick tracker via [work-item-tracking.md](work-item-tracking.md#decision-tree-for-the-user): GitHub-remote / ADO-remote / Linear / Jira / ask-user. Generate import script; don't auto-run it. Write `.user-story-mapping/state.json` per [persistent-knowledge.md §A](persistent-knowledge.md), including `tracker`, for future iterations.
+Pick tracker via [work-item-tracking.md](work-item-tracking.md#decision-tree-for-the-user). Generate the import script for the user to run. If future iterations need the mapping, mention opt-in `.user-story-mapping/state.json` in the handoff; ask before saving it ([persistence rules](persistent-knowledge.md)).
 
 Do NOT write to `TODO.md` or Memory MCP here — tracker is system of record.
 
-## The keep branch — persistence cascade (tracker defined)
+## The keep branch — handoff destinations
 
-Walk in order. Write to **the first destination that applies**; optionally add Memory MCP.
+Use the requested destination. A named downstream workflow gets a handoff, not a write into its state. Otherwise the canonical local artifacts suffice unless the user wants another destination.
 
-### 1. Sister-framework state (highest priority when present)
+### 1. Sister-framework handoff (when a framework is the next consumer)
 
-| Detected | Where to write |
-|---|---|
-| `.gsd/` | `.gsd/Roadmap.md` (append); slice-1 → `.gsd/Milestones/M<n>/` |
-| `.superpowers/` or `plans/` in use by Superpowers | `plans/<dated-name>.md` next to existing plans |
-| `.user-story-mapping/` from a prior run | `.user-story-mapping/state.json` delta + `decisions.log.md` append |
-
-Conventions: [framework-integration.md](framework-integration.md) (gstack / GSD / Superpowers handoff lines) and [persistent-knowledge.md §A](persistent-knowledge.md) (`.user-story-mapping/` schema). Don't invent shapes.
+Write the [slice handoff](framework-integration.md#slice-handoff) in `handoff.md`, not in `.gsd/` or a framework's plan directory. Leave import, review, and task planning to the user or the owning workflow. Storymap state is separate; see [persistent-knowledge.md §A](persistent-knowledge.md).
 
 ### 2. Plain `TODO.md` at the repo root (universal fallback)
 
-Default for code + history with no framework state.
+Use for an explicit in-place execution list when no framework owns the plan.
 
 ```markdown
 # TODO
@@ -118,8 +100,8 @@ Slice-1 stories only — not full backlog. **Always pair with one of the three p
 Tell the user landing spot and next step:
 
 ```
-"Slice 1 (12 stories) → .gsd/Roadmap.md + .user-story-mapping/state.json;
- 8 loaded into TodoWrite. Run /gsd discuss when ready."
+"Slice 1 is proposed for Milestone 1. Open handoff.md before /gsd plan-milestone;
+ no .gsd/ files were changed."
 ```
 
 ```
